@@ -1,0 +1,1147 @@
+function onload()
+
+  -- Global variables --
+
+  -- Global game mode
+  gameMode = 0
+  -- 0 = timer off; 1 = timer on
+  timerOn = 1
+  -- 0 = RED; 1 = BLUE
+  turnTracker = 1
+
+  -- Illegal move tracking
+  updateTimer = 0
+  illegalMove = false
+
+  -- Debug
+  getObjectFromGUID("f85039").createButton({
+      label="PRINT DEBUG INFO", click_function="debugInfo", function_owner=self,
+      position={0,0.25,0}, height=1800, width=4000, font_size=340, rotation={0,0,0}
+  })
+
+  redColor = {0.856, 0.1, 0.094}
+  blueColor = {0.118, 0.53, 1}
+
+  codeLocations =
+  {
+    { -11.4, 1.03, 12.6 }, { -5.7, 1.03, 12.6 }, { 0, 1.03, 12.6 }, { 5.7, 1.03, 12.6 }, { 11.4, 1.03, 12.6 },
+    { -11.4, 1.03, 8.75 }, { -5.7, 1.03, 8.75 }, { 0, 1.03, 8.75 }, { 5.7, 1.03, 8.75 }, { 11.4, 1.03, 8.75 },
+    { -11.4, 1.03, 4.9  }, { -5.7, 1.03, 4.9  }, { 0, 1.03, 4.9  }, { 5.7, 1.03, 4.9  }, { 11.4, 1.03, 4.9  },
+    { -11.4, 1.03, 1.05 }, { -5.7, 1.03, 1.05 }, { 0, 1.03, 1.05 }, { 5.7, 1.03, 1.05 }, { 11.4, 1.03, 1.05 },
+    { -11.4, 1.03, -2.8 }, { -5.7, 1.03, -2.8 }, { 0, 1.03, -2.8 }, { 5.7, 1.03, -2.8 }, { 11.4, 1.03, -2.8 }
+  }
+
+  agentLocations =
+  {
+    -- Assassain
+    ['b97df2']={ 0.04, 2, -17.84 };
+    -- Blue agents
+    ['7fdaee']={ 12.34, 2, -13.97 }, ['99832c']={ 18.07, 2, -13.97 }, ['d9324a']={ 23.77, 2, -13.97 }, ['19b2d5']={ 29.47, 2, -13.97 },
+    ['0f0ec0']={ 12.34, 2, -17.8  }, ['d9054c']={ 18.07, 2, -17.8  }, ['4de840']={ 23.77, 2, -17.8  }, ['05c73d']={ 29.47, 2, -17.8  };
+    -- Red agents
+    ['b48ed4']={ -29.32, 2, -13.97 }, ['6bb4d8']={ -23.62, 2, -13.97 }, ['9cbe84']={ -17.92, 2, -13.97 }, ['746660']={ -12.22, 2, -13.97 },
+    ['4a2969']={ -29.32, 2, -17.8  }, ['e1754e']={ -23.62, 2, -17.8  }, ['b89ba7']={ -17.92, 2, -17.8  }, ['5c1be6']={ -12.22, 2, -17.8  };
+    -- Civialians
+    ['f6786b']={ -5.7, 2, -21.7 }, ['e44594']={ -5.7, 2, -17.84 }, ['1f53f2']={ -5.7, 2, -14 },
+    ['f8f6a1']={ 0.04, 2, -21.7 },
+    ['a05e4e']={ 5.74, 2, -21.7 }, ['1ebedd']={ 5.74, 2, -17.84 }, ['3d7b86']={ 5.74, 2, -14 };
+    -- Double agents
+    ['3b1be2']={ 0.04, 2, -14 };
+    ['a0d86a']={ 0.04, 3, -14 };
+  }
+
+  agentColors =
+  {
+    -- Assassain
+    ['b97df2'] = 'black',
+
+    -- Blue agents
+    ['7fdaee'] = 'blue',
+    ['99832c'] = 'blue',
+    ['d9324a'] = 'blue',
+    ['19b2d5'] = 'blue',
+    ['0f0ec0'] = 'blue',
+    ['d9054c'] = 'blue',
+    ['4de840'] = 'blue',
+    ['05c73d'] = 'blue',
+
+    -- Red agents
+    ['b48ed4'] = 'red',
+    ['6bb4d8'] = 'red',
+    ['9cbe84'] = 'red',
+    ['746660'] = 'red',
+    ['4a2969'] = 'red',
+    ['e1754e'] = 'red',
+    ['b89ba7'] = 'red',
+    ['5c1be6'] = 'red',
+
+    -- Civialians
+    ['f6786b'] = 'white',
+    ['e44594'] = 'white',
+    ['1f53f2'] = 'white',
+    ['f8f6a1'] = 'white',
+    ['a05e4e'] = 'white',
+    ['1ebedd'] = 'white',
+    ['3d7b86'] = 'white',
+
+    -- Double agents
+    ['3b1be2'] = 'blue',
+    ['a0d86a'] = 'red'
+  }
+
+  -- Tracks pickup locations of agents
+  agentTracker = {}
+
+  -- X, Z coordinates
+  keymap = {
+    [{x = -11.4, z = 12.6}] = '', [{x = -5.7, z = 12.6}] = '', [{x = 0, z = 12.6}] = '', [{x = 5.7, z = 12.6}] = '', [{x = 11.4, z = 12.6}] = '',
+    [{x = -11.4, z = 8.75}] = '', [{x = -5.7, z = 8.75}] = '', [{x = 0, z = 8.75}] = '', [{x = 5.7, z = 8.75}] = '', [{x = 11.4, z = 8.75}] = '',
+    [{x = -11.4, z = 4.9}] = '', [{x = -5.7, z = 4.9}] = '', [{x = 0, z = 4.9}] = '', [{x = 5.7, z = 4.9}] = '', [{x = 11.4, z = 4.9}] = '',
+    [{x = -11.4, z = 1.05}] = '', [{x = -5.7, z = 1.05}] = '', [{x = 0, z = 1.05}] = '', [{x = 5.7, z = 1.05}] = '', [{x = 11.4, z = 1.05}] = '',
+    [{x = -11.4, z = -2.8}] = '', [{x = -5.7, z = -2.8}] = '', [{x = 0, z = -2.8}] = '', [{x = 5.7, z = -2.8}] = '', [{x = 11.4, z = -2.8}] = ''
+  }
+  keymapIndex = {}
+  local keyIndex = 0
+  for pos,_ in pairs(keymap) do
+    keymapIndex[keyIndex] = pos
+    keyIndex = keyIndex + 1
+  end
+
+  timerToggle = getObjectFromGUID("956ed0")
+  timerToggle.createButton({
+  label="[Toggle Timer\nOn/Off]", click_function="toggletimer", function_owner=self,
+  position={0,-0.3,0}, rotation={0,0,0}, height=3000, width=6000, font_size=900
+  })
+
+  -- lights toggles
+  teamlights = 1
+  ambientlights = 1
+  ambient_bot = getObjectFromGUID("6fb111")
+  ambient_bot.interactable = true
+  ambient_top = getObjectFromGUID("05032c")
+  ambient_top.interactable = true
+  teams_red = getObjectFromGUID("a1b2cd")
+  teams_red.interactable = true
+  teams_blue = getObjectFromGUID("6072b1")
+  teams_blue.interactable = true
+
+  lightToggle = getObjectFromGUID("863168")
+  lightToggle.createButton({
+      label="[1]", click_function="toggleTeams", function_owner=self,
+      position={-2.5,-0.3,2.2}, height=1800, width=1800, font_size=340, rotation={0,0,0}
+  })
+
+  lightToggle.createButton({
+      label="[2]", click_function="toggleAmbi", function_owner=self,
+      position={2.5,-0.3,2.2}, height=1800, width=1800, font_size=340, rotation={0,0,0}
+  })
+
+  buttonHandler = getObjectFromGUID("ec0882")
+  buttonHandler.createButton({
+      label="Vanilla\nCodenames", click_function="resetVanilla", function_owner=self,
+      position={-5.5,0.2,-3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="Haniis\nCodenames", click_function="resetHanii", function_owner=self,
+      position={-5.5,0.2,0}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="CHRYs\nCodenames", click_function="resetCHRY", function_owner=self,
+      position={-1.5,0.2,-3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="Codenames:\nUndercover", click_function="resetUndercover", function_owner=self,
+      position={-1.5,0.2,0}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="New Game\n(Reset)", click_function="newGame", function_owner=self,
+      position={4,0.2,-3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="Shuffle\nKeymap", click_function="shuffleKeymap", function_owner=self,
+      position={4,0.2,0}, height=1200, width=3200, font_size=400, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
+      label="Reset\nClues", click_function="resetclueposition", function_owner=self,
+      position={4,0.2,3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
+  })
+  deckVanilla = getObjectFromGUID("dd1e32")
+  deckHanii = getObjectFromGUID("8aa1b7")
+  deckCHRY = getObjectFromGUID("c47828")
+  deckUndercover = getObjectFromGUID("75f2cc")
+  deckVanilla.interactable = true
+  deckHanii.interactable = true
+  deckCHRY.interactable = true
+  deckUndercover.interactable = true
+
+  clueMaker9000 = getObjectFromGUID("f40f06")
+  clueMaker9000.interactable = true
+
+  deckZone = getObjectFromGUID("33d9ff")
+
+  deckDealer = getObjectFromGUID("27d226")
+
+  zoneToClear = getObjectFromGUID("f71f4c")
+  clueZone = getObjectFromGUID("f71f4c")
+
+  buttonRed = getObjectFromGUID("f16a9a")
+  buttonBlu = getObjectFromGUID("c91f34")
+  buttonTeams = getObjectFromGUID("8a85e8")
+  buttonTeams.interactable = true
+  buttonTeams.setRotation( {0, 180, 180} )
+  buttonTeams.setPosition ( {20.7, 2, 17.94} )
+  clockTimer = getObjectFromGUID("0b1336")
+
+  -- CDPictures section
+  ptilesBag = getObjectFromGUID("e0e696")
+  wtilesBag = getObjectFromGUID("a64f68")
+  tileZone = getObjectFromGUID("06b292")
+
+  buttonBlu.createButton({
+  label="[END TURN]", click_function="endTurn", function_owner=self,
+  position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
+})
+
+	buttonRed.createButton({
+  label="[END TURN]", click_function="endTurn", function_owner=self,
+    position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
+})
+
+  -- red clue encoder
+  cluemaker = getObjectFromGUID("6268fc")
+  cluemaker.interactable = true
+  tokenbagR = getObjectFromGUID("5cc2bd")
+  tokenbagR.interactable = true
+  cluemaker_button = getObjectFromGUID("ecd8d2")
+  cluemaker_button.createButton({
+      label="Encode Clue", click_function="findByDistance",
+      function_owner=self, position={0,-0.2,0},  position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
+  })
+  redcluezone = getObjectFromGUID("8d4638")
+  blucluezone = getObjectFromGUID("61948c")
+
+  -- blue clue encoder
+  cluemakerB = getObjectFromGUID("c8b06a")
+  cluemakerB.interactable = true
+  tokenbagB = getObjectFromGUID("9040ee")
+  tokenbagB.interactable = true
+  cluemaker_buttonB = getObjectFromGUID("917a4f")
+  cluemaker_buttonB.createButton({
+      label="Encode Clue", click_function="findByDistanceB",
+      function_owner=self, position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
+  })
+
+  tokenposition_red = 12.00
+  tokenposition_blu = 12.00
+end
+
+function delete3Dtext()
+  local allObjects = getAllObjects()
+  for _, object in ipairs(allObjects) do
+    if object.tag == "3D Text" then
+      object.destruct()
+    end
+  end
+end
+
+function rotateclues()
+  local objectsInZone = clueZone.getObjects()
+  for i, object in ipairs(objectsInZone) do
+    local tag = object.tag
+    if tag =="Card" then
+      object.setRotation({0, 180, 0})
+    end
+  end
+end
+
+
+function resetclueposition()
+  deleteclues()
+  tokenposition_red = 12.00
+  tokenposition_blu = 12.00
+  print("Scripted clues have been reset")
+end
+
+function encodeClue()
+  local cluebag = getObjectFromGUID("5cc2bd")
+  local pos = cluemaker.getPosition()
+  cluebag.takeObject({
+    position={pos['x'], pos['y']+1, pos['z']}, rotation={0,180,0}, smooth=false
+  })
+end
+
+function waitforcluetile()
+  Timer.destroy("waitforcluetile")
+  Timer.create({identifier="waitforcluetile", function_name='findClue', delay=0})
+end
+
+function findByDistance(o, color)
+  if color=="Blue" or color=="Red" then
+  local allObjects = getAllObjects()
+  local cluetool = getObjectFromGUID("9bb7e6")
+  for _, object in ipairs(allObjects) do
+    if object.tag == "3D Text" then
+      local distance = findProximity(cluetool.getPosition(), object)
+      if distance <= 18 then
+        local clue = object.getValue()
+        cluemaker.setName(clue)
+        object.destruct()
+        encodeClue()
+        waitforcluetile()
+        cluemaker_button.AssetBundle.playTriggerEffect(0)
+      end
+    end
+  end
+  end
+end
+
+--Used by findByDistance
+function findProximity(targetPos, object)
+    local objectPos = object.getPosition()
+    local xDistance = math.abs(targetPos.x - objectPos.x)
+    local zDistance = math.abs(targetPos.z - objectPos.z)
+    local distance = xDistance^4 + zDistance^2
+    return math.sqrt(distance)
+end
+
+function findClue(o, color, steamid)
+    local name = cluemaker.getName()
+    local allObjects = getAllObjects()
+    local toolPos = cluemaker.getPosition()
+    local toolPosX = toolPos.x
+    local toolPosZ = toolPos.z
+    for i, v in pairs(allObjects) do
+        if v.tag == "Board" then
+            local vPos = v.getPosition()
+            local vPosX = vPos.x
+            local vPosZ = vPos.z
+            local dX = toolPosX - vPosX
+            local dZ = toolPosZ - vPosZ
+            if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
+              if v.getDescription() == "ClueMaker9000" then
+                -- do nothing
+                else
+              v.setName(name)
+              v.editButton({index=0, label=name, font_size=1800})
+              v.setPosition({-21.05, 1.5, tokenposition_red})
+              printToAll(name, {1,0.1,0.1})
+              end
+            end
+        end
+    end
+    tokenposition_red = tokenposition_red - 2.05
+end
+
+-- blue clue encoder
+function encodeClueB()
+  local cluebag = getObjectFromGUID("9040ee")
+  local pos = cluemakerB.getPosition()
+  cluebag.takeObject({
+    position={pos['x'], pos['y']+1, pos['z']}, rotation={0,180,0}, smooth=false
+  })
+end
+
+function waitforcluetileB()
+  Timer.destroy("waitforcluetileB")
+  Timer.create({identifier="waitforcluetileB", function_name='findClueB', delay=0})
+end
+
+function findByDistanceB(o, color)
+  if color=="Blue" or color=="Red" then
+  local allObjects = getAllObjects()
+  local cluetool = getObjectFromGUID("e68f98")
+  for _, object in ipairs(allObjects) do
+    if object.tag == "3D Text" then
+      local distance = findProximity(cluetool.getPosition(), object)
+      if distance <= 18 then
+        local clue = object.getValue()
+        cluemakerB.setName(clue)
+        object.destruct()
+        encodeClueB()
+        waitforcluetileB()
+        cluemaker_buttonB.AssetBundle.playTriggerEffect(0)
+      end
+    end
+  end
+  end
+end
+
+function findClueB(o, color, steamid)
+    local name = cluemakerB.getName()
+    local allObjects = getAllObjects()
+    local toolPos = cluemakerB.getPosition()
+    local toolPosX = toolPos.x
+    local toolPosZ = toolPos.z
+    for i, v in pairs(allObjects) do
+        if v.tag == "Board" then
+            local vPos = v.getPosition()
+            local vPosX = vPos.x
+            local vPosZ = vPos.z
+            local dX = toolPosX - vPosX
+            local dZ = toolPosZ - vPosZ
+            if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
+              if v.getDescription() == "ClueMaker9000" then
+                -- do nothing
+                else
+              v.setName(name)
+              v.editButton({index=0, label=name, font_size=2000})
+              v.setPosition({20.85, 1.5, tokenposition_blu})
+              printToAll(name, {0.1,0.1,1})
+              end
+            end
+        end
+    end
+    tokenposition_blu = tokenposition_blu - 2.05
+end
+
+function toggleAmbi()
+  if ambientlights == 1 then
+
+    ambientlights = 0
+
+    ambient_bot.setPositionSmooth({0, -35, -26})
+    ambient_top.setPositionSmooth({0, -35, 26})
+
+  elseif ambientlights == 0 then
+
+    ambientlights = 1
+
+    ambient_bot.setPositionSmooth({0, 4.68, -26})
+    ambient_top.setPositionSmooth({0, 4.68, 26})
+
+  end
+end
+
+function toggleTeams()
+  if teamlights == 1 then
+
+    teamlights = 0
+
+    teams_red.setPositionSmooth({-44, -35, 0})
+    teams_blue.setPositionSmooth({44, -35, 0})
+  elseif teamlights == 0 then
+
+    teamlights = 1
+
+    teams_red.setPositionSmooth({-44, 4.68, 0})
+    teams_blue.setPositionSmooth({44, 4.68, 0})
+
+  end
+end
+
+function toggletimer()
+  if timerOn == 0 then
+    clockTimer.setValue(300)
+    timerOn = 1
+    printToAll("Timer Enabled", {1,1,1})
+    clockTimer.Clock.pauseStart()
+  elseif timerOn == 1 then
+    timerOn = 0
+    clockTimer.setValue(0)
+    printToAll("Timer Disabled", {1,1,1})
+  end
+end
+
+function getClueTiles()
+  deleteclues()
+  getredclues()
+  getbluclues()
+  waitfortokens()
+end
+
+function waitfortokens()
+  Timer.destroy("waitforclues")
+  Timer.create({identifier="waitforclues", function_name='lockclues', delay=2})
+end
+
+
+function getredclues()
+  local cluetiles_parameters = {}
+  cluetiles_parameters.rotation = {180, 0, 180}
+  local x_base = -21.06
+  local y_base = 1.05
+  local z_base = -2.52
+  local z_step = 2.1
+  for i=1, 8 do
+  local x = x_base
+  local y = y_base
+  local z = z_base + z_step *(i%8)
+  cluetiles_parameters.position = {x, y, z}
+  redcluebag.takeObject(cluetiles_parameters)
+  end
+end
+
+function getbluclues()
+  local cluetiles_parameters = {}
+  cluetiles_parameters.rotation = {180, 0, 180}
+  local x_base = 20.8
+  local y_base = 1.05
+  local z_base = -2.52
+  local z_step = 2.1
+  for i=1, 8 do
+  local x = x_base
+  local y = y_base
+  local z = z_base + z_step *(i%8)
+  cluetiles_parameters.position = {x, y, z}
+  blucluebag.takeObject(cluetiles_parameters)
+  end
+end
+
+function lockclues()
+  local tilesInZone = blucluezone.getObjects()
+  for i,v in ipairs(tilesInZone) do
+      v.lock()
+  end
+
+  local tilesInZone2 = redcluezone.getObjects()
+  for i,v in ipairs(tilesInZone2) do
+      v.lock()
+  end
+end
+
+function deleteclues()
+  local tilesInZone = blucluezone.getObjects()
+  for i,v in ipairs(tilesInZone) do
+      v.destruct()
+  end
+
+  local tilesInZone2 = redcluezone.getObjects()
+  for i,v in ipairs(tilesInZone2) do
+      v.destruct()
+  end
+end
+
+function onPlayerChangedColor(color)
+  if color =="Red" or color =="Blue" then
+    Player[color].team ="Hearts"
+  elseif color == "Grey" then
+    local spectators = Player.getSpectators()
+    for _,spec in ipairs(spectators) do
+      if spec.team != "None" then
+        spec.team = "None"
+      end
+    end
+  else
+    if Player[color].team != "None" then
+      Player[color].team ="None"
+    end
+  end
+
+  -- Tell players which team they are on
+  if color =="Red" or color =="Orange" or color =="Yellow" or color =="Pink" or color =="Brown" then
+    Player[color].broadcast("You are team RED.", {0.856, 0.1, 0.094})
+  elseif color == "Blue" or color =="Teal" or color =="Purple" or color =="Green" or color =="White" then
+    Player[color].broadcast("You are team BLUE.", {0.118, 0.53, 1})
+  end
+end
+
+function startTime()
+  clockTimer.setValue(300)
+  clockTimer.Clock.pauseStart()
+end
+
+-- Deck fetching
+function obtainVanilla()
+  deckVanilla.takeObject({
+    position=deckZone.getPosition(), rotation={0,180,180},
+  })
+end
+function obtainHanii()
+  deckHanii.takeObject({
+    position=deckZone.getPosition(), rotation={0,180,180},
+  })
+end
+function obtainCHRY()
+  deckCHRY.takeObject({
+    position=deckZone.getPosition(), rotation={0,180,180},
+  })
+end
+function obtainPictures()
+  deckPictures.takeObject({
+    position=deckZone.getPosition(), rotation={0,180,180},
+  })
+end
+function obtainUndercover()
+  deckUndercover.takeObject({
+    position=deckZone.getPosition(), rotation={0,180,180},
+  })
+end
+
+-- Clear decks from dealer zone
+function clearDeckZone(deckZone)
+  local objectsInZone = deckZone.getObjects()
+  for i, object in ipairs(objectsInZone) do
+  local tag = object.tag
+  if tag =="Deck" then
+    destroyObject(object)
+  end
+end
+end
+
+-- Call functions get deck + clear deckZone
+function resetVanilla(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  obtainVanilla()
+  clearDeckZone(deckZone)
+  else
+  end
+end
+
+function resetHanii(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  obtainHanii()
+  clearDeckZone(deckZone)
+  else
+  end
+end
+
+function resetCHRY(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  obtainCHRY()
+  clearDeckZone(deckZone)
+  else
+  end
+end
+
+function resetPictures(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  obtainPictures()
+  clearDeckZone(deckZone)
+  else
+  end
+end
+
+function resetUndercover(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  obtainUndercover()
+  clearDeckZone(deckZone)
+  else
+  end
+end
+
+-- Restrict newGame permissions to Black/Promoted/Host
+function newGame(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+    findDeck()
+    resetclueposition()
+    delete3Dtext()
+  else
+  end
+end
+
+-- Find deck on top of deck dealer
+function findDeck()
+    local allObjects = getAllObjects()
+    local toolPos = deckDealer.getPosition()
+    local toolPosX = toolPos.x
+    local toolPosZ = toolPos.z
+    for i, v in pairs(allObjects) do
+        if v.tag == "Deck" then
+            local vPos = v.getPosition()
+            local vPosX = vPos.x
+            local vPosZ = vPos.z
+            local dX = toolPosX - vPosX
+            local dZ = toolPosZ - vPosZ
+            if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
+                clearZone(zoneToClear)
+                dealCards(v)
+                reset_keymap()
+                reset_agentLocations()
+            end
+        end
+    end
+end
+
+-- Deals out cards from deck dealer
+function dealCards(deck)
+      deck.shuffle()
+      local draw_parameters = {}
+      draw_parameters.rotation = {0, 180, 0}
+      draw_parameters.flip = true
+      draw_parameters.top = true
+
+      for i, pos in ipairs(codeLocations) do
+          draw_parameters.position = pos
+          deck.takeObject(draw_parameters)
+    end
+end
+
+-- Zone clearing
+function clearZone(zoneToClear)
+  local objectsInZone = zoneToClear.getObjects()
+  for i, object in ipairs(objectsInZone) do
+  local tag = object.tag
+  if tag =="Card" then
+    destroyObject(object)
+  end
+end
+end
+
+function shuffleKeymap(o, color)
+  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+    reset_keymap()
+  else
+  end
+end
+
+function does_table_have_key( passed_table, passed_key )
+-- checks for something in the keys (NOT the values) of a table
+
+    for key,_ in pairs (passed_table) do
+        if key == passed_key then
+            return true
+        end
+    end
+    return false
+
+end
+
+-- Reset the keymap
+function reset_keymap()
+    local keymap_blue = getObjectFromGUID('65241e')
+    local keymap_red = getObjectFromGUID('2ae07d')
+    local keymaps = { keymap_blue, keymap_red }
+
+    -- blue goes first = 1, red = 2
+    first_random = math.random(2)
+
+    -- put unused keymaps away under the table
+    keymap_blue.lock()
+    keymap_blue.setRotation( { 0, 0, 0 } )
+    keymap_blue.setPosition( { 4, -0.1, 32.4 } )
+    keymap_red.lock()
+    keymap_red.setRotation( { 0, 0, 0 } )
+    keymap_red.setPosition( { -4, -0.1, 32.4 } )
+
+    -- put the keymap corresponding to the first turn team into position
+    keymaps[first_random].setRotation( { 0, 0, 0 } )
+    keymaps[first_random].setPosition( { 0, 1, -8.4 } )
+
+
+    local keytile_GUIDs = { 'c7714b', 'c9ec6d', 'edd6a9', '67bb78', '53ea7a', '05e6cf', '03914a', 'e9fbf9', '50a4b1', '181f86', '94bac7', 'c68ce5', '40ca87', 'ad6ced', '29164d', '707d2b', 'e24dad', 'b64b2f', '77f492', '1ee4bf', '5b8638', 'a90289', 'a54e5b', 'd417b5', '6cb9ba' }
+
+    local keytileColors = {
+      -- Red keytiles
+      ['ad6ced'] = 'red',
+      ['c68ce5'] = 'red',
+      ['e24dad'] = 'red',
+      ['40ca87'] = 'red',
+      ['181f86'] = 'red',
+      ['94bac7'] = 'red',
+      ['29164d'] = 'red',
+      ['707d2b'] = 'red',
+
+      -- Blue keytiles
+      ['05e6cf'] = 'blue',
+      ['edd6a9'] = 'blue',
+      ['03914a'] = 'blue',
+      ['67bb78'] = 'blue',
+      ['53ea7a'] = 'blue',
+      ['c9ec6d'] = 'blue',
+      ['e9fbf9'] = 'blue',
+      ['50a4b1'] = 'blue',
+
+      -- White keytiles
+      ['a54e5b'] = 'white',
+      ['1ee4bf'] = 'white',
+      ['b64b2f'] = 'white',
+      ['d417b5'] = 'white',
+      ['5b8638'] = 'white',
+      ['a90289'] = 'white',
+      ['77f492'] = 'white',
+
+      -- Black keytile
+      ['c7714b'] = 'black'
+
+      -- Red/Blue keytile
+      --['6cb9ba'] = 'redblue'
+    }
+
+    -- tile positions on grid are
+    -- ~ x = { -2, -1, 0, 1, 2 }
+    -- ~ y = 1.23689770698547
+    -- ~ z = { -6.4, -7.4, -8.4, -9.4, -10.4 }
+    local x_base = -2
+    local x_step = 1
+    local z_base = -6.4
+    local z_step = 1
+    local random_list = shuffle_table({1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25})
+    for i = 0, 24, 1 do
+        local current_keytile = getObjectFromGUID(keytile_GUIDs[random_list[i+1]])
+        local x = x_base  +  x_step * (i%5)
+        local y = 1.23689770698547
+        local z = z_base  -  z_step * math.floor(i/5)
+        if current_keytile.guid == "6cb9ba" then
+          -- This is the red/blue keytile set based on calculated first_random
+          if first_random == 1 then
+            -- Blue goes first
+            keymap[keymapIndex[i]] = 'blue'
+            turnTracker = 1
+          else
+            -- Value is 2 and red goes first
+            keymap[keymapIndex[i]] = 'red'
+            turnTracker = 0
+          end
+        else
+          keymap[keymapIndex[i]] = keytileColors[current_keytile.guid]
+        end
+        current_keytile.lock()
+        current_keytile.setRotation( {0,0,0} )
+        current_keytile.setPosition( {x,y,z} )
+    end
+
+    -- flip the extra tile blue side if blue goes first
+    if first_random == 1 then
+        local double_tile = getObjectFromGUID('6cb9ba')
+        double_tile.setRotation( {0, 0, 180 } )
+        -- move it upwards by its own depth because flipping changes position
+        local double_tile_position = double_tile.getPosition()
+        double_tile.setPosition({double_tile_position.x, double_tile_position.y+0.1, double_tile_position.z })
+    end
+    setDoubleTimer()
+end
+
+function shuffle_table( passed_table )
+-- fisher-yates shuffle
+
+    for current_index = #passed_table, 1, -1 do
+        local swap_index = math.random(#passed_table)
+        passed_table[current_index], passed_table[swap_index] = passed_table[swap_index], passed_table[current_index]
+    end
+    return passed_table
+
+end
+
+
+function setDoubleTimer()
+  Timer.destroy("waitfortilereset")
+  Timer.create({identifier="waitfortilereset", function_name='setDouble', delay=2})
+end
+
+function setDouble()
+  -- flip the extra tile blue side if blue goes first
+  local whichcard = 1 -- 1 is blue, 2 is red
+  local doublezone = getObjectFromGUID("188864")
+  local tilesInZone = doublezone.getObjects()
+  for i,v in ipairs(tilesInZone) do
+    if v.getDescription() =="Blue" then
+      whichcard = 1
+    elseif v.getDescription() =="Red" then
+      whichcard = 2
+    elseif v.getName() =="Picture" and v.getDescription() =="Red" then
+      whichcard = 3
+    elseif v.getName() =="Picture" and v.getDescription() =="Blue" then
+      whichcard = 4
+    end
+  end
+
+  if first_random == 1 and whichcard == 1 then
+    buttonTeams.setRotation( {0, 180, 180})
+    buttonTeams.setPosition( {20.7, 2, 17.94} )
+     printToAll("Team Blue's turn", {0.1,0.1,1})
+    elseif first_random == 2 and whichcard == 1 then
+      doubleToRed()
+      buttonTeams.setRotation( {0, 180, 0})
+      buttonTeams.setPosition( {-20.7, 2, 17.94} )
+       printToAll("Team Red's turn.", {1,0.1,0.1})
+    elseif first_random == 2 and whichcard == 2 then
+      buttonTeams.setRotation( {0, 180, 0})
+      buttonTeams.setPosition( {-20.7, 2, 17.94} )
+       printToAll("Team Red's turn.", {1,0.1,0.1})
+    elseif first_random == 1 and whichcard == 2 then
+      doubleToBlue()
+      buttonTeams.setRotation( {0, 180, 180})
+      buttonTeams.setPosition( {20.7, 2, 17.94} )
+       printToAll("Team Blue's turn", {0.1,0.1,1})
+    elseif first_random == 1 and whichcard == 3 then
+      -- nothing (yet)
+    end
+    -- Set the initial timer to 600 seconds (10 minutes)
+    clockTimer.setValue(600)
+    clockTimer.Clock.pauseStart()
+    gameMode = 1
+end
+
+function doubleToRed()
+  local double_tile = getObjectFromGUID('3b1be2')
+  double_tile.setState(2)
+end
+
+function doubleToBlue()
+  local double_tile2 = getObjectFromGUID("a0d86a")
+  double_tile2.setState(1)
+end
+
+
+
+function shuffle_table( passed_table )
+-- fisher-yates shuffle
+
+    for current_index = #passed_table, 1, -1 do
+        local swap_index = math.random(#passed_table)
+        passed_table[current_index], passed_table[swap_index] = passed_table[swap_index], passed_table[current_index]
+    end
+    return passed_table
+
+end
+function reset_agentLocations()
+
+-- resets the agent cards to their start positions
+    for card_GUID,placement in pairs(agentLocations) do
+        local card_object = getObjectFromGUID(card_GUID)
+        if card_object then -- do not try to work with the uninstantiated card if it can't be found
+            card_object.setPosition(placement)
+            card_object.setRotation({0,180,180})
+            card_object.unlock()
+            card_object.interactable = true
+        end
+    end
+end
+
+function onObjectDrop(color, object)
+  -- Only correct rotations when agent cards are dropped
+  local isCard = false
+  for i,_ in pairs(agentLocations) do
+    if i == object.guid then
+      isCard = true
+    end
+  end
+
+  if isCard == false then
+    return
+  end
+
+  local clues = clueZone.getObjects()
+  local position = object.getPosition()
+  local cardX = position.x
+  local cardZ = position.z
+  for i, v in pairs(clues) do
+    local vPos = v.getPosition()
+    local vPosX = vPos.x
+    local vPosZ = vPos.z
+    local dX = cardX - vPosX
+    local dZ = cardZ - vPosZ
+    if v.guid != object.guid and v.tag == "Card" and dX<1 and dX>-1 and dZ<1 and dZ>-1 then
+      -- Orient cards properly
+      v.setRotationSmooth({0, 180, 0})
+      object.setRotationSmooth({0, 180, 180})
+
+      -- Check to see if the agent card was placed correctly, but only if placed by blue or red
+      if color == "Red" or color == "Blue" then
+        local checkPosition = v.getPosition()
+        local correct = checkLocation({x = checkPosition.x, z = checkPosition.z})
+        local placed
+        for guid, agtColor in pairs(agentColors) do
+          if guid == object.guid then
+            placed = agtColor
+            break
+          end
+        end
+
+        if correct == placed then
+          -- Card was placed correctly
+          v.interactable = false
+          object.interactable = false
+          -- Four scenarios:
+          -- 1) white - done
+          -- 2) opposite color - done
+          -- 3) Black
+          -- 4) Correct
+          -- If card is white, or card is of the opposite color, then toggle toggleTurns
+          -- 0 = RED; 1 = BLUE
+          if correct == "white" or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
+            toggleTurns()
+          elseif correct == "black" then
+            -- End game scenario
+            --endGame()
+          end
+        else
+          -- Card was placed incorrectly
+          illegalMove = true
+        end
+      else
+        -- Move the placed card back to its original position
+        object.setPositionSmooth(agentTracker[object.guid])
+      end
+    end
+  end
+end
+
+function isAgentAtLocation(position)
+
+
+
+end
+
+function onObjectPickUp(color, object)
+  -- Clues
+  if object.tag == "Card" then
+    local clues = clueZone.getObjects()
+    local position = object.getPosition()
+    for i, v in pairs(clues) do
+      if v.guid == object.guid and v.tag == "Card" then
+        -- Prevent picking up of clue cards
+        --object.reload()
+      end
+    end
+  elseif object.tag == "Tile" and agentLocations[object.guid] != nil then
+    -- Track the original locations of the tiles
+    local tileZoneObj = tileZone.getObjects()
+    for _, obj in pairs(tileZoneObj) do
+      if obj.guid == object.guid then
+        agentTracker[object.guid] = object.getPosition()
+      end
+    end
+
+    -- Prevent picking up of agent tiles from anyone but red or blue
+    if color != "Blue" and color != "Red" then
+      for guid,_ in pairs(agentLocations) do
+        if guid == object.guid then
+          --object.reload()
+        end
+      end
+    end
+  end
+
+  -- Agent dealCards
+  if illegalMove == true and object.tag == "Tile" and agentColors[object.guid] != nil then
+    -- Only check entire board if an error condition exists
+    local boardIsCorrect = true
+    local placedTiles = clueZone.getObjects()
+    for _, v in pairs(placedTiles) do
+      if v.guid != object.guid and v.tag == "Tile" and agentLocations[v.guid] != nil then
+        local agtPos = v.getPosition();
+        if checkLocation({x = agtPos.x, z = agtPos.z}) != agentColors[v.guid] then
+          boardIsCorrect = false;
+        end
+      end
+    end
+    if boardIsCorrect == true then
+      illegalMove = false
+    end
+  end
+end
+
+function endGame()
+
+
+
+end
+
+function onUpdate()
+  -- Check for clock rundown if timer is enabled
+  if gameMode == 1 and timerOn == 1 and illegalMove == false then
+    if clockTimer.getValue() == 0 then
+      -- Switch turns
+      toggleTurns()
+    end
+  end
+
+  -- Notify codemasters of illegal move
+  if illegalMove == true then
+    if updateTimer == 100 then
+      Player["Blue"].broadcast("A card has been placed incorrectly. Please correct it before ending your turn.", redColor)
+      Player["Red"].broadcast("A card has been placed incorrectly. Please correct it before ending your turn.", redColor)
+      updateTimer = 0
+    else
+      updateTimer = updateTimer + 1
+    end
+  end
+end
+
+function checkLocation(position)
+  for pos,color in pairs(keymap) do
+    if pos.x == round(position.x, 2) and pos.z == round(position.z, 2) then
+      return color
+    end
+  end
+end
+
+function round(exact, precision)
+   return math.floor(exact*math.pow(10,precision)+0.5) / math.pow(10,precision)
+end
+
+function toggleTurns()
+  -- Red team plaque position and rotation
+  local redPos = {-20.7, 2, 17.94}
+  local redRot = {0, 180, 0}
+
+  -- Blue team plaque position and rotation
+  local bluePos = {20.7, 2, 17.94}
+  local blueRot = {0, 180, 180}
+
+  if turnTracker == 0 then
+    -- Red team's turn ends, switch to blue team
+    turnTracker = 1
+    buttonRed.AssetBundle.playTriggerEffect(0)
+    buttonTeams.setRotation(blueRot)
+    buttonTeams.setPosition(bluePos)
+    printToAll("Team Blue's turn.", blueColor)
+  else
+    -- Blue team's turn ends, switch to red team
+    turnTracker = 0
+    buttonBlu.AssetBundle.playTriggerEffect(0)
+    buttonTeams.setRotation(redRot)
+    buttonTeams.setPosition(redPos)
+    printToAll("Team Red's turn.", redColor)
+  end
+
+  if timerOn == 1 then
+    startTime()
+    rotateclues()
+  end
+end
+
+function endTurn(button, color)
+  if color == "Red" or color == "Blue" then
+    if illegalMove == false then
+      -- Red team plaque position and rotation
+      local redPos = {-20.7, 2, 17.94}
+      local redRot = {0, 180, 0}
+
+      -- Blue teamW plaque position and rotation
+      local bluePos = {20.7, 2, 17.94}
+      local blueRot = {0, 180, 180}
+
+      -- Is it the current side's turn?
+      if turnTracker == 0 and button.guid == buttonBlu.guid or turnTracker == 1 and button.guid == buttonRed.guid then
+        --Player[color].print("It's not your turn!")
+        return
+      end
+
+      if turnTracker == 0 then
+        -- Red team's turn ends, switch to blue team
+        turnTracker = 1
+        buttonRed.AssetBundle.playTriggerEffect(0)
+        buttonTeams.setRotation(blueRot)
+        buttonTeams.setPosition(bluePos)
+        printToAll("Team Blue's turn.", blueColor)
+      else
+        -- Blue team's turn ends, switch to red team
+        turnTracker = 0
+        buttonBlu.AssetBundle.playTriggerEffect(0)
+        buttonTeams.setRotation(redRot)
+        buttonTeams.setPosition(redPos)
+        printToAll("Team Red's turn.", redColor)
+      end
+
+      if timerOn == 1 then
+        startTime()
+        rotateclues()
+      end
+    else
+      -- Notify the person trying to end the turn that there are cards incorrectly placed on the board
+      Player[color].broadcast("Please fix the incorrectly placed agent cards before ending your turn.", redColor)
+    end
+  end
+end
+
+function debugInfo()
+  print()
+  print("-----[ Game Information ]-----")
+  print("gameMode=" .. gameMode)
+  print("timerOn=" .. timerOn)
+  print("turnTracker=" .. turnTracker)
+  print("illegalMove=" .. tostring(illegalMove))
+  print()
+end
