@@ -34,7 +34,7 @@ function onload()
   illegalMove = false
 
   -- Debug
-  getObjectFromGUID("ec0882").createButton({
+  getObjectFromGUID("f85039").createButton({
       label="PRINT DEBUG INFO", click_function="debugInfo", function_owner=self,
       position={0,0.25,0}, height=1800, width=4000, font_size=340, rotation={0,0,0}
   })
@@ -118,7 +118,6 @@ function onload()
   -- Tracks correct answers
   correctTracker = {}
   
-  -- RG -04/17/18 Issue#4
   cardsInPlayArea = {}
 
   -- X, Z coordinates
@@ -703,7 +702,7 @@ function findDeck()
             local dZ = toolPosZ - vPosZ
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
                 clearZone(zoneToClear)
-                dealCards(v)	 
+                dealCards(v)
                 reset_keymap()
                 reset_agentLocations()
             end
@@ -722,8 +721,7 @@ function dealCards(deck)
       for i, pos in ipairs(codeLocations) do
           draw_parameters.position = pos
           local c = deck.takeObject(draw_parameters)
-		  -- RG -04/17/18 Issue#4
-		  cardsInPlayArea[i] = c
+	  cardsInPlayArea[i] = c
           local cPos = c.getPosition()
           c.setLuaScript(
             "function onLoad()\n"
@@ -1151,12 +1149,11 @@ function onObjectPickUp(color, object)
     for i, v in pairs(clues) do
       if v.guid == object.guid and v.tag == "Card" then
         -- Prevent picking up of codes    
-		-- RG -04/17/18 Issue#4
-		for j, cardInPlayArea in pairs(cardsInPlayArea) do
-		 if cardInPlayArea.guid == object.guid then
-		   object.reload()
-		  end
-	    end
+	for j, cardInPlayArea in pairs(cardsInPlayArea) do
+	   if cardInPlayArea.guid == object.guid then
+	    object.reload()
+  	  end
+    	end
       end
     end
   elseif object.tag == "Tile" and agentLocations[object.guid] != nil then
