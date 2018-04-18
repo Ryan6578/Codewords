@@ -676,7 +676,7 @@ end
 
 -- Restrict newGame permissions to Black/Promoted/Host
 function newGame(o, color)
-  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     findDeck()
     resetclueposition()
     delete3Dtext()
