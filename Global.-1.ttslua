@@ -1149,13 +1149,13 @@ function onObjectPickUp(color, object)
     for i, v in pairs(clues) do
       if v.guid == object.guid and v.tag == "Card" then
         -- Prevent picking up of codes    
-	for j, cardInPlayArea in pairs(cardsInPlayArea) do
-	   if cardInPlayArea.guid == object.guid then
-	    object.reload()
-  	  end
-    	end
+      for j, cardInPlayArea in pairs(cardsInPlayArea) do
+        if cardInPlayArea.guid == object.guid then
+          object.reload()
+        end
       end
     end
+  end
   elseif object.tag == "Tile" and agentLocations[object.guid] != nil then
     -- Track the original locations of the tiles
     local tileZoneObj = tileZone.getObjects()
