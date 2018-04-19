@@ -117,6 +117,8 @@ function onload()
 
   -- Tracks correct answers
   correctTracker = {}
+  
+  cardsInPlayArea = {}
 
   -- X, Z coordinates
   keymap = {
@@ -690,6 +692,7 @@ function findDeck()
     local toolPos = deckDealer.getPosition()
     local toolPosX = toolPos.x
     local toolPosZ = toolPos.z
+	
     for i, v in pairs(allObjects) do
         if v.tag == "Deck" then
             local vPos = v.getPosition()
@@ -718,6 +721,7 @@ function dealCards(deck)
       for i, pos in ipairs(codeLocations) do
           draw_parameters.position = pos
           local c = deck.takeObject(draw_parameters)
+	  cardsInPlayArea[i] = c
           local cPos = c.getPosition()
           c.setLuaScript(
             "function onLoad()\n"
@@ -1144,8 +1148,13 @@ function onObjectPickUp(color, object)
     local position = object.getPosition()
     for i, v in pairs(clues) do
       if v.guid == object.guid and v.tag == "Card" then
-        -- Prevent picking up of codes
-        object.reload()
+        -- Prevent picking up of codes    
+        for j, cardInPlayArea in pairs(cardsInPlayArea) do
+          if cardInPlayArea.guid == object.guid then
+            object.reload()
+            break
+          end
+        end
       end
     end
   elseif object.tag == "Tile" and agentLocations[object.guid] != nil then
