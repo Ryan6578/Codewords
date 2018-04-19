@@ -1152,6 +1152,7 @@ function onObjectPickUp(color, object)
       for j, cardInPlayArea in pairs(cardsInPlayArea) do
         if cardInPlayArea.guid == object.guid then
           object.reload()
+	  break
         end
       end
     end
