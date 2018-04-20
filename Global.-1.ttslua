@@ -26,6 +26,8 @@ function onload()
   gameMode = 0
   -- 0 = timer off; 1 = timer on
   timerOn = 1
+  -- Timer warning variable
+  timerWarning = 0
   -- 0 = RED; 1 = BLUE
   turnTracker = 1
 
@@ -117,7 +119,7 @@ function onload()
 
   -- Tracks correct answers
   correctTracker = {}
-  
+
   cardsInPlayArea = {}
 
   -- X, Z coordinates
@@ -145,13 +147,13 @@ function onload()
   teamlights = 1
   ambientlights = 1
   ambient_bot = getObjectFromGUID("6fb111")
-  ambient_bot.interactable = true
+  ambient_bot.interactable = false
   ambient_top = getObjectFromGUID("05032c")
-  ambient_top.interactable = true
+  ambient_top.interactable = false
   teams_red = getObjectFromGUID("a1b2cd")
-  teams_red.interactable = true
+  teams_red.interactable = false
   teams_blue = getObjectFromGUID("6072b1")
-  teams_blue.interactable = true
+  teams_blue.interactable = false
 
   lightToggle = getObjectFromGUID("863168")
   lightToggle.createButton({
@@ -197,13 +199,13 @@ function onload()
   deckHanii = getObjectFromGUID("8aa1b7")
   deckCHRY = getObjectFromGUID("c47828")
   deckUndercover = getObjectFromGUID("75f2cc")
-  deckVanilla.interactable = true
-  deckHanii.interactable = true
-  deckCHRY.interactable = true
-  deckUndercover.interactable = true
+  deckVanilla.interactable = false
+  deckHanii.interactable = false
+  deckCHRY.interactable = false
+  deckUndercover.interactable = false
 
   clueMaker9000 = getObjectFromGUID("f40f06")
-  clueMaker9000.interactable = true
+  clueMaker9000.interactable = false
 
   deckZone = getObjectFromGUID("33d9ff")
 
@@ -226,7 +228,7 @@ function onload()
   buttonRed = getObjectFromGUID("f16a9a")
   buttonBlu = getObjectFromGUID("c91f34")
   buttonTeams = getObjectFromGUID("8a85e8")
-  buttonTeams.interactable = true
+  buttonTeams.interactable = false
   buttonTeams.setRotation( {0, 180, 180} )
   buttonTeams.setPosition ( {20.7, 2, 17.94} )
   clockTimer = getObjectFromGUID("0b1336")
@@ -248,9 +250,9 @@ function onload()
 
   -- red clue encoder
   cluemaker = getObjectFromGUID("6268fc")
-  cluemaker.interactable = true
+  cluemaker.interactable = false
   tokenbagR = getObjectFromGUID("5cc2bd")
-  tokenbagR.interactable = true
+  tokenbagR.interactable = false
   cluemaker_button = getObjectFromGUID("ecd8d2")
   cluemaker_button.createButton({
       label="Encode Clue", click_function="findByDistance",
@@ -261,9 +263,9 @@ function onload()
 
   -- blue clue encoder
   cluemakerB = getObjectFromGUID("c8b06a")
-  cluemakerB.interactable = true
+  cluemakerB.interactable = false
   tokenbagB = getObjectFromGUID("9040ee")
-  tokenbagB.interactable = true
+  tokenbagB.interactable = false
   cluemaker_buttonB = getObjectFromGUID("917a4f")
   cluemaker_buttonB.createButton({
       label="Encode Clue", click_function="findByDistanceB",
@@ -294,11 +296,13 @@ function rotateclues()
 end
 
 
-function resetclueposition()
-  deleteclues()
-  tokenposition_red = 12.00
-  tokenposition_blu = 12.00
-  print("Scripted clues have been reset")
+function resetclueposition(color)
+  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    deleteclues()
+    tokenposition_red = 12.00
+    tokenposition_blu = 12.00
+    print("Scripted clues have been reset")
+  end
 end
 
 function encodeClue()
@@ -680,7 +684,7 @@ end
 function newGame(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     findDeck()
-    resetclueposition()
+    resetclueposition(color)
     delete3Dtext()
   else
   end
@@ -692,7 +696,7 @@ function findDeck()
     local toolPos = deckDealer.getPosition()
     local toolPosX = toolPos.x
     local toolPosZ = toolPos.z
-	
+
     for i, v in pairs(allObjects) do
         if v.tag == "Deck" then
             local vPos = v.getPosition()
@@ -789,7 +793,7 @@ end
 end
 
 function shuffleKeymap(o, color)
-  if color=="Black" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     reset_keymap()
   else
   end
@@ -1076,6 +1080,34 @@ function onObjectDrop(color, object)
             lockParam.clue = v
             lockParam.id = tostring(math.random())
             Timer.create({identifier=lockParam.id, function_name='lockCorrect', parameters=lockParam, delay=1})
+            -- Check to see if one team has won
+            local redWon = true
+            local blueWon = true
+            local numred = 0
+            local numblue = 0
+
+            for guid, agtColor in pairs(agentColors) do
+              if agtColor == "red" then
+                if first_random == 1 and guid == "a0d86a" then
+                  -- Red double agent not in use
+                elseif getObjectFromGUID(guid).interactable == true then
+                  numred = numred + 1
+                  redWon = false
+                end
+              elseif agtColor == "blue" then
+                if first_random == 2 and guid == "3b1be2" then
+                  -- Blue double agent not in use
+                elseif getObjectFromGUID(guid).interactable == true then
+                  numblue = numblue + 1
+                  blueWon = false
+                end
+              end
+
+              -- Skip unnecessary iterations
+              if redWon == false and blueWon == false then
+                break
+              end
+            end
             -- Four scenarios:
             -- 1) white - done
             -- 2) opposite color - done
@@ -1085,9 +1117,23 @@ function onObjectDrop(color, object)
             -- 0 = RED; 1 = BLUE
             if correct == "white" or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
               toggleTurns()
-            elseif correct == "black" then
+            elseif correct == "black" or blueWon == true or redWon == true then
               -- End game scenario
-              --endGame()
+              if (correct == "black" and turnTracker == 0) or blueWon == true then
+                -- Red placed black card, blue wins
+                -- or blue placed all of their cards
+                broadcastToAll("Blue team wins!", blueColor)
+              elseif (correct == "black" and turnTracker == 1) or redWon == true then
+                -- Blue placed black card, red wins
+                -- or red placed all of their cards
+                broadcastToAll("Red team wins!", redColor)
+              end
+              -- Set the timer to 0 and disable
+              timerOn = 0
+              clockTimer.setValue(0)
+
+              -- Move the remaining agents to their codes
+              endGame()
             end
           else
             object.setPositionSmooth(agentTracker[object.guid])
@@ -1135,12 +1181,6 @@ function ensurePos(params)
   Timer.destroy(params.id)
 end
 
-function isAgentAtLocation(position)
-
-
-
-end
-
 function onObjectPickUp(color, object)
   -- Clues
   if object.tag == "Card" then
@@ -1148,7 +1188,7 @@ function onObjectPickUp(color, object)
     local position = object.getPosition()
     for i, v in pairs(clues) do
       if v.guid == object.guid and v.tag == "Card" then
-        -- Prevent picking up of codes    
+        -- Prevent picking up of codes
         for j, cardInPlayArea in pairs(cardsInPlayArea) do
           if cardInPlayArea.guid == object.guid then
             object.reload()
@@ -1197,16 +1237,137 @@ end
 
 function endGame()
 
+  local codesLeft = {}
 
+  local blueAgentsLeft = {}
+  local blueNum = 1
+  local redAgentsLeft = {}
+  local redNum = 1
+  local whiteAgentsLeft = {}
+  local whiteNum = 1
+  local blackAgentsLeft = {}
 
+  local numCodes = 0
+
+  -- Get the remining codes left
+  for i, pos in ipairs(codeLocations) do
+    if correctTracker[pos.x .. pos.z] == nil then
+      codesLeft[#codesLeft+1] = pos
+      numCodes = numCodes + 1
+    end
+  end
+
+  -- Get the remaining agent cards
+  for guid, agtColor in pairs(agentColors) do
+    if agtColor == "red" then
+      if first_random == 1 and guid == "a0d86a" then
+        -- Red double agent not in use
+      elseif getObjectFromGUID(guid).interactable == true then
+        redAgentsLeft[#redAgentsLeft+1] = guid
+      end
+    elseif agtColor == "blue" then
+      if first_random == 2 and guid == "3b1be2" then
+        -- Blue double agent not in use
+      elseif getObjectFromGUID(guid).interactable == true then
+        blueAgentsLeft[#blueAgentsLeft+1] = guid
+      end
+    elseif agtColor == "white" and getObjectFromGUID(guid).interactable == true then
+      whiteAgentsLeft[#whiteAgentsLeft+1] = guid
+    elseif agtColor == "black" and getObjectFromGUID(guid).interactable == true then
+      blackAgentsLeft[#blackAgentsLeft+1] = guid
+    end
+  end
+
+  local timeDelay = 0
+
+  for _, pos in ipairs(codesLeft) do
+    local posColor = checkLocation(pos)
+
+    if posColor == "red" then
+      agent = getObjectFromGUID(redAgentsLeft[redNum])
+      redNum = redNum + 1
+    elseif posColor == "blue" then
+      agent = getObjectFromGUID(blueAgentsLeft[blueNum])
+      blueNum = blueNum + 1
+    elseif posColor == "white" then
+      agent = getObjectFromGUID(whiteAgentsLeft[whiteNum])
+      whiteNum = whiteNum + 1
+    elseif posColor == "black" then
+      agent = getObjectFromGUID(blackAgentsLeft[1])
+    end
+
+    local clues = clueZone.getObjects()
+    local object = agent
+    local cardX = pos.x
+    local cardZ = pos.z
+    local searchThreshold = 0.90
+    for i, v in pairs(clues) do
+      local vPos = v.getPosition()
+      local vPosX = vPos.x
+      local vPosZ = vPos.z
+      local dX = cardX - vPosX
+      local dZ = cardZ - vPosZ
+      if v.guid != agent.guid and v.tag == "Card" and dX<searchThreshold and dX>-searchThreshold and dZ<searchThreshold and dZ>-searchThreshold then
+        -- Orient cards properly
+        local endParam = {}
+        endParam.id = math.random()
+        endParam.agent = agent
+        endParam.code = v
+        endParam.pos = pos
+
+        Timer.create({identifier=endParam.id, function_name='endCardSet', parameters=endParam, delay=timeDelay})
+      end
+    end
+    timeDelay = timeDelay + 0.15
+  end
+end
+
+function endCardSet(endParam)
+  local code = endParam.code
+  local agent = endParam.agent
+  local pos = endParam.pos
+
+  code.interactable = false;
+  agent.interactable = false;
+  code.setLock(true)
+  code.setRotationSmooth({0, 180, 0})
+  agent.setRotation({0, 180, 180})
+  agent.setPositionSmooth(pos)
+  agent.setLock(true)
+
+  Timer.destroy(endParam.id)
 end
 
 function onUpdate()
   -- Check for clock rundown if timer is enabled
   if gameMode == 1 and timerOn == 1 and illegalMove == false then
-    if clockTimer.getValue() == 0 then
+    local timerVal = clockTimer.getValue()
+    if timerVal == 0 then
       -- Switch turns
       toggleTurns()
+    elseif timerVal == 60 and timerWarning != 60 then
+      timerWarning = timerVal
+      broadcastToAll(timerVal .. " seconds remaining!", redColor)
+    elseif timerVal <= 5 then
+      if timerVal == 5 and timerWarning != 5 then
+        timerWarning = timerVal
+        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      elseif timerVal == 4 and timerWarning != 4 then
+        timerWarning = timerVal
+        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      elseif timerVal == 3 and timerWarning != 3 then
+        timerWarning = timerVal
+        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      elseif timerVal == 2 and timerWarning != 2 then
+        timerWarning = timerVal
+        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      elseif timerVal == 1 and timerWarning != 1 then
+        timerWarning = timerVal
+        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      elseif timerVal == 0 and timerWarning != 0 then
+        timerWarning = timerVal
+        broadcastToAll("Time's up!", redColor)
+      end
     end
   end
 
@@ -1272,7 +1433,7 @@ function endTurn(button, color)
       local redPos = {-20.7, 2, 17.94}
       local redRot = {0, 180, 0}
 
-      -- Blue teamW plaque position and rotation
+      -- Blue team plaque position and rotation
       local bluePos = {20.7, 2, 17.94}
       local blueRot = {0, 180, 180}
 
