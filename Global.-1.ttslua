@@ -981,6 +981,7 @@ function setDouble()
     end
     -- Set the initial timer to 600 seconds (10 minutes)
     clockTimer.setValue(600)
+    timerOn = 1
     clockTimer.Clock.pauseStart()
     gameMode = 1
 end
