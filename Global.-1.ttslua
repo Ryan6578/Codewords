@@ -1344,10 +1344,12 @@ function onUpdate()
     local timerVal = clockTimer.getValue()
     if timerVal == 0 then
       -- Switch turns
+      timerWarning = timerVal
+      broadcastToAll("Time's up!", redColor)
       toggleTurns()
     elseif timerVal == 60 and timerWarning != 60 then
       timerWarning = timerVal
-      broadcastToAll(timerVal .. " seconds remaining!", redColor)
+      broadcastToAll("1 minute remaining!", redColor)
     elseif timerVal <= 5 then
       if timerVal == 5 and timerWarning != 5 then
         timerWarning = timerVal
@@ -1364,9 +1366,6 @@ function onUpdate()
       elseif timerVal == 1 and timerWarning != 1 then
         timerWarning = timerVal
         broadcastToAll(timerVal .. " seconds remaining!", redColor)
-      elseif timerVal == 0 and timerWarning != 0 then
-        timerWarning = timerVal
-        broadcastToAll("Time's up!", redColor)
       end
     end
   end
@@ -1475,7 +1474,7 @@ function debugInfo()
   print("-----[ Game Information ]-----")
   print("gameMode=" .. gameMode)
   print("timerOn=" .. timerOn)
-  print("turnTracker=" .. turnTracker)
+  print("turnTracker=" .. (turnTracker == 0 and "red" or "blue"))
   print("illegalMove=" .. tostring(illegalMove))
   print()
 end
