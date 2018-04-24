@@ -1039,7 +1039,7 @@ function onObjectDrop(color, object)
   local position = object.getPosition()
   local cardX = position.x
   local cardZ = position.z
-  local searchThreshold = 0.90
+  local searchThreshold = 1
   for i, v in pairs(clues) do
     local vPos = v.getPosition()
     local vPosX = vPos.x
@@ -1301,7 +1301,7 @@ function endGame()
     local object = agent
     local cardX = pos.x
     local cardZ = pos.z
-    local searchThreshold = 0.90
+    local searchThreshold = 0.9
     for i, v in pairs(clues) do
       local vPos = v.getPosition()
       local vPosX = vPos.x
