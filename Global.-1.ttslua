@@ -27,7 +27,7 @@ function onload()
   -- 0 = timer off; 1 = timer on
   timerOn = 1
   -- Timer warning variable
-  timerWarning = 0
+  timerWarning = -1
   -- 0 = RED; 1 = BLUE
   turnTracker = 1
 
@@ -1396,6 +1396,9 @@ function round(exact, precision)
 end
 
 function toggleTurns()
+  -- Reset the timer warning
+  timerWarning = -1
+
   -- Red team plaque position and rotation
   local redPos = {-20.7, 2, 17.94}
   local redRot = {0, 180, 0}
@@ -1443,6 +1446,9 @@ function endTurn(button, color)
         return
       end
 
+      -- Reset the timer warning
+      timerWarning = -1
+
       if turnTracker == 0 then
         -- Red team's turn ends, switch to blue team
         turnTracker = 1
@@ -1471,11 +1477,39 @@ function endTurn(button, color)
 end
 
 function debugInfo()
+  local redWon = true
+  local blueWon = true
+  local numred = 0
+  local numblue = 0
+
+  for guid, agtColor in pairs(agentColors) do
+    if agtColor == "red" then
+      if first_random == 1 and guid == "a0d86a" then
+        -- Red double agent not in use
+      elseif getObjectFromGUID(guid).interactable == true then
+        numred = numred + 1
+        redWon = false
+      end
+    elseif agtColor == "blue" then
+      if first_random == 2 and guid == "3b1be2" then
+        -- Blue double agent not in use
+      elseif getObjectFromGUID(guid).interactable == true then
+        numblue = numblue + 1
+        blueWon = false
+      end
+    end
+  end
+
   print()
   print("-----[ Game Information ]-----")
   print("gameMode=" .. gameMode)
   print("timerOn=" .. timerOn)
   print("turnTracker=" .. (turnTracker == 0 and "red" or "blue"))
   print("illegalMove=" .. tostring(illegalMove))
+  print("-----[ Winner Status ] -----")
+  print("redAgentsLeft=" .. numred)
+  print("redWon=" .. tostring(redWon))
+  print("blueAgentsLeft=" .. numblue)
+  print("blueWon=" .. tostring(blueWon))
   print()
 end
