@@ -253,11 +253,6 @@ function onload()
   cluemaker.interactable = false
   tokenbagR = getObjectFromGUID("5cc2bd")
   tokenbagR.interactable = false
-  cluemaker_button = getObjectFromGUID("ecd8d2")
-  cluemaker_button.createButton({
-      label="Encode Clue", click_function="findByDistance",
-      function_owner=self, position={0,-0.2,0},  position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
-  })
   redcluezone = getObjectFromGUID("8d4638")
   blucluezone = getObjectFromGUID("61948c")
 
@@ -266,14 +261,77 @@ function onload()
   cluemakerB.interactable = false
   tokenbagB = getObjectFromGUID("9040ee")
   tokenbagB.interactable = false
-  cluemaker_buttonB = getObjectFromGUID("917a4f")
-  cluemaker_buttonB.createButton({
-      label="Encode Clue", click_function="findByDistanceB",
-      function_owner=self, position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
-  })
 
   tokenposition_red = 12.00
   tokenposition_blu = 12.00
+
+  -- Codemaster encoding stations
+  local inputParams = {}
+  inputParams.input_function = "cluemasterEncode"
+  inputParams.function_owner = self
+  inputParams.tooltip = "- Enter Clue Here -"
+  inputParams.label = "- Enter Clue Here -"
+  inputParams.position = {0, 1, 0}
+  inputParams.rotation = {0, 180, 0}
+  inputParams.scale = {0.1, 10, 1/2}
+  inputParams.alignment = 3
+  inputParams.width = 4000
+  inputParams.height = 300
+  inputParams.font_size = 250
+  inputParams.value = ""
+
+  -- Blue encoding station
+  blueEncoding = getObjectFromGUID("2ef93a")
+  blueEncoding.createInput(inputParams)
+  -- Red encoding station
+  redEncoding = getObjectFromGUID("7793cd")
+  redEncoding.createInput(inputParams)
+end
+
+function cluemasterEncode(object, playerColor, input, selected)
+  if playerColor == "Red" and object.guid == redEncoding.guid then
+    -- Handle red endoing
+    if string.match(input, "\n") and selected == true then
+      local processedClue = string.gsub(input, "\n", "")
+      if processedClue != "" then
+        cluemaker.setName(processedClue)
+        encodeClue()
+        waitforcluetile()
+        return ""
+      else
+        Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
+      end
+    end
+  elseif playerColor == "Blue" and object.guid == blueEncoding.guid then
+    -- Handle blue encoding
+    if string.match(input, "\n") and selected == true then
+      local processedClue = string.gsub(input, "\n", "")
+      if processedClue != "" then
+        cluemakerB.setName(processedClue)
+        encodeClueB()
+        waitforcluetileB()
+        return ""
+      else
+        Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
+      end
+    end
+  else
+    -- Player does not have permission
+    local team = ""
+    if object.guid == redEncoding.guid then
+      team = "red"
+    elseif object.guid == blueEncoding.guid then
+      team = "blue"
+    end
+
+    if team != "" then
+      Player[playerColor].broadcast("You don't have permission to make clues for the " .. team .. " team!", redColor)
+    else
+      -- Generic error message
+      Player[playerColor].broadcast("You don't have permission to make clues here!", redColor)
+    end
+    return ""
+  end
 end
 
 function delete3Dtext()
@@ -318,35 +376,6 @@ function waitforcluetile()
   Timer.create({identifier="waitforcluetile", function_name='findClue', delay=0})
 end
 
-function findByDistance(o, color)
-  if color=="Blue" or color=="Red" then
-  local allObjects = getAllObjects()
-  local cluetool = getObjectFromGUID("9bb7e6")
-  for _, object in ipairs(allObjects) do
-    if object.tag == "3D Text" then
-      local distance = findProximity(cluetool.getPosition(), object)
-      if distance <= 18 then
-        local clue = object.getValue()
-        cluemaker.setName(clue)
-        object.destruct()
-        encodeClue()
-        waitforcluetile()
-        cluemaker_button.AssetBundle.playTriggerEffect(0)
-      end
-    end
-  end
-  end
-end
-
---Used by findByDistance
-function findProximity(targetPos, object)
-    local objectPos = object.getPosition()
-    local xDistance = math.abs(targetPos.x - objectPos.x)
-    local zDistance = math.abs(targetPos.z - objectPos.z)
-    local distance = xDistance^4 + zDistance^2
-    return math.sqrt(distance)
-end
-
 function findClue(o, color, steamid)
     local name = cluemaker.getName()
     local allObjects = getAllObjects()
@@ -365,7 +394,7 @@ function findClue(o, color, steamid)
                 -- do nothing
                 else
               v.setName(name)
-              v.editButton({index=0, label=name, font_size=1800})
+              v.editButton({index=0, label=name})
               v.setPosition({-21.05, 1.5, tokenposition_red})
               printToAll(name, {1,0.1,0.1})
               end
@@ -389,26 +418,6 @@ function waitforcluetileB()
   Timer.create({identifier="waitforcluetileB", function_name='findClueB', delay=0})
 end
 
-function findByDistanceB(o, color)
-  if color=="Blue" or color=="Red" then
-  local allObjects = getAllObjects()
-  local cluetool = getObjectFromGUID("e68f98")
-  for _, object in ipairs(allObjects) do
-    if object.tag == "3D Text" then
-      local distance = findProximity(cluetool.getPosition(), object)
-      if distance <= 18 then
-        local clue = object.getValue()
-        cluemakerB.setName(clue)
-        object.destruct()
-        encodeClueB()
-        waitforcluetileB()
-        cluemaker_buttonB.AssetBundle.playTriggerEffect(0)
-      end
-    end
-  end
-  end
-end
-
 function findClueB(o, color, steamid)
     local name = cluemakerB.getName()
     local allObjects = getAllObjects()
@@ -427,7 +436,7 @@ function findClueB(o, color, steamid)
                 -- do nothing
                 else
               v.setName(name)
-              v.editButton({index=0, label=name, font_size=2000})
+              v.editButton({index=0, label=name})
               v.setPosition({20.85, 1.5, tokenposition_blu})
               printToAll(name, {0.1,0.1,1})
               end
@@ -1039,7 +1048,7 @@ function onObjectDrop(color, object)
   local position = object.getPosition()
   local cardX = position.x
   local cardZ = position.z
-  local searchThreshold = 0.90
+  local searchThreshold = 1
   for i, v in pairs(clues) do
     local vPos = v.getPosition()
     local vPosX = vPos.x
