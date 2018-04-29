@@ -1125,7 +1125,7 @@ function onObjectDrop(color, object)
             -- 4) Correct
             -- If card is white, or card is of the opposite color, then toggle toggleTurns
             -- 0 = RED; 1 = BLUE
-            if correct == "white" or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
+            if correct == "white" and blueWon == false and redWon == false or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
               toggleTurns()
             elseif correct == "black" or blueWon == true or redWon == true then
               -- End game scenario
@@ -1310,7 +1310,7 @@ function endGame()
     local object = agent
     local cardX = pos.x
     local cardZ = pos.z
-    local searchThreshold = 0.9
+    local searchThreshold = 0.90
     for i, v in pairs(clues) do
       local vPos = v.getPosition()
       local vPosX = vPos.x
