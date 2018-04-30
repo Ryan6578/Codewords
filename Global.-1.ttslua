@@ -229,8 +229,9 @@ function onload()
   buttonBlu = getObjectFromGUID("c91f34")
   buttonTeams = getObjectFromGUID("8a85e8")
   buttonTeams.interactable = false
+  buttonTeams.setLock(true)
   buttonTeams.setRotation( {0, 180, 180} )
-  buttonTeams.setPosition ( {20.7, 2, 17.94} )
+  buttonTeams.setPosition ( {20.7, 0.91, 17.94} )
   clockTimer = getObjectFromGUID("0b1336")
 
   -- CDPictures section
@@ -282,9 +283,11 @@ function onload()
 
   -- Blue encoding station
   blueEncoding = getObjectFromGUID("2ef93a")
+  blueEncoding.setLock(true)
   blueEncoding.createInput(inputParams)
   -- Red encoding station
   redEncoding = getObjectFromGUID("7793cd")
+  redEncoding.setLock(true)
   redEncoding.createInput(inputParams)
 end
 
@@ -969,21 +972,21 @@ function setDouble()
 
   if first_random == 1 and whichcard == 1 then
     buttonTeams.setRotation( {0, 180, 180})
-    buttonTeams.setPosition( {20.7, 2, 17.94} )
+    buttonTeams.setPosition( {20.7, 0.91, 17.94} )
      printToAll("Team Blue's turn", {0.1,0.1,1})
     elseif first_random == 2 and whichcard == 1 then
       doubleToRed()
       buttonTeams.setRotation( {0, 180, 0})
-      buttonTeams.setPosition( {-20.7, 2, 17.94} )
+      buttonTeams.setPosition( {-20.7, 0.91, 17.94} )
        printToAll("Team Red's turn.", {1,0.1,0.1})
     elseif first_random == 2 and whichcard == 2 then
       buttonTeams.setRotation( {0, 180, 0})
-      buttonTeams.setPosition( {-20.7, 2, 17.94} )
+      buttonTeams.setPosition( {-20.7, 0.91, 17.94} )
        printToAll("Team Red's turn.", {1,0.1,0.1})
     elseif first_random == 1 and whichcard == 2 then
       doubleToBlue()
       buttonTeams.setRotation( {0, 180, 180})
-      buttonTeams.setPosition( {20.7, 2, 17.94} )
+      buttonTeams.setPosition( {20.7, 0.91, 17.94} )
        printToAll("Team Blue's turn", {0.1,0.1,1})
     elseif first_random == 1 and whichcard == 3 then
       -- nothing (yet)
@@ -1125,7 +1128,7 @@ function onObjectDrop(color, object)
             -- 4) Correct
             -- If card is white, or card is of the opposite color, then toggle toggleTurns
             -- 0 = RED; 1 = BLUE
-            if correct == "white" and blueWon == false and redWon == false or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
+            if blueWon == false and redWon == false and (correct == "white" or ((correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0))) then
               toggleTurns()
             elseif correct == "black" or blueWon == true or redWon == true then
               -- End game scenario
@@ -1409,11 +1412,11 @@ function toggleTurns()
   timerWarning = -1
 
   -- Red team plaque position and rotation
-  local redPos = {-20.7, 2, 17.94}
+  local redPos = {-20.7, 0.91, 17.94}
   local redRot = {0, 180, 0}
 
   -- Blue team plaque position and rotation
-  local bluePos = {20.7, 2, 17.94}
+  local bluePos = {20.7, 0.91, 17.94}
   local blueRot = {0, 180, 180}
 
   if turnTracker == 0 then
@@ -1442,11 +1445,11 @@ function endTurn(button, color)
   if color == "Red" or color == "Blue" then
     if illegalMove == false then
       -- Red team plaque position and rotation
-      local redPos = {-20.7, 2, 17.94}
+      local redPos = {-20.7, 0.91, 17.94}
       local redRot = {0, 180, 0}
 
       -- Blue team plaque position and rotation
-      local bluePos = {20.7, 2, 17.94}
+      local bluePos = {20.7, 0.91, 17.94}
       local blueRot = {0, 180, 180}
 
       -- Is it the current side's turn?
