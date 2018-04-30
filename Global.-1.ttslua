@@ -111,6 +111,12 @@ function onload()
     ['a0d86a'] = 'red'
   }
 
+  -- Red clue tracker
+  redClues = {}
+
+  -- Blue clue tracker
+  blueClues = {}
+
   -- Tracks pickup locations of agents
   agentTracker = {}
   for guid, loc in pairs(agentLocations) do
