@@ -241,9 +241,6 @@ function onload(saveState)
   buttonTeams.setPosition ( {20.7, 0.91, 17.94} )
   clockTimer = getObjectFromGUID("0b1336")
 
-  -- CDPictures section
-  ptilesBag = getObjectFromGUID("e0e696")
-  wtilesBag = getObjectFromGUID("a64f68")
   tileZone = getObjectFromGUID("06b292")
 
   buttonBlu.createButton({
@@ -256,17 +253,16 @@ function onload(saveState)
     position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
 })
 
+
+  clueMat = getObjectFromGUID("c8b06a")
+  clueMat.interactable = false
   -- red clue encoder
-  cluemaker = getObjectFromGUID("6268fc")
-  cluemaker.interactable = false
   tokenbagR = getObjectFromGUID("5cc2bd")
   tokenbagR.interactable = false
   redcluezone = getObjectFromGUID("8d4638")
   blucluezone = getObjectFromGUID("61948c")
 
   -- blue clue encoder
-  cluemakerB = getObjectFromGUID("c8b06a")
-  cluemakerB.interactable = false
   tokenbagB = getObjectFromGUID("9040ee")
   tokenbagB.interactable = false
 
@@ -366,12 +362,11 @@ function cluemasterEncode(object, playerColor, input, selected)
     if string.match(input, "\n") and selected == true then
       local processedClue = string.lower(string.gsub(input, "\n", ""))
       if processedClue != "" then
-        cluemaker.setName(processedClue)
-        encodeClue()
-        waitforcluetile()
+        encodeClue("red", processedClue)
         return ""
       else
         Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
+        return ""
       end
     end
   elseif playerColor == "Blue" and object.guid == blueEncoding.guid then
@@ -379,12 +374,11 @@ function cluemasterEncode(object, playerColor, input, selected)
     if string.match(input, "\n") and selected == true then
       local processedClue = string.lower(string.gsub(input, "\n", ""))
       if processedClue != "" then
-        cluemakerB.setName(processedClue)
-        encodeClueB()
-        waitforcluetileB()
+        encodeClue("blue", processedClue)
         return ""
       else
         Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
+        return ""
       end
     end
   else
@@ -434,87 +428,29 @@ function resetclueposition(color)
   end
 end
 
-function encodeClue()
-  local cluebag = getObjectFromGUID("5cc2bd")
-  local pos = cluemaker.getPosition()
-  cluebag.takeObject({
-    position={pos['x'], pos['y']+1, pos['z']}, rotation={0,180,0}, smooth=false
-  })
-end
-
-function waitforcluetile()
-  Timer.destroy("waitforcluetile")
-  Timer.create({identifier="waitforcluetile", function_name='findClue', delay=0})
-end
-
-function findClue(o, color, steamid)
-    local name = cluemaker.getName()
-    local allObjects = getAllObjects()
-    local toolPos = cluemaker.getPosition()
-    local toolPosX = toolPos.x
-    local toolPosZ = toolPos.z
-    for i, v in pairs(allObjects) do
-        if v.tag == "Board" then
-            local vPos = v.getPosition()
-            local vPosX = vPos.x
-            local vPosZ = vPos.z
-            local dX = toolPosX - vPosX
-            local dZ = toolPosZ - vPosZ
-            if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
-              if v.getDescription() == "ClueMaker9000" then
-                -- do nothing
-                else
-              v.setName(name)
-              v.editButton({index=0, label=name})
-              v.setPosition({-21.05, 1.5, tokenposition_red})
-              printToAll(name, {1,0.1,0.1})
-              end
-            end
-        end
-    end
+function encodeClue(color, clue)
+  local finishedClue
+  local cluePosition
+  local clueColor
+  if color == "red" then
+    cluePosition = {-21.05, 1.5, tokenposition_red}
     tokenposition_red = tokenposition_red - 2.05
-end
-
--- blue clue encoder
-function encodeClueB()
-  local cluebag = getObjectFromGUID("9040ee")
-  local pos = cluemakerB.getPosition()
-  cluebag.takeObject({
-    position={pos['x'], pos['y']+1, pos['z']}, rotation={0,180,0}, smooth=false
-  })
-end
-
-function waitforcluetileB()
-  Timer.destroy("waitforcluetileB")
-  Timer.create({identifier="waitforcluetileB", function_name='findClueB', delay=0})
-end
-
-function findClueB(o, color, steamid)
-    local name = cluemakerB.getName()
-    local allObjects = getAllObjects()
-    local toolPos = cluemakerB.getPosition()
-    local toolPosX = toolPos.x
-    local toolPosZ = toolPos.z
-    for i, v in pairs(allObjects) do
-        if v.tag == "Board" then
-            local vPos = v.getPosition()
-            local vPosX = vPos.x
-            local vPosZ = vPos.z
-            local dX = toolPosX - vPosX
-            local dZ = toolPosZ - vPosZ
-            if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
-              if v.getDescription() == "ClueMaker9000" then
-                -- do nothing
-                else
-              v.setName(name)
-              v.editButton({index=0, label=name})
-              v.setPosition({20.85, 1.5, tokenposition_blu})
-              printToAll(name, {0.1,0.1,1})
-              end
-            end
-        end
-    end
+    clueColor = redColor
+    finishedClue = tokenbagR.takeObject({
+      position={0, 1.5, 57.92}, rotation={0,180,0}, smooth=false
+    })
+  elseif color == "blue" then
+    cluePosition = {20.85, 1.5, tokenposition_blu}
     tokenposition_blu = tokenposition_blu - 2.05
+    clueColor = blueColor
+    finishedClue = tokenbagB.takeObject({
+      position={0, 1.5, 57.92}, rotation={0,180,0}, smooth=false
+    })
+  end
+
+  finishedClue.setName(clue)
+  finishedClue.setPosition(cluePosition)
+  printToAll(clue, clueColor)
 end
 
 function toggleAmbi()
@@ -562,63 +498,6 @@ function toggletimer()
     timerOn = 0
     clockTimer.setValue(0)
     printToAll("Timer Disabled", {1,1,1})
-  end
-end
-
-function getClueTiles()
-  deleteclues()
-  getredclues()
-  getbluclues()
-  waitfortokens()
-end
-
-function waitfortokens()
-  Timer.destroy("waitforclues")
-  Timer.create({identifier="waitforclues", function_name='lockclues', delay=2})
-end
-
-
-function getredclues()
-  local cluetiles_parameters = {}
-  cluetiles_parameters.rotation = {180, 0, 180}
-  local x_base = -21.06
-  local y_base = 1.05
-  local z_base = -2.52
-  local z_step = 2.1
-  for i=1, 8 do
-  local x = x_base
-  local y = y_base
-  local z = z_base + z_step *(i%8)
-  cluetiles_parameters.position = {x, y, z}
-  redcluebag.takeObject(cluetiles_parameters)
-  end
-end
-
-function getbluclues()
-  local cluetiles_parameters = {}
-  cluetiles_parameters.rotation = {180, 0, 180}
-  local x_base = 20.8
-  local y_base = 1.05
-  local z_base = -2.52
-  local z_step = 2.1
-  for i=1, 8 do
-  local x = x_base
-  local y = y_base
-  local z = z_base + z_step *(i%8)
-  cluetiles_parameters.position = {x, y, z}
-  blucluebag.takeObject(cluetiles_parameters)
-  end
-end
-
-function lockclues()
-  local tilesInZone = blucluezone.getObjects()
-  for i,v in ipairs(tilesInZone) do
-      v.lock()
-  end
-
-  local tilesInZone2 = redcluezone.getObjects()
-  for i,v in ipairs(tilesInZone2) do
-      v.lock()
   end
 end
 
