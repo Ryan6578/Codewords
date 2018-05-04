@@ -25,6 +25,7 @@ function onload(saveState)
   -- Global game mode
   gameMode = 0
   -- 0 = timer off; 1 = timer on
+  timerEnabled = true
   timerOn = 1
   -- Timer warning variable
   timerWarning = -1
@@ -202,6 +203,8 @@ function onload(saveState)
       label="Reset\nClues", click_function="resetclueposition", function_owner=self,
       position={4,0.2,3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
   })
+
+
   deckVanilla = getObjectFromGUID("dd1e32")
   deckHanii = getObjectFromGUID("8aa1b7")
   deckCHRY = getObjectFromGUID("c47828")
@@ -210,6 +213,20 @@ function onload(saveState)
   deckHanii.interactable = false
   deckCHRY.interactable = false
   deckUndercover.interactable = false
+
+  decks = {
+    -- Vanilla
+    [1] = deckVanilla,
+
+    -- Hanii
+    [2] = deckHanii,
+
+    -- CHRY
+    [3] = deckCHRY,
+
+    -- nUndercover
+    [4] = deckUndercover
+  }
 
   clueMaker9000 = getObjectFromGUID("f40f06")
   clueMaker9000.interactable = false
@@ -296,28 +313,22 @@ function onload(saveState)
   -- Load save state - if one exists
   if saveState != "" then
     local decodedSaveState = JSON.decode(saveState)
-    -- Global game mode
+
     gameMode = decodedSaveState.gameMode
-    -- 0 = timer off; 1 = timer on
+    timerEnabled = decodedSaveState.timerEnabled
     timerOn = decodedSaveState.timerOn
-    -- Timer warning variable
     timerWarning = decodedSaveState.timerWarning
-    -- 0 = RED; 1 = BLUE
     turnTracker = decodedSaveState.turnTracker
 
-    -- Illegal move tracking
     updateTimer = decodedSaveState.updateTimer
     illegalMove = decodedSaveState.illegalMove
 
-    -- Tracks correct answers
     correctTracker = JSON.decode(decodedSaveState.correctTracker)
 
-    -- Keeps track of the GUIDs of codes in play
     for i, cardGuid in ipairs(JSON.decode(decodedSaveState.cardsInPlayArea)) do
       cardsInPlayArea[i] = getObjectFromGUID(cardGuid)
     end
 
-    -- X, Z coordinates
     for pos, color in pairs(JSON.decode(decodedSaveState.keymap)) do
       keymap[pos] = color
     end
@@ -325,32 +336,25 @@ function onload(saveState)
 end
 
 function onSave()
-  --print("Game saved!")
   local saveData = {}
-  -- Global game mode
+
   saveData.gameMode = gameMode
-  -- 0 = timer off; 1 = timer on
+  saveData.timerEnabled = timerEnabled
   saveData.timerOn = timerOn
-  -- Timer warning variable
   saveData.timerWarning = timerWarning
-  -- 0 = RED; 1 = BLUE
   saveData.turnTracker = turnTracker
 
-  -- Illegal move tracking
   saveData.updateTimer = updateTimer
   saveData.illegalMove = illegalMove
 
-  -- Tracks correct answers
   saveData.correctTracker = JSON.encode(correctTracker)
 
-  -- Keeps track of the GUIDs of codes in play
   local endcodedCardsInPlayArea = {}
   for i, card in ipairs(cardsInPlayArea) do
     endcodedCardsInPlayArea[i] = card.guid
   end
   saveData.cardsInPlayArea = JSON.encode(endcodedCardsInPlayArea)
 
-  -- X, Z coordinates
   saveData.keymap = JSON.encode(keymap)
 
   return JSON.encode(saveData)
@@ -358,7 +362,7 @@ end
 
 function cluemasterEncode(object, playerColor, input, selected)
   if playerColor == "Red" and object.guid == redEncoding.guid then
-    -- Handle red endoing
+    -- Handle red encoding
     if string.match(input, "\n") and selected == true then
       local processedClue = string.lower(string.gsub(input, "\n", ""))
       if processedClue != "" then
@@ -454,7 +458,8 @@ function encodeClue(color, clue)
 end
 
 function toggleAmbi()
-  if ambientlights == 1 then
+  -- Deprecate until further notice
+  --[[if ambientlights == 1 then
 
     ambientlights = 0
 
@@ -468,11 +473,12 @@ function toggleAmbi()
     ambient_bot.setPositionSmooth({0, 4.68, -26})
     ambient_top.setPositionSmooth({0, 4.68, 26})
 
-  end
+  end]]
 end
 
 function toggleTeams()
-  if teamlights == 1 then
+  -- Deprecate until further notice
+  --[[if teamlights == 1 then
 
     teamlights = 0
 
@@ -485,16 +491,17 @@ function toggleTeams()
     teams_red.setPositionSmooth({-44, 4.68, 0})
     teams_blue.setPositionSmooth({44, 4.68, 0})
 
-  end
+  end]]
 end
 
 function toggletimer()
-  if timerOn == 0 then
+  timerEnabled = not timerEnabled
+  if timerEnabled == true then
     clockTimer.setValue(300)
     timerOn = 1
     printToAll("Timer Enabled", {1,1,1})
     clockTimer.Clock.pauseStart()
-  elseif timerOn == 1 then
+  else
     timerOn = 0
     clockTimer.setValue(0)
     printToAll("Timer Disabled", {1,1,1})
@@ -561,30 +568,13 @@ function startTime()
 end
 
 -- Deck fetching
-function obtainVanilla()
-  deckVanilla.takeObject({
-    position=deckZone.getPosition(), rotation={0,180,180},
-  })
-end
-function obtainHanii()
-  deckHanii.takeObject({
-    position=deckZone.getPosition(), rotation={0,180,180},
-  })
-end
-function obtainCHRY()
-  deckCHRY.takeObject({
-    position=deckZone.getPosition(), rotation={0,180,180},
-  })
-end
-function obtainPictures()
-  deckPictures.takeObject({
-    position=deckZone.getPosition(), rotation={0,180,180},
-  })
-end
-function obtainUndercover()
-  deckUndercover.takeObject({
-    position=deckZone.getPosition(), rotation={0,180,180},
-  })
+function fetchDeck(deck)
+  local chosenDeck = decks[deck]
+  if chosenDeck != nil then
+    chosenDeck.takeObject({
+      position=deckZone.getPosition(), rotation={0,180,180},
+    })
+  end
 end
 
 -- Clear decks from dealer zone
@@ -601,41 +591,29 @@ end
 -- Call functions get deck + clear deckZone
 function resetVanilla(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-  obtainVanilla()
-  clearDeckZone(deckZone)
-  else
+    clearDeckZone(deckZone)
+    fetchDeck(1)
   end
 end
 
 function resetHanii(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-  obtainHanii()
-  clearDeckZone(deckZone)
-  else
+    clearDeckZone(deckZone)
+    fetchDeck(2)
   end
 end
 
 function resetCHRY(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-  obtainCHRY()
-  clearDeckZone(deckZone)
-  else
-  end
-end
-
-function resetPictures(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-  obtainPictures()
-  clearDeckZone(deckZone)
-  else
+    clearDeckZone(deckZone)
+    fetchDeck(3)
   end
 end
 
 function resetUndercover(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-  obtainUndercover()
-  clearDeckZone(deckZone)
-  else
+    clearDeckZone(deckZone)
+    fetchDeck(4)
   end
 end
 
@@ -752,20 +730,17 @@ end
 function shuffleKeymap(o, color)
   if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     reset_keymap()
-  else
   end
 end
 
 function does_table_have_key( passed_table, passed_key )
 -- checks for something in the keys (NOT the values) of a table
-
     for key,_ in pairs (passed_table) do
         if key == passed_key then
             return true
         end
     end
     return false
-
 end
 
 -- Reset the keymap
@@ -937,10 +912,12 @@ function setDouble()
       -- nothing (yet)
     end
     -- Set the initial timer to 600 seconds (10 minutes)
-    clockTimer.setValue(600)
-    timerOn = 1
-    clockTimer.Clock.pauseStart()
-    gameMode = 1
+    if timerEnabled == true then
+      clockTimer.setValue(600)
+      timerOn = 1
+      clockTimer.Clock.pauseStart()
+      gameMode = 1
+    end
 end
 
 function doubleToRed()
@@ -1298,32 +1275,34 @@ end
 
 function onUpdate()
   -- Check for clock rundown if timer is enabled
-  if gameMode == 1 and timerOn == 1 and illegalMove == false then
-    local timerVal = clockTimer.getValue()
-    if timerVal == 0 then
-      -- Switch turns
-      timerWarning = timerVal
-      broadcastToAll("Time's up!", redColor)
-      toggleTurns()
-    elseif timerVal == 60 and timerWarning != 60 then
-      timerWarning = timerVal
-      broadcastToAll("1 minute remaining!", redColor)
-    elseif timerVal <= 5 then
-      if timerVal == 5 and timerWarning != 5 then
+  if timerEnabled == true then
+    if gameMode == 1 and timerOn == 1 and illegalMove == false then
+      local timerVal = clockTimer.getValue()
+      if timerVal == 0 then
+        -- Switch turns
         timerWarning = timerVal
-        broadcastToAll(timerVal .. " seconds remaining!", redColor)
-      elseif timerVal == 4 and timerWarning != 4 then
+        broadcastToAll("Time's up!", redColor)
+        toggleTurns()
+      elseif timerVal == 60 and timerWarning != 60 then
         timerWarning = timerVal
-        broadcastToAll(timerVal .. " seconds remaining!", redColor)
-      elseif timerVal == 3 and timerWarning != 3 then
-        timerWarning = timerVal
-        broadcastToAll(timerVal .. " seconds remaining!", redColor)
-      elseif timerVal == 2 and timerWarning != 2 then
-        timerWarning = timerVal
-        broadcastToAll(timerVal .. " seconds remaining!", redColor)
-      elseif timerVal == 1 and timerWarning != 1 then
-        timerWarning = timerVal
-        broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        broadcastToAll("1 minute remaining!", redColor)
+      elseif timerVal <= 5 then
+        if timerVal == 5 and timerWarning != 5 then
+          timerWarning = timerVal
+          broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        elseif timerVal == 4 and timerWarning != 4 then
+          timerWarning = timerVal
+          broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        elseif timerVal == 3 and timerWarning != 3 then
+          timerWarning = timerVal
+          broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        elseif timerVal == 2 and timerWarning != 2 then
+          timerWarning = timerVal
+          broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        elseif timerVal == 1 and timerWarning != 1 then
+          timerWarning = timerVal
+          broadcastToAll(timerVal .. " seconds remaining!", redColor)
+        end
       end
     end
   end
@@ -1380,9 +1359,9 @@ function toggleTurns()
     printToAll("Team Red's turn.", redColor)
   end
 
-  if timerOn == 1 then
+  rotateclues()
+  if timerEnabled == true and timerOn == 1 then
     startTime()
-    rotateclues()
   end
 end
 
@@ -1422,9 +1401,9 @@ function endTurn(button, color)
         printToAll("Team Red's turn.", redColor)
       end
 
-      if timerOn == 1 then
+      rotateclues()
+      if timerEnabled == true and timerOn == 1 then
         startTime()
-        rotateclues()
       end
     else
       -- Notify the person trying to end the turn that there are cards incorrectly placed on the board
@@ -1433,7 +1412,7 @@ function endTurn(button, color)
   end
 end
 
-function debugInfo()
+function debugInfo(o, color)
   local redWon = true
   local blueWon = true
   local numred = 0
@@ -1460,6 +1439,7 @@ function debugInfo()
   print()
   print("-----[ Game Information ]-----")
   print("gameMode=" .. gameMode)
+  print("timerEnabled=" .. tostring(timerEnabled))
   print("timerOn=" .. timerOn)
   print("turnTracker=" .. (turnTracker == 0 and "red" or "blue"))
   print("illegalMove=" .. tostring(illegalMove))
