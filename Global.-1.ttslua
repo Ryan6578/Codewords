@@ -374,27 +374,29 @@ function onSave()
 end
 
 function cluemasterEncode(object, playerColor, input, selected)
-  if playerColor == "Red" and object.guid == redEncoding.guid then
-    -- Handle red encoding
+  if (playerColor == "Blue" and object.guid == blueEncoding.guid) or (playerColor == "Red" and object.guid == redEncoding.guid) then
+    -- Handle encoding
     if string.match(input, "\n") and selected == true then
-      local processedClue = string.lower(string.gsub(input, "\n", ""))
-      if processedClue != "" then
-        encodeClue("Red", processedClue)
-        return ""
+      local processedClue = processClue(input)
+      if processedClue != nil then
+        local clue, number = getClueDetails(processedClue)
+        if clue != nil and number != nil then
+          if number != "inf" and tonumber(number) > 9 then
+            Player[playerColor].broadcast("Clues cannot be for more than 9 words.", redColor)
+            return ""
+          elseif string.len(clue) > 20 then
+            Player[playerColor].broadcast("Clues cannot be longer than 20 characters.", redColor)
+            return ""
+          else
+            encodeClue(playerColor, clue .. " - " .. tostring(number))
+            return ""
+          end
+        else
+          Player[playerColor].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
+          return ""
+        end
       else
-        Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
-        return ""
-      end
-    end
-  elseif playerColor == "Blue" and object.guid == blueEncoding.guid then
-    -- Handle blue encoding
-    if string.match(input, "\n") and selected == true then
-      local processedClue = string.lower(string.gsub(input, "\n", ""))
-      if processedClue != "" then
-        encodeClue("Blue", processedClue)
-        return ""
-      else
-        Player[playerColor].broadcast("Clue cannot be empty! Please type a valid clue and push ENTER!", redColor)
+        Player[playerColor].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
         return ""
       end
     end
@@ -414,6 +416,148 @@ function cluemasterEncode(object, playerColor, input, selected)
       Player[playerColor].broadcast("You don't have permission to make clues here!", redColor)
     end
     return ""
+  end
+end
+
+function processClue(clue)
+  local result, status, error
+  if clue == "" then
+    -- Clue is empty
+    return nil
+  end
+
+  status, result = pcall(function() return string.lower(string.gsub(clue, "\n", "")) end)
+  if status != true then
+    -- Error whilst removing newline
+    return nil
+  end
+
+  status, result = pcall(function() return string.match(clue, "%s*(.-)%s*$") end)
+  if status != true then
+    -- Error whilst trimming clue
+    return nil
+  end
+
+  -- No errors occured - return the formatted clue
+  return string.lower(result)
+end
+
+function getClueDetails(processedClue)
+  -- How many hyphens are there?
+  local clue, number
+  local _, hyphenCount = string.gsub(processedClue, "%-", "")
+  local _, spaceCount = string.gsub(processedClue, "%s", "")
+
+  if hyphenCount == 0 then
+    -- Single word with space (or no space) as delimiter
+    if spaceCount == 0 or spaceCount == 1 then
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*)(%d+)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s+)(inf)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      -- No valid clues detected
+      return nil, nil
+
+    else
+      -- Too many spaces
+      return nil, nil
+    end
+  elseif hyphenCount == 1 then
+    -- Either a hypenated word with a space (or no space) as delimiter
+    -- or a single word with a hyphen (and possibly spaces) as delimiter
+    if spaceCount >= 0 and spaceCount <= 2 then
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*)(%d+)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s+)(inf)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*%-%s*)(%d+)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*%-%s*)(inf)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      -- No valid clues detected
+      return nil, nil
+
+    else
+      -- Too many spaces
+      return nil, nil
+    end
+  elseif hyphenCount == 2 then
+
+    if spaceCount >= 0 and spaceCount <= 2 then
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*%-%s*)(%d+)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*%-%s*)(inf)$") end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+
+      -- No valid clues detected
+      return nil, nil
+
+    else
+      -- Too many spaces
+      return nil, nil
+    end
+
+  else
+    -- Clue has too many hyphens
+    return nil, nil
   end
 end
 
