@@ -409,13 +409,15 @@ function cluemasterEncode(object, playerColor, input, selected)
       team = "blue"
     end
 
-    if team != "" then
-      Player[playerColor].broadcast("You don't have permission to make clues for the " .. team .. " team!", redColor)
-    else
-      -- Generic error message
-      Player[playerColor].broadcast("You don't have permission to make clues here!", redColor)
+    if selected == true then
+      if team != "" then
+        Player[playerColor].broadcast("You don't have permission to make clues for the " .. team .. " team!", redColor)
+      else
+        -- Generic error message
+        Player[playerColor].broadcast("You don't have permission to make clues here!", redColor)
+      end
+      return ""
     end
-    return ""
   end
 end
 
