@@ -563,15 +563,6 @@ function getClueDetails(processedClue)
   end
 end
 
-function delete3Dtext()
-  local allObjects = getAllObjects()
-  for _, object in ipairs(allObjects) do
-    if object.tag == "3D Text" then
-      object.destruct()
-    end
-  end
-end
-
 function rotateclues()
   local objectsInZone = clueZone.getObjects()
   for i, object in ipairs(objectsInZone) do
@@ -584,7 +575,7 @@ end
 
 
 function resetclueposition(color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     deleteclues()
     tokenposition_red = 12.00
     tokenposition_blu = 12.00
@@ -725,16 +716,18 @@ function toggleTeams()
 end
 
 function toggletimer()
-  timerEnabled = not timerEnabled
-  if timerEnabled == true then
-    clockTimer.setValue(300)
-    timerOn = 1
-    printToAll("Timer Enabled", {1,1,1})
-    clockTimer.Clock.pauseStart()
-  else
-    timerOn = 0
-    clockTimer.setValue(0)
-    printToAll("Timer Disabled", {1,1,1})
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    timerEnabled = not timerEnabled
+    if timerEnabled == true then
+      clockTimer.setValue(300)
+      timerOn = 1
+      printToAll("Timer Enabled", {1,1,1})
+      clockTimer.Clock.pauseStart()
+    else
+      timerOn = 0
+      clockTimer.setValue(0)
+      printToAll("Timer Disabled", {1,1,1})
+    end
   end
 end
 
@@ -831,39 +824,38 @@ end
 
 -- Call functions get deck + clear deckZone
 function resetVanilla(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     clearDeckZone(deckZone)
     fetchDeck(1)
   end
 end
 
 function resetHanii(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     clearDeckZone(deckZone)
     fetchDeck(2)
   end
 end
 
 function resetCHRY(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     clearDeckZone(deckZone)
     fetchDeck(3)
   end
 end
 
 function resetUndercover(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     clearDeckZone(deckZone)
     fetchDeck(4)
   end
 end
 
--- Restrict newGame permissions to Black/Promoted/Host
+-- Restrict newGame permissions to Red/Blue/Promoted/Host
 function newGame(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     findDeck()
     resetclueposition(color)
-    delete3Dtext()
   else
   end
 end
@@ -969,7 +961,7 @@ end
 end
 
 function shuffleKeymap(o, color)
-  if color=="Black" or color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     reset_keymap()
   end
 end
