@@ -194,6 +194,10 @@ function onload(saveState)
       position={-1.5,0.2,0}, height=1200, width=1800, font_size=340, rotation={0,0,0}
   })
   buttonHandler.createButton({
+      label="Saydi's\nCodenames", click_function="resetSaydi", function_owner=self,
+      position={-5.5,0.2,3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
       label="New Game\n(Reset)", click_function="newGame", function_owner=self,
       position={4,0.2,-3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
   })
@@ -211,10 +215,12 @@ function onload(saveState)
   deckHanii = getObjectFromGUID("8aa1b7")
   deckCHRY = getObjectFromGUID("c47828")
   deckUndercover = getObjectFromGUID("75f2cc")
+  deckSaydi = getObjectFromGUID("0bef78")
   deckVanilla.interactable = false
   deckHanii.interactable = false
   deckCHRY.interactable = false
   deckUndercover.interactable = false
+  deckSaydi.interactable = false
 
   decks = {
     -- Vanilla
@@ -226,12 +232,18 @@ function onload(saveState)
     -- CHRY
     [3] = deckCHRY,
 
-    -- nUndercover
-    [4] = deckUndercover
+    -- Undercover
+    [4] = deckUndercover,
+
+    -- Saydi's
+    [5] = deckSaydi
   }
 
   clueMaker9000 = getObjectFromGUID("f40f06")
   clueMaker9000.interactable = false
+
+  clueTablet = getObjectFromGUID("705a4a")
+  clueTablet.interactable = false
 
   deckZone = getObjectFromGUID("33d9ff")
 
@@ -389,6 +401,7 @@ function cluemasterEncode(object, playerColor, input, selected)
             return ""
           else
             encodeClue(playerColor, clue .. " - " .. tostring(number))
+            playClue(playerColor, clue, number)
             return ""
           end
         else
@@ -418,6 +431,33 @@ function cluemasterEncode(object, playerColor, input, selected)
       end
       return ""
     end
+  end
+end
+
+function playClue(team, clue, number)
+  local message
+  if number == "inf" then
+    message = "The " .. team .. " team's code is, " .. clue .. ", with infinite guesses."
+  else
+    message = "The " .. team .. " team's code is, " .. clue .. ", for " .. number
+    if number == "1" then
+      message = message .. " word."
+    else
+      message = message .. " words."
+    end
+  end
+  local payload = {
+    msg = message,
+    voice = "Chris",
+    engine = "1"
+  }
+  WebRequest.post("https://www.lumenvox.com/products/tts/processTTS.ashx", payload, self, "playClueCallback")
+end
+
+function playClueCallback(returnData)
+  if returnData.is_done == true then
+    local mediaFile = string.match(returnData.text, "^.+<path>(.+)</path>.+$")
+    clueTablet.setValue("https://ryan6578.com/tabletopsimulator/codenames/codenames.php?tts=" .. mediaFile)
   end
 end
 
@@ -848,6 +888,13 @@ function resetUndercover(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     clearDeckZone(deckZone)
     fetchDeck(4)
+  end
+end
+
+function resetSaydi(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    clearDeckZone(deckZone)
+    fetchDeck(5)
   end
 end
 
