@@ -400,8 +400,11 @@ function cluemasterEncode(object, playerColor, input, selected)
             Player[playerColor].broadcast("Clues cannot be longer than 20 characters.", redColor)
             return ""
           else
-            encodeClue(playerColor, clue .. " - " .. tostring(number))
             playClue(playerColor, clue, number)
+            if number == "inf" then
+              number = "∞"
+            end
+            encodeClue(playerColor, clue .. " - " .. number)
             return ""
           end
         else
@@ -492,110 +495,81 @@ function getClueDetails(processedClue)
 
   if hyphenCount == 0 then
     -- Single word with space (or no space) as delimiter
-    if spaceCount == 0 or spaceCount == 1 then
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*)(%d+)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s+)(inf)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      -- No valid clues detected
-      return nil, nil
-
-    else
-      -- Too many spaces
+    if spaceCount > 1 then
       return nil, nil
     end
+
+    local checks = {
+      "^(%a+)(%s*)(%d+)$",
+      "^(%a+)(%s+)(inf)$"
+    }
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil
+
   elseif hyphenCount == 1 then
     -- Either a hypenated word with a space (or no space) as delimiter
     -- or a single word with a hyphen (and possibly spaces) as delimiter
-    if spaceCount >= 0 and spaceCount <= 2 then
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*)(%d+)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s+)(inf)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*%-%s*)(%d+)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+)(%s*%-%s*)(inf)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      -- No valid clues detected
-      return nil, nil
-
-    else
-      -- Too many spaces
+    if spaceCount > 2 then
       return nil, nil
     end
+
+    local checks = {
+      "^(%a+%-%a+)(%s*)(%d+)$",
+      "^(%a+%-%a+)(%s+)(inf)$",
+      "^(%a+)(%s*%-%s*)(%d+)$",
+      "^(%a+)(%s*%-%s*)(inf)$"
+    }
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil
+
   elseif hyphenCount == 2 then
 
-    if spaceCount >= 0 and spaceCount <= 2 then
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*%-%s*)(%d+)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      local status, clue, _, number = pcall(function() return string.match(processedClue, "^(%a+%-%a+)(%s*%-%s*)(inf)$") end)
-      if status == true then
-        -- Parsing successful - check for nil values just in case
-        if clue != nil and number != nil then
-          -- Return the clue and number
-          return clue, number
-        end
-      end
-
-      -- No valid clues detected
-      return nil, nil
-
-    else
-      -- Too many spaces
+    if spaceCount > 2 then
       return nil, nil
     end
+
+    local checks = {
+      "^(%a+%-%a+)(%s*%-%s*)(%d+)$",
+      "^(%a+%-%a+)(%s*%-%s*)(inf)$"
+    }
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status == true then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil
 
   else
     -- Clue has too many hyphens
