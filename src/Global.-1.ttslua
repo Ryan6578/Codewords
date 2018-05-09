@@ -36,6 +36,9 @@ function onload(saveState)
   updateTimer = 0
   illegalMove = false
 
+  -- Tracks the amount of guesses the current team has left
+  guessesLeft = -1
+
   -- Debug
   getObjectFromGUID("f85039").createButton({
       label="PRINT DEBUG INFO", click_function="debugInfo", function_owner=self,
@@ -387,6 +390,12 @@ end
 
 function cluemasterEncode(object, playerColor, input, selected)
   if (playerColor == "Blue" and object.guid == blueEncoding.guid) or (playerColor == "Red" and object.guid == redEncoding.guid) then
+    -- Make sure that it's the current codemaster's turn
+    if (playerColor == "Blue" and turnTracker == 0) or (playerColor == "Red" and turnTracker == 1) then
+      Player[playerColor].broadcast("It's not your turn to enter a clue.", redColor)
+      return ""
+    end
+
     -- Handle encoding
     if string.match(input, "\n") and selected == true then
       local processedClue = processClue(input)
@@ -403,6 +412,9 @@ function cluemasterEncode(object, playerColor, input, selected)
             playClue(playerColor, clue, number)
             if number == "inf" then
               number = "∞"
+              guessesLeft = -1
+            else
+              guessesLeft = tostring(number) + 1
             end
             encodeClue(playerColor, clue .. " - " .. number)
             return ""
@@ -1001,6 +1013,7 @@ end
 function reset_keymap()
   -- Reset game variables
   illegalMove = false
+  guessesLeft = -1
   correctTracker = {}
   agentTracker = {}
   for guid, loc in pairs(agentLocations) do
@@ -1304,7 +1317,8 @@ function onObjectDrop(color, object)
             -- 4) Correct
             -- If card is white, or card is of the opposite color, then toggle toggleTurns
             -- 0 = RED; 1 = BLUE
-            if blueWon == false and redWon == false and (correct == "white" or ((correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0))) then
+            guessesLeft = guessesLeft - 1
+            if (blueWon == false and redWon == false and (correct == "white" or ((correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0))) or (guessesLeft == 0 and correct != "black")) then
               toggleTurns()
             elseif correct == "black" or blueWon == true or redWon == true then
               -- End game scenario
@@ -1597,6 +1611,12 @@ function toggleTurns()
   local bluePos = {20.7, 0.91, 17.94}
   local blueRot = {0, 180, 180}
 
+  -- Reset the timer warning
+  timerWarning = -1
+
+  -- Reset the guesses each team has left
+  guessesLeft = -1
+
   if turnTracker == 0 then
     -- Red team's turn ends, switch to blue team
     turnTracker = 1
@@ -1638,6 +1658,9 @@ function endTurn(button, color)
 
       -- Reset the timer warning
       timerWarning = -1
+
+      -- Reset the guesses each team has left
+      guessesLeft = -1
 
       if turnTracker == 0 then
         -- Red team's turn ends, switch to blue team
