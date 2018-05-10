@@ -21,6 +21,7 @@
 function onload(saveState)
 
   -- Global variables --
+  UI.hide("redTeam")
 
   -- Global game mode
   gameMode = 0
@@ -38,6 +39,9 @@ function onload(saveState)
 
   -- Tracks the amount of guesses the current team has left
   guessesLeft = -1
+
+  -- Keep track of team announcements
+  announceTracker = {}
 
   -- Debug
   getObjectFromGUID("f85039").createButton({
@@ -413,6 +417,8 @@ function cluemasterEncode(object, playerColor, input, selected)
             if number == "inf" then
               number = "∞"
               guessesLeft = -1
+            elseif number == "0" then
+              guessesLeft = -1
             else
               guessesLeft = tostring(number) + 1
             end
@@ -453,6 +459,8 @@ function playClue(team, clue, number)
   local message
   if number == "inf" then
     message = "The " .. team .. " team's code is, " .. clue .. ", with infinite guesses."
+  elseif number == "0" then
+    message = "The " .. team .. " team's code is to avoid, " .. clue .. ", with infinite guesses."
   else
     message = "The " .. team .. " team's code is, " .. clue .. ", for " .. number
     if number == "1" then
@@ -817,9 +825,42 @@ function onPlayerChangedColor(color)
   -- Tell players which team they are on
   if color =="Red" or color =="Orange" or color =="Yellow" or color =="Pink" or color =="Brown" then
     Player[color].broadcast("You are team RED.", {0.856, 0.1, 0.094})
+    --announceTeam(color)
   elseif color == "Blue" or color =="Teal" or color =="Purple" or color =="Green" or color =="White" then
     Player[color].broadcast("You are team BLUE.", {0.118, 0.53, 1})
+    --announceTeam(color)
   end
+end
+
+function announceTeam(color)
+  -- Stop the UI element from showing - buggy
+  local attributes = {
+    active = false,
+    visibility = color
+  }
+  UI.setAttributes(color .. "Announce", attributes)
+
+  if announceTracker[color] != nil then
+    UI.hide(color .. "Announce")
+    Timer.destroy(announceTracker[color])
+  end
+
+  local params = {}
+  params.color = color
+  params.id = tostring(math.random())
+  announceTracker[color] = params.id
+  Timer.create({identifier=params.id, function_name='announceStart', parameters=params, delay=1})
+end
+
+function announceStart(params)
+  UI.show(params.color .. "Announce")
+  Timer.create({identifier=params.id, function_name='announceEnd', parameters=params, delay=5})
+end
+
+function announceEnd(params)
+  UI.hide(params.color .. "Announce")
+  Timer.destroy(params.id)
+  announceTracker[params.color] = nil
 end
 
 function startTime()
