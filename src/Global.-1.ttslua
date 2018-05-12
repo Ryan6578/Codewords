@@ -21,7 +21,6 @@
 function onload(saveState)
 
   -- Global variables --
-  UI.hide("redTeam")
 
   -- Global game mode
   gameMode = 0
@@ -222,7 +221,7 @@ function onload(saveState)
   deckHanii = getObjectFromGUID("8aa1b7")
   deckCHRY = getObjectFromGUID("c47828")
   deckUndercover = getObjectFromGUID("75f2cc")
-  deckSaydi = getObjectFromGUID("0bef78")
+  deckSaydi = getObjectFromGUID("d1dc43")
   deckVanilla.interactable = false
   deckHanii.interactable = false
   deckCHRY.interactable = false
@@ -249,7 +248,7 @@ function onload(saveState)
   clueMaker9000 = getObjectFromGUID("f40f06")
   clueMaker9000.interactable = false
 
-  clueTablet = getObjectFromGUID("705a4a")
+  clueTablet = getObjectFromGUID("69b440")
   clueTablet.interactable = false
 
   deckZone = getObjectFromGUID("33d9ff")
@@ -413,7 +412,8 @@ function cluemasterEncode(object, playerColor, input, selected)
             Player[playerColor].broadcast("Clues cannot be longer than 20 characters.", redColor)
             return ""
           else
-            playClue(playerColor, clue, number)
+            -- Disable for now until I get Google TTS working
+            --playClue(playerColor, clue, number)
             if number == "inf" then
               number = "∞"
               guessesLeft = -1
@@ -480,7 +480,10 @@ end
 function playClueCallback(returnData)
   if returnData.is_done == true then
     local mediaFile = string.match(returnData.text, "^.+<path>(.+)</path>.+$")
-    clueTablet.setValue("https://ryan6578.com/tabletopsimulator/codenames/codenames.php?tts=" .. mediaFile)
+    if mediaFile != nil then
+      -- Ensure that the returned media file was able to be found in the return XML
+      clueTablet.setValue("https://ryan6578.com/tabletopsimulator/codenames/codenames.php?tts=" .. mediaFile)
+    end
   end
 end
 
@@ -825,16 +828,16 @@ function onPlayerChangedColor(color)
   -- Tell players which team they are on
   if color =="Red" or color =="Orange" or color =="Yellow" or color =="Pink" or color =="Brown" then
     Player[color].broadcast("You are team RED.", {0.856, 0.1, 0.094})
-    --announceTeam(color)
+    --announceTeam("Red", color)
   elseif color == "Blue" or color =="Teal" or color =="Purple" or color =="Green" or color =="White" then
     Player[color].broadcast("You are team BLUE.", {0.118, 0.53, 1})
-    --announceTeam(color)
+    --announceTeam("Blue", color)
   end
 end
 
-function announceTeam(color)
+function announceTeam(team, color)
   -- Stop the UI element from showing - buggy
-  local attributes = {
+  --[[local attributes = {
     active = false,
     visibility = color
   }
@@ -843,9 +846,10 @@ function announceTeam(color)
   if announceTracker[color] != nil then
     UI.hide(color .. "Announce")
     Timer.destroy(announceTracker[color])
-  end
+  end]]
 
   local params = {}
+  params.team = team
   params.color = color
   params.id = tostring(math.random())
   announceTracker[color] = params.id
@@ -853,14 +857,17 @@ function announceTeam(color)
 end
 
 function announceStart(params)
-  UI.show(params.color .. "Announce")
+  local id = params.team .. "Team"
+  UI.setAttribute(id, "visibility", params.color)
+  UI.show(id)
   Timer.create({identifier=params.id, function_name='announceEnd', parameters=params, delay=5})
 end
 
 function announceEnd(params)
-  UI.hide(params.color .. "Announce")
+  local id = params.team .. "Team"
+  UI.hide(id)
+  UI.setAttribute(id, "visibility", "")
   Timer.destroy(params.id)
-  announceTracker[params.color] = nil
 end
 
 function startTime()
@@ -1359,9 +1366,7 @@ function onObjectDrop(color, object)
             -- If card is white, or card is of the opposite color, then toggle toggleTurns
             -- 0 = RED; 1 = BLUE
             guessesLeft = guessesLeft - 1
-            if (blueWon == false and redWon == false and (correct == "white" or ((correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0))) or (guessesLeft == 0 and correct != "black")) then
-              toggleTurns()
-            elseif correct == "black" or blueWon == true or redWon == true then
+            if correct == "black" or blueWon == true or redWon == true then
               -- End game scenario
               if (correct == "black" and turnTracker == 0) or blueWon == true then
                 -- Red placed black card, blue wins
@@ -1378,6 +1383,8 @@ function onObjectDrop(color, object)
 
               -- Move the remaining agents to their codes
               endGame()
+            elseif guessesLeft == 0 or correct == "white" or (correct == "red" and turnTracker == 1) or (correct == "blue" and turnTracker == 0) then
+              toggleTurns()
             end
           else
             object.setPositionSmooth(agentTracker[object.guid])
