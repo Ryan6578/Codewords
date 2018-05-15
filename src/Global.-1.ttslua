@@ -270,8 +270,6 @@ function onload(saveState)
   buttonTeams = getObjectFromGUID("8a85e8")
   buttonTeams.interactable = false
   buttonTeams.setLock(true)
-  buttonTeams.setRotation( {0, 180, 180} )
-  buttonTeams.setPosition ( {20.7, 0.91, 17.94} )
 
   -- Red team plaque position and rotation
   redPos = {-20.7, 0.91, 17.94}
@@ -344,11 +342,18 @@ function onload(saveState)
     timerOn = decodedSaveState.timerOn
     timerWarning = decodedSaveState.timerWarning
     turnTracker = decodedSaveState.turnTracker
+    first_random = decodedSaveState.first_random
 
     updateTimer = decodedSaveState.updateTimer
     illegalMove = decodedSaveState.illegalMove
 
-    correctTracker = JSON.decode(decodedSaveState.correctTracker)
+    for pos, guid in pairs(JSON.decode(decodedSaveState.correctTracker)) do
+      local agent = getObjectFromGUID(guid)
+      if getObjectFromGUID(guid).getLock() == true then
+        correctTracker[pos] = guid
+        agent.interactable = false
+      end
+    end
 
     for i, cardGuid in ipairs(JSON.decode(decodedSaveState.cardsInPlayArea)) do
       cardsInPlayArea[i] = getObjectFromGUID(cardGuid)
@@ -379,6 +384,7 @@ function onSave()
   saveData.timerOn = timerOn
   saveData.timerWarning = timerWarning
   saveData.turnTracker = turnTracker
+  saveData.first_random = first_random
 
   saveData.updateTimer = updateTimer
   saveData.illegalMove = illegalMove
@@ -1318,7 +1324,7 @@ function onObjectDrop(color, object)
         if correct == placed then
           -- Card was placed correctly
           if correctTracker[roundedPos.x .. roundedPos.z] == nil then
-            correctTracker[roundedPos.x .. roundedPos.z] = true
+            correctTracker[roundedPos.x .. roundedPos.z] = object.guid
             v.interactable = false
             object.interactable = false
             local lockParam = {}
