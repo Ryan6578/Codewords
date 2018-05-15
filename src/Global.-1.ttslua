@@ -24,6 +24,8 @@ function onload(saveState)
 
   -- Global game mode
   gameMode = 0
+  -- Keeps track of whether or not a new game is in the process of starting
+  newGameStarting = false
   -- 0 = timer off; 1 = timer on
   timerEnabled = true
   timerOn = 1
@@ -41,12 +43,6 @@ function onload(saveState)
 
   -- Keep track of team announcements
   announceTracker = {}
-
-  -- Debug
-  getObjectFromGUID("f85039").createButton({
-      label="PRINT DEBUG INFO", click_function="debugInfo", function_owner=self,
-      position={0,0.25,0}, height=1800, width=4000, font_size=340, rotation={0,0,0}
-  })
 
   redColor = {0.856, 0.1, 0.094}
   blueColor = {0.118, 0.53, 1}
@@ -276,19 +272,28 @@ function onload(saveState)
   buttonTeams.setLock(true)
   buttonTeams.setRotation( {0, 180, 180} )
   buttonTeams.setPosition ( {20.7, 0.91, 17.94} )
+
+  -- Red team plaque position and rotation
+  redPos = {-20.7, 0.91, 17.94}
+  redRot = {0, 180, 0}
+
+  -- Blue team plaque position and rotation
+  bluePos = {20.7, 0.91, 17.94}
+  blueRot = {0, 180, 180}
+
   clockTimer = getObjectFromGUID("0b1336")
 
   tileZone = getObjectFromGUID("06b292")
 
   buttonBlu.createButton({
   label="[END TURN]", click_function="endTurn", function_owner=self,
-  position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
-})
+    position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
+  })
 
 	buttonRed.createButton({
   label="[END TURN]", click_function="endTurn", function_owner=self,
-    position={0,-0.2,0}, rotation={0,90,0}, height=700, width=1500, font_size=10
-})
+    position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
+  })
 
 
   clueMat = getObjectFromGUID("c8b06a")
@@ -935,9 +940,17 @@ end
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function newGame(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    findDeck()
-    resetclueposition(color)
-  else
+    if newGameStarting == false then
+      local deckFound = findDeck()
+      if deckFound == true then
+        newGameStarting = true
+        resetclueposition(color)
+      else
+        Player[color].broadcast("You need to choose a deck before starting.", redColor)
+      end
+    else
+      Player[color].broadcast("A new game is already starting. Please wait.", redColor)
+    end
   end
 end
 
@@ -956,13 +969,15 @@ function findDeck()
             local dX = toolPosX - vPosX
             local dZ = toolPosZ - vPosZ
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
-                clearZone(zoneToClear)
-                dealCards(v)
-                reset_keymap()
-                reset_agentLocations()
+              clearZone(zoneToClear)
+              dealCards(v)
+              reset_keymap()
+              reset_agentLocations()
+              return true
             end
         end
     end
+    return false
 end
 
 -- Deals out cards from deck dealer
@@ -1189,63 +1204,44 @@ function setDoubleTimer()
 end
 
 function setDouble()
-  -- flip the extra tile blue side if blue goes first
-  local whichcard = 1 -- 1 is blue, 2 is red
-  local doublezone = getObjectFromGUID("188864")
-  local tilesInZone = doublezone.getObjects()
-  for i,v in ipairs(tilesInZone) do
-    if v.getDescription() =="Blue" then
-      whichcard = 1
-    elseif v.getDescription() =="Red" then
-      whichcard = 2
-    elseif v.getName() =="Picture" and v.getDescription() =="Red" then
-      whichcard = 3
-    elseif v.getName() =="Picture" and v.getDescription() =="Blue" then
-      whichcard = 4
+  -- Double card set to blue
+  local doubleBlue = getObjectFromGUID('3b1be2')
+  -- Double card set to red
+  local doubleRed = getObjectFromGUID("a0d86a")
+
+  if first_random == 1 then
+    -- Change the state card to blue
+    if doubleBlue == nil then
+      doubleRed.setState(1)
     end
+
+    -- Change the location of the turn marker
+    buttonTeams.setRotation(blueRot)
+    buttonTeams.setPositionSmooth(bluePos)
+    printToAll("Blue team's turn.", blueColor)
+  elseif first_random == 2 then
+    -- Change the state card to red
+    if doubleRed == nil then
+      doubleBlue.setState(2)
+    end
+
+    -- Change the location of the turn marker
+    buttonTeams.setRotation(redRot)
+    buttonTeams.setPositionSmooth(redPos)
+    printToAll("Red team's turn.", redColor)
   end
 
-  if first_random == 1 and whichcard == 1 then
-    buttonTeams.setRotation( {0, 180, 180})
-    buttonTeams.setPosition( {20.7, 0.91, 17.94} )
-     printToAll("Team Blue's turn", {0.1,0.1,1})
-    elseif first_random == 2 and whichcard == 1 then
-      doubleToRed()
-      buttonTeams.setRotation( {0, 180, 0})
-      buttonTeams.setPosition( {-20.7, 0.91, 17.94} )
-       printToAll("Team Red's turn.", {1,0.1,0.1})
-    elseif first_random == 2 and whichcard == 2 then
-      buttonTeams.setRotation( {0, 180, 0})
-      buttonTeams.setPosition( {-20.7, 0.91, 17.94} )
-       printToAll("Team Red's turn.", {1,0.1,0.1})
-    elseif first_random == 1 and whichcard == 2 then
-      doubleToBlue()
-      buttonTeams.setRotation( {0, 180, 180})
-      buttonTeams.setPosition( {20.7, 0.91, 17.94} )
-       printToAll("Team Blue's turn", {0.1,0.1,1})
-    elseif first_random == 1 and whichcard == 3 then
-      -- nothing (yet)
-    end
-    -- Set the initial timer to 600 seconds (10 minutes)
-    if timerEnabled == true then
-      clockTimer.setValue(600)
-      timerOn = 1
-      clockTimer.Clock.pauseStart()
-      gameMode = 1
-    end
+  -- Set the initial timer to 600 seconds (10 minutes)
+  if timerEnabled == true then
+    clockTimer.setValue(600)
+    timerOn = 1
+    clockTimer.Clock.pauseStart()
+    gameMode = 1
+  end
+
+  -- Game has successfully started
+  newGameStarting = false
 end
-
-function doubleToRed()
-  local double_tile = getObjectFromGUID('3b1be2')
-  double_tile.setState(2)
-end
-
-function doubleToBlue()
-  local double_tile2 = getObjectFromGUID("a0d86a")
-  double_tile2.setState(1)
-end
-
-
 
 function shuffle_table( passed_table )
 -- fisher-yates shuffle
@@ -1651,17 +1647,6 @@ function toggleTurns()
   -- Reset the timer warning
   timerWarning = -1
 
-  -- Red team plaque position and rotation
-  local redPos = {-20.7, 0.91, 17.94}
-  local redRot = {0, 180, 0}
-
-  -- Blue team plaque position and rotation
-  local bluePos = {20.7, 0.91, 17.94}
-  local blueRot = {0, 180, 180}
-
-  -- Reset the timer warning
-  timerWarning = -1
-
   -- Reset the guesses each team has left
   guessesLeft = -1
 
@@ -1670,15 +1655,15 @@ function toggleTurns()
     turnTracker = 1
     buttonRed.AssetBundle.playTriggerEffect(0)
     buttonTeams.setRotation(blueRot)
-    buttonTeams.setPosition(bluePos)
-    printToAll("Team Blue's turn.", blueColor)
+    buttonTeams.setPositionSmooth(bluePos)
+    printToAll("Blue team's turn.", blueColor)
   else
     -- Blue team's turn ends, switch to red team
     turnTracker = 0
     buttonBlu.AssetBundle.playTriggerEffect(0)
     buttonTeams.setRotation(redRot)
-    buttonTeams.setPosition(redPos)
-    printToAll("Team Red's turn.", redColor)
+    buttonTeams.setPositionSmooth(redPos)
+    printToAll("Red team's turn.", redColor)
   end
 
   rotateclues()
@@ -1690,14 +1675,6 @@ end
 function endTurn(button, color)
   if color == "Red" or color == "Blue" then
     if illegalMove == false then
-      -- Red team plaque position and rotation
-      local redPos = {-20.7, 0.91, 17.94}
-      local redRot = {0, 180, 0}
-
-      -- Blue team plaque position and rotation
-      local bluePos = {20.7, 0.91, 17.94}
-      local blueRot = {0, 180, 180}
-
       -- Is it the current side's turn?
       if turnTracker == 0 and button.guid == buttonBlu.guid or turnTracker == 1 and button.guid == buttonRed.guid then
         --Player[color].print("It's not your turn!")
@@ -1715,15 +1692,15 @@ function endTurn(button, color)
         turnTracker = 1
         buttonRed.AssetBundle.playTriggerEffect(0)
         buttonTeams.setRotation(blueRot)
-        buttonTeams.setPosition(bluePos)
-        printToAll("Team Blue's turn.", blueColor)
+        buttonTeams.setPositionSmooth(bluePos)
+        printToAll("Blue team's turn.", blueColor)
       else
         -- Blue team's turn ends, switch to red team
         turnTracker = 0
         buttonBlu.AssetBundle.playTriggerEffect(0)
         buttonTeams.setRotation(redRot)
-        buttonTeams.setPosition(redPos)
-        printToAll("Team Red's turn.", redColor)
+        buttonTeams.setPositionSmooth(redPos)
+        printToAll("Red team's turn.", redColor)
       end
 
       rotateclues()
