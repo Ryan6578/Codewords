@@ -200,6 +200,10 @@ function onload(saveState)
       position={-5.5,0.2,3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
   })
   buttonHandler.createButton({
+      label="Mayor's\nCodenames", click_function="resetMayor", function_owner=self,
+      position={-1.5,0.2,3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
+  })
+  buttonHandler.createButton({
       label="New Game\n(Reset)", click_function="newGame", function_owner=self,
       position={4,0.2,-3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
   })
@@ -213,16 +217,18 @@ function onload(saveState)
   })
 
 
-  deckVanilla = getObjectFromGUID("dd1e32")
-  deckHanii = getObjectFromGUID("8aa1b7")
-  deckCHRY = getObjectFromGUID("c47828")
-  deckUndercover = getObjectFromGUID("75f2cc")
-  deckSaydi = getObjectFromGUID("d1dc43")
+  deckVanilla = getObjectFromGUID("ac2d05")
+  deckHanii = getObjectFromGUID("1a59fb")
+  deckCHRY = getObjectFromGUID("0e1903")
+  deckUndercover = getObjectFromGUID("ddd161")
+  deckSaydi = getObjectFromGUID("e25d02")
+  deckMayor = getObjectFromGUID("91b774")
   deckVanilla.interactable = false
   deckHanii.interactable = false
   deckCHRY.interactable = false
   deckUndercover.interactable = false
   deckSaydi.interactable = false
+  deckMayor.interactable = false
 
   decks = {
     -- Vanilla
@@ -238,11 +244,11 @@ function onload(saveState)
     [4] = deckUndercover,
 
     -- Saydi's
-    [5] = deckSaydi
-  }
+    [5] = deckSaydi,
 
-  clueMaker9000 = getObjectFromGUID("f40f06")
-  clueMaker9000.interactable = false
+    -- Mayor's
+    [6] = deckMayor
+  }
 
   clueTablet = getObjectFromGUID("69b440")
   clueTablet.interactable = false
@@ -293,18 +299,15 @@ function onload(saveState)
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
   })
 
-
-  clueMat = getObjectFromGUID("c8b06a")
-  clueMat.interactable = false
   -- red clue encoder
-  tokenbagR = getObjectFromGUID("5cc2bd")
-  tokenbagR.interactable = false
+  redToken = getObjectFromGUID("f3cdf2")
+  redToken.interactable = false
   redcluezone = getObjectFromGUID("8d4638")
   blucluezone = getObjectFromGUID("61948c")
 
   -- blue clue encoder
-  tokenbagB = getObjectFromGUID("9040ee")
-  tokenbagB.interactable = false
+  blueToken = getObjectFromGUID("3f75b3")
+  blueToken.interactable = false
 
   tokenposition_red = 12.00
   tokenposition_blu = 12.00
@@ -637,8 +640,9 @@ function encodeClue(color, clue)
   local broadcastTo
   if color == "Red" then
     clueColor = redColor
-    finishedClue = tokenbagR.takeObject({
-      position={0, 1.5, 57.92}, rotation={0,180,0}, smooth=false
+    finishedClue = redToken.clone({
+      position     = redToken.getPosition(),
+      snap_to_grid = true
     })
 
     -- Check for deleted clues and reset clue positions if need be
@@ -677,8 +681,9 @@ function encodeClue(color, clue)
     broadcastTo = {"Orange", "Yellow", "Pink", "Brown"}
   elseif color == "Blue" then
     clueColor = blueColor
-    finishedClue = tokenbagB.takeObject({
-      position={0, 1.5, 57.92}, rotation={0,180,0}, smooth=false
+    finishedClue = blueToken.clone({
+      position     = blueToken.getPosition(),
+      snap_to_grid = true
     })
 
     -- Check for deleted clues and reset clue positions if need be
@@ -717,9 +722,13 @@ function encodeClue(color, clue)
     broadcastTo = {"Teal", "Purple", "Green", "White"}
   end
 
-  finishedClue.setName(clue)
+  finishedClue.createButton({
+      label=clue, function_owner=self, click_function="clue",
+      position={0,0.2,0}, height=650, width=4750, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}
+  })
   finishedClue.setPosition(cluePosition)
   finishedClue.setRotation({0, 180, 0})
+  finishedClue.setLock(false)
   printToAll(color .. " team's clue is: " .. clue, clueColor)
   for _, playerColor in ipairs(broadcastTo) do
     Player[playerColor].broadcast("Your clue is: " .. clue, clueColor)
@@ -890,9 +899,12 @@ end
 function fetchDeck(deck)
   local chosenDeck = decks[deck]
   if chosenDeck != nil then
-    chosenDeck.takeObject({
-      position=deckZone.getPosition(), rotation={0,180,180},
+    local deckPos = deckZone.getPosition()
+    local deck = chosenDeck.clone({
+      position     = {-9.72, 3, 17.99},
+      snap_to_grid = true
     })
+    deck.setLock(false)
   end
 end
 
@@ -943,6 +955,13 @@ function resetSaydi(o, color)
   end
 end
 
+function resetMayor(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    clearDeckZone(deckZone)
+    fetchDeck(6)
+  end
+end
+
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function newGame(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
@@ -962,12 +981,12 @@ end
 
 -- Find deck on top of deck dealer
 function findDeck()
-    local allObjects = getAllObjects()
+    local deckObjects = deckZone.getObjects()
     local toolPos = deckDealer.getPosition()
     local toolPosX = toolPos.x
     local toolPosZ = toolPos.z
 
-    for i, v in pairs(allObjects) do
+    for i, v in pairs(deckObjects) do
         if v.tag == "Deck" then
             local vPos = v.getPosition()
             local vPosX = vPos.x
