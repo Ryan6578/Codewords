@@ -41,6 +41,8 @@ function onload(saveState)
   -- Configuration panel settings
   playerShuffle = true
   afkProtect = true
+  afkMinutes = 10
+  afkTracker = {}
 
   -- Tracks the amount of guesses the current team has left
   guessesLeft = -1
@@ -256,21 +258,73 @@ function onload(saveState)
   customizationPanel.createButton(checkboxParam)
   customizationPanel.createButton(checkboxTextParam)
 
+  --[[ Timeout Counter ]]
   checkboxParam = {
-    label="✔",
-    click_function="toggleTimer",
+    label="10",
+    click_function="nullFunction",
     function_owner=self,
-    position={-6.5,0.2,-1.1},
+    position={-5,0.2,-1.1},
     rotation={0,0,0},
     height=500,
     width=500,
     font_size=400
   }
   checkboxTextParam = {
+    label="minutes",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-2,0.2,-1},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  -- Decrement
+  checkboxParam = {
+    label="-",
+    click_function="decAFK",
+    function_owner=self,
+    position={-5.8,0.2,-1.1},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+
+  -- Increment
+  checkboxParam = {
+    label="+",
+    click_function="incAFK",
+    function_owner=self,
+    position={-4.2,0.2,-1.1},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+  --[[ END Timeout Counter ]]
+
+  checkboxParam = {
+    label="✔",
+    click_function="toggleTimer",
+    function_owner=self,
+    position={-6.5,0.2,0.1},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400,
+  }
+  checkboxTextParam = {
     label="Timer Enabled",
     click_function="nullFunction",
     function_owner=self,
-    position={-2.4,0.2,-1},
+    position={-2.4,0.2,0.2},
     rotation={0,0,0},
     height=0,
     width=0,
@@ -284,7 +338,6 @@ function onload(saveState)
       label="Shuffle Players and\nBalance Teams", click_function="shufflePlayers", function_owner=self,
       position={4,0.2,3}, height=1200, width=3200, font_size=300, rotation={0,0,0}
   })
-
 
   deckVanilla = getObjectFromGUID("83b607")
   deckHanii = getObjectFromGUID("92bb6b")
@@ -446,6 +499,15 @@ function onload(saveState)
       distance = 45
     })
   end
+
+  -- Start the AFK loop checker
+  Timer.create({
+    identifier     = "afkLoop",
+    function_name  = "afkCheckLoop",
+    function_owner = self,
+    delay          = 1,
+    repetitions    = 0
+  })
 end
 
 function onSave()
@@ -472,6 +534,42 @@ function onSave()
   saveData.keymap = JSON.encode(keymap)
 
   return JSON.encode(saveData)
+end
+
+function nullFunction()
+  -- Nothing
+end
+
+function decAFK(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if afkProtect == true then
+      if afkMinutes > 1 then
+        afkMinutes = afkMinutes - 1
+        o.editButton({
+          index = 4,
+          label = tostring(afkMinutes)
+        })
+      else
+        -- Can't go above 1 minute AFK threshold
+      end
+    end
+  end
+end
+
+function incAFK(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if afkProtect == true then
+      if afkMinutes < 60 then
+        afkMinutes = afkMinutes + 1
+        o.editButton({
+          index = 4,
+          label = tostring(afkMinutes)
+        })
+      else
+        -- Can't go below 0 minute AFK threshold
+      end
+    end
+  end
 end
 
 function shufflePlayers(o, color)
@@ -551,7 +649,6 @@ function startShuffle()
     if newGameStarting == true then
       dealCards(cardsToDeal)
       reset_keymap()
-      reset_agentLocations()
     end
   else
     Player[color].broadcast("Not enough players to shuffle!", redColor)
@@ -574,12 +671,98 @@ function toggleShuffle(o, color)
   end
 end
 
+function afkCheckLoop()
+  if afkProtect == true then
+    --print(tostring(os.time()))
+    local colorsToCheck = {
+      "Teal",
+      "Orange",
+      "Purple",
+      "Yellow",
+      "Green",
+      "Pink",
+      "White",
+      "Brown"
+    }
+    local players = Player.getPlayers()
+    for _, color in ipairs(colorsToCheck) do
+      local player = Player[color]
+      if player.seated == true then
+        -- Only if there's a player in this seat
+        local playerInfo = afkTracker[color]
+        local pos = player.getPointerPosition()
+        if playerInfo == nil then
+          -- No player information exists for this color yet
+          afkTracker[color] = {
+            timestamp       = os.time(),
+            cursorPosition  = pos
+          }
+        elseif round(playerInfo.cursorPosition.x, 2) != round(pos.x, 2) or round(playerInfo.cursorPosition.y, 2) != round(pos.y, 2) or round(playerInfo.cursorPosition.z, 2) != round(pos.z, 2) then
+          -- Cursor position isn't the same. log the new position
+          playerInfo.timestamp = os.time()
+          playerInfo.cursorPosition = pos
+          afkTracker[color] = playerInfo
+        else
+          local timeToAFK = round((afkMinutes * 60) - (os.time() - playerInfo.timestamp), 0)
+          if timeToAFK <= 0 then
+            -- Switch player to spectator
+            player.broadcast("You have been moved to spectator to AFKing for more than " .. tostring(afkMinutes) .. " minute(s).", redColor)
+            printToAll("Player " .. player.steam_name .. " has been moved to spectator for being AFK for more than " .. tostring(afkMinutes) .. " minute(s).",  stringColorToRGB(color))
+            player.changeColor("Grey")
+          elseif timeToAFK <= 5 then
+            player.broadcast("You will be removed due to AFK in: " .. timeToAFK, redColor)
+          end
+        end
+      end
+    end
+  end
+end
+
 function toggleAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     afkProtect = not afkProtect
     local buttonText = "✔"
     if afkProtect == false then
       buttonText = ""
+      o.editButton({
+        index = 4,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 5,
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 6,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 7,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+    else
+      o.editButton({
+        index = 4,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 5,
+        font_color={1,1,1}
+      })
+      o.editButton({
+        index = 6,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 7,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
     end
     o.editButton({
       index = 2,
@@ -912,7 +1095,7 @@ function encodeClue(color, clue)
   end
 
   finishedClue.createButton({
-      label=clue, function_owner=self, click_function="clue",
+      label=clue, function_owner=finishedClue, click_function="clue",
       position={0,0.2,0}, height=650, width=4750, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}
   })
   finishedClue.setPosition(cluePosition)
@@ -977,7 +1160,7 @@ function toggleTimer(o, color)
       printToAll("Timer Disabled", {1,1,1})
     end
     o.editButton({
-      index = 4,
+      index = 8,
       label = buttonText
     })
   end
@@ -1177,6 +1360,7 @@ function newGame(o, color)
       local deckFound = findDeck()
       if deckFound == true then
         newGameStarting = true
+        reset_agentLocations()
         resetClues()
       else
         Player[color].broadcast("You need to choose a deck before starting.", redColor)
@@ -1210,7 +1394,6 @@ function findDeck()
               else
                 dealCards(v)
                 reset_keymap()
-                reset_agentLocations()
               end
               return true
             end
