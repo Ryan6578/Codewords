@@ -38,6 +38,10 @@ function onload(saveState)
   updateTimer = 0
   illegalMove = false
 
+  -- Configuration panel settings
+  playerShuffle = true
+  afkProtect = true
+
   -- Tracks the amount of guesses the current team has left
   guessesLeft = -1
 
@@ -149,13 +153,11 @@ function onload(saveState)
     keyIndex = keyIndex + 1
   end
 
-  timerToggle = getObjectFromGUID("956ed0")
-  timerToggle.createButton({
-  label="[Toggle Timer\nOn/Off]", click_function="toggletimer", function_owner=self,
-  position={0,-0.3,0}, rotation={0,0,0}, height=3000, width=6000, font_size=900
-  })
-
   -- lights toggles
+  spaceBG = getObjectFromGUID("7b8161")
+  spaceBG.interactable = false
+  spaceParticles = getObjectFromGUID("8430cf")
+  spaceParticles.interactable = false
   teamlights = 1
   ambientlights = 1
   ambient_bot = getObjectFromGUID("6fb111")
@@ -166,17 +168,6 @@ function onload(saveState)
   teams_red.interactable = false
   teams_blue = getObjectFromGUID("6072b1")
   teams_blue.interactable = false
-
-  lightToggle = getObjectFromGUID("863168")
-  lightToggle.createButton({
-      label="[1]", click_function="toggleTeams", function_owner=self,
-      position={-2.5,-0.3,2.2}, height=1800, width=1800, font_size=340, rotation={0,0,0}
-  })
-
-  lightToggle.createButton({
-      label="[2]", click_function="toggleAmbi", function_owner=self,
-      position={2.5,-0.3,2.2}, height=1800, width=1800, font_size=340, rotation={0,0,0}
-  })
 
   buttonHandler = getObjectFromGUID("ec0882")
   buttonHandler.createButton({
@@ -216,13 +207,91 @@ function onload(saveState)
       position={4,0.2,3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
   })
 
+  customizationPanel = getObjectFromGUID("0837df")
+  local checkboxParam = {
+    label="✔",
+    click_function="toggleShuffle",
+    function_owner=self,
+    position={-6.5,0.2,-3.5},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  local checkboxTextParam = {
+    label="Shuffle Players at Start",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-0.5,0.2,-3.4},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
 
-  deckVanilla = getObjectFromGUID("ac2d05")
-  deckHanii = getObjectFromGUID("1a59fb")
-  deckCHRY = getObjectFromGUID("0e1903")
-  deckUndercover = getObjectFromGUID("ddd161")
-  deckSaydi = getObjectFromGUID("e25d02")
-  deckMayor = getObjectFromGUID("91b774")
+  checkboxParam = {
+    label="✔",
+    click_function="toggleAFK",
+    function_owner=self,
+    position={-6.5,0.2,-2.3},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  checkboxTextParam = {
+    label="AFK Protection",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-2.4,0.2,-2.2},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  checkboxParam = {
+    label="✔",
+    click_function="toggleTimer",
+    function_owner=self,
+    position={-6.5,0.2,-1.1},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  checkboxTextParam = {
+    label="Timer Enabled",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-2.4,0.2,-1},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  customizationPanel.createButton({
+      label="Shuffle Players and\nBalance Teams", click_function="shufflePlayers", function_owner=self,
+      position={4,0.2,3}, height=1200, width=3200, font_size=300, rotation={0,0,0}
+  })
+
+
+  deckVanilla = getObjectFromGUID("83b607")
+  deckHanii = getObjectFromGUID("92bb6b")
+  deckCHRY = getObjectFromGUID("41f57c")
+  deckUndercover = getObjectFromGUID("ee8afd")
+  deckSaydi = getObjectFromGUID("d75160")
+  deckMayor = getObjectFromGUID("3a3e8c")
   deckVanilla.interactable = false
   deckHanii.interactable = false
   deckCHRY.interactable = false
@@ -403,6 +472,120 @@ function onSave()
   saveData.keymap = JSON.encode(keymap)
 
   return JSON.encode(saveData)
+end
+
+function shufflePlayers(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    startLuaCoroutine(Global, "startShuffle")
+  end
+end
+
+function startShuffle()
+  local seatedPlayers = Player.getPlayers()
+  local players = {}
+  local seats = {}
+  for _, p in ipairs(seatedPlayers) do
+    if p.color != "Grey" and p.color != "Black" then
+      table.insert(players, p)
+    end
+  end
+  if #players > 0 then
+    local seatColors = {
+      "Blue",
+      "Red",
+      "Teal",
+      "Orange",
+      "Purple",
+      "Yellow",
+      "Green",
+      "Pink",
+      "White",
+      "Brown"
+    }
+    local randSide = math.random(0,1)
+
+    -- Remove the colors we don't need
+    for i, seat in ipairs(seatColors) do
+      if i <= #players then
+        if #players % 2 != 0 and i == #players then
+          table.insert(seats, seatColors[i + randSide])
+        else
+          table.insert(seats, seatColors[i])
+        end
+      end
+    end
+
+    -- Stand all players
+    count = 0
+    for _, player in ipairs(players) do
+      player.changeColor("Grey")
+      while count < 5 do
+          count = count + 1
+          coroutine.yield(0)
+      end
+      count = 0
+    end
+
+    -- Sit players back down
+    count = 0
+    for _, seat in ipairs(seats) do
+      local playerIndex = math.random(1, #players)
+      local randPlayer = players[playerIndex]
+      table.remove(players, playerIndex)
+      randPlayer.changeColor(seat)
+      while count < 5 do
+        count = count + 1
+        coroutine.yield(0)
+      end
+      count = 0
+    end
+
+    -- Delay afterwards
+    count = 0
+    while count < 250 do
+        count = count + 1
+        coroutine.yield(0)
+    end
+
+    -- Continue game setup if in progress
+    if newGameStarting == true then
+      dealCards(cardsToDeal)
+      reset_keymap()
+      reset_agentLocations()
+    end
+  else
+    Player[color].broadcast("Not enough players to shuffle!", redColor)
+  end
+
+  return 1
+end
+
+function toggleShuffle(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    playerShuffle = not playerShuffle
+    local buttonText = "✔"
+    if playerShuffle == false then
+      buttonText = ""
+    end
+    o.editButton({
+      index = 0,
+      label = buttonText
+    })
+  end
+end
+
+function toggleAFK(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    afkProtect = not afkProtect
+    local buttonText = "✔"
+    if afkProtect == false then
+      buttonText = ""
+    end
+    o.editButton({
+      index = 2,
+      label = buttonText
+    })
+  end
 end
 
 function cluemasterEncode(object, playerColor, input, selected)
@@ -633,6 +816,12 @@ function resetclueposition(color)
   end
 end
 
+function resetClues(color)
+  deleteclues()
+  tokenposition_red = 12.00
+  tokenposition_blu = 12.00
+end
+
 function encodeClue(color, clue)
   local finishedClue
   local cluePosition
@@ -772,19 +961,25 @@ function toggleTeams()
   end]]
 end
 
-function toggletimer()
+function toggleTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     timerEnabled = not timerEnabled
+    local buttonText = "✔"
     if timerEnabled == true then
       clockTimer.setValue(300)
       timerOn = 1
       printToAll("Timer Enabled", {1,1,1})
       clockTimer.Clock.pauseStart()
     else
+      buttonText = ""
       timerOn = 0
       clockTimer.setValue(0)
       printToAll("Timer Disabled", {1,1,1})
     end
+    o.editButton({
+      index = 4,
+      label = buttonText
+    })
   end
 end
 
@@ -898,8 +1093,21 @@ end
 -- Deck fetching
 function fetchDeck(deck)
   local chosenDeck = decks[deck]
+
+  -- Hybrid loading - load a new deck if one doesn't exist
+  if chosenDeck.tag == "Infinite" then
+    local spawnedDeck = chosenDeck.takeObject({
+      position  = {-9.72, -2, 17.99},
+      rotation  = {0, 180, 180},
+      smooth    = false
+    })
+    spawnedDeck.setLock(true)
+    spawnedDeck.interactable = false
+    chosenDeck = spawnedDeck
+    decks[deck] = spawnedDeck
+  end
+
   if chosenDeck != nil then
-    local deckPos = deckZone.getPosition()
     local deck = chosenDeck.clone({
       position     = {-9.72, 3, 17.99},
       snap_to_grid = true
@@ -969,7 +1177,7 @@ function newGame(o, color)
       local deckFound = findDeck()
       if deckFound == true then
         newGameStarting = true
-        resetclueposition(color)
+        resetClues()
       else
         Player[color].broadcast("You need to choose a deck before starting.", redColor)
       end
@@ -995,9 +1203,15 @@ function findDeck()
             local dZ = toolPosZ - vPosZ
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
               clearZone(zoneToClear)
-              dealCards(v)
-              reset_keymap()
-              reset_agentLocations()
+              -- Shuffle players
+              if playerShuffle == true then
+                cardsToDeal = v
+                startLuaCoroutine(Global, "startShuffle")
+              else
+                dealCards(v)
+                reset_keymap()
+                reset_agentLocations()
+              end
               return true
             end
         end
