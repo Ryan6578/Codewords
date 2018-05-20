@@ -944,14 +944,14 @@ end
 
 function cluemasterEncode(object, playerColor, input, selected)
   if (playerColor == "Blue" and object.guid == blueEncoding.guid) or (playerColor == "Red" and object.guid == redEncoding.guid) then
-    -- Make sure that it's the current codemaster's turn
-    if (playerColor == "Blue" and turnTracker == 0) or (playerColor == "Red" and turnTracker == 1) then
-      Player[playerColor].broadcast("It's not your turn to enter a clue.", redColor)
-      return ""
-    end
-
     -- Handle encoding
     if string.match(input, "\n") and selected == true then
+      -- Make sure that it's the current codemaster's turn
+      if (playerColor == "Blue" and turnTracker == 0) or (playerColor == "Red" and turnTracker == 1) then
+        Player[playerColor].broadcast("It's not your turn to enter a clue.", redColor)
+        return ""
+      end
+
       local processedClue = processClue(input)
       if processedClue != nil then
         local clue, number = getClueDetails(processedClue)
