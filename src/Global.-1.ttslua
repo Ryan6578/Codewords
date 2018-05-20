@@ -24,11 +24,14 @@ function onload(saveState)
 
   -- Global game mode
   gameMode = 0
+  firstTurn = true
   -- Keeps track of whether or not a new game is in the process of starting
   newGameStarting = false
   -- 0 = timer off; 1 = timer on
   timerEnabled = true
   timerOn = 1
+  timerFirst = 10
+  timerSubsequent = 5
   -- Timer warning variable
   timerWarning = -1
   -- 0 = RED; 1 = BLUE
@@ -334,10 +337,114 @@ function onload(saveState)
   customizationPanel.createButton(checkboxParam)
   customizationPanel.createButton(checkboxTextParam)
 
-  customizationPanel.createButton({
+  --[[ Initial Timer ]]
+  checkboxParam = {
+    label="10",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-5,0.2,1.4},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  checkboxTextParam = {
+    label="minutes (round 1)",
+    click_function="nullFunction",
+    function_owner=self,
+    position={0.2,0.2,1.5},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  -- Decrement
+  checkboxParam = {
+    label="-",
+    click_function="decInitTimer",
+    function_owner=self,
+    position={-5.8,0.2,1.4},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+
+  -- Increment
+  checkboxParam = {
+    label="+",
+    click_function="incInitTimer",
+    function_owner=self,
+    position={-4.2,0.2,1.4},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+  --[[ END Initial Timer ]]
+
+  --[[ Subsequent Timer ]]
+  checkboxParam = {
+    label="5",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-5,0.2,2.6},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  checkboxTextParam = {
+    label="minutes (round 2+)",
+    click_function="nullFunction",
+    function_owner=self,
+    position={0.5,0.2,2.7},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  -- Decrement
+  checkboxParam = {
+    label="-",
+    click_function="decSubTimer",
+    function_owner=self,
+    position={-5.8,0.2,2.6},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+
+  -- Increment
+  checkboxParam = {
+    label="+",
+    click_function="incSubTimer",
+    function_owner=self,
+    position={-4.2,0.2,2.6},
+    rotation={0,0,0},
+    height=250,
+    width=250,
+    font_size=300
+  }
+  customizationPanel.createButton(checkboxParam)
+  --[[ END Subsequent Timer ]]
+
+  --[[customizationPanel.createButton({
       label="Shuffle Players and\nBalance Teams", click_function="shufflePlayers", function_owner=self,
       position={4,0.2,3}, height=1200, width=3200, font_size=300, rotation={0,0,0}
-  })
+  })]]
 
   deckVanilla = getObjectFromGUID("83b607")
   deckHanii = getObjectFromGUID("92bb6b")
@@ -540,11 +647,75 @@ function nullFunction()
   -- Nothing
 end
 
+function decInitTimer(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if timerEnabled == true then
+      if timerFirst > 1 then
+        timerFirst = timerFirst - 1
+        o.editButton({
+          index = 10,
+          label = tostring(timerFirst)
+        })
+      else
+        -- Can't go above 1 minute AFK threshold
+      end
+    end
+  end
+end
+
+function incInitTimer(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if timerEnabled == true then
+      if timerFirst < 20 then
+        timerFirst = timerFirst + 1
+        o.editButton({
+          index = 10,
+          label = tostring(timerFirst)
+        })
+      else
+        -- Can't go below 0 minute AFK threshold
+      end
+    end
+  end
+end
+
+function decSubTimer(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if timerEnabled == true then
+      if timerSubsequent > 1 then
+        timerSubsequent = timerSubsequent - 1
+        o.editButton({
+          index = 14,
+          label = tostring(timerSubsequent)
+        })
+      else
+        -- Can't go above 1 minute AFK threshold
+      end
+    end
+  end
+end
+
+function incSubTimer(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    if timerEnabled == true then
+      if timerSubsequent < 20 then
+        timerSubsequent = timerSubsequent + 1
+        o.editButton({
+          index = 14,
+          label = tostring(timerSubsequent)
+        })
+      else
+        -- Can't go below 0 minute AFK threshold
+      end
+    end
+  end
+end
+
 function decAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     if afkProtect == true then
-      if afkMinutes > 1 then
-        afkMinutes = afkMinutes - 1
+      if timerFirst > 1 then
+        timerFirst = timerFirst - 1
         o.editButton({
           index = 4,
           label = tostring(afkMinutes)
@@ -1096,11 +1267,22 @@ function encodeClue(color, clue)
 
   finishedClue.createButton({
       label=clue, function_owner=finishedClue, click_function="clue",
-      position={0,0.2,0}, height=650, width=4750, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}
+      position={0,0.2,0}, height=0, width=0, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}, font_color={1,1,1}
   })
   finishedClue.setPosition(cluePosition)
   finishedClue.setRotation({0, 180, 0})
   finishedClue.setLock(false)
+  finishedClue.setLuaScript(
+    "function onload()\n"
+      .. "self.createButton({\n"
+        .. "label='" .. clue .. "', click_function='nullFunction', function_owner=self,\n"
+        .. "position={0,0.2,0}, height=0, width=0, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}, font_color={1,1,1}\n"
+      .. "})\n"
+    .. "end\n"
+
+    .. "function nullFunction()\n"
+    .. "end\n"
+  )
   printToAll(color .. " team's clue is: " .. clue, clueColor)
   for _, playerColor in ipairs(broadcastTo) do
     Player[playerColor].broadcast("Your clue is: " .. clue, clueColor)
@@ -1149,15 +1331,94 @@ function toggleTimer(o, color)
     timerEnabled = not timerEnabled
     local buttonText = "✔"
     if timerEnabled == true then
-      clockTimer.setValue(300)
-      timerOn = 1
+      if gameMode == 1 then
+        startTime()
+        timerOn = 1
+      end
+      o.editButton({
+        index = 10,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 11,
+        font_color={1,1,1}
+      })
+      o.editButton({
+        index = 12,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 13,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 14,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 15,
+        font_color={1,1,1}
+      })
+      o.editButton({
+        index = 16,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
+      o.editButton({
+        index = 17,
+        color={1,1,1},
+        font_color={0,0,0}
+      })
       printToAll("Timer Enabled", {1,1,1})
-      clockTimer.Clock.pauseStart()
     else
-      buttonText = ""
-      timerOn = 0
-      clockTimer.setValue(0)
+      if gameMode == 1 then
+        timerOn = 0
+        clockTimer.setValue(0)
+      end
+      o.editButton({
+        index = 10,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 11,
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 12,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 13,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 14,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 15,
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 16,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
+      o.editButton({
+        index = 17,
+        color={0.5,0.5,0.5},
+        font_color={0.25,0.25,0.25}
+      })
       printToAll("Timer Disabled", {1,1,1})
+      buttonText = ""
     end
     o.editButton({
       index = 8,
@@ -1269,7 +1530,11 @@ function announceEnd(params)
 end
 
 function startTime()
-  clockTimer.setValue(300)
+  if firstTurn == true then
+    clockTimer.setValue(timerFirst * 60)
+  else
+    clockTimer.setValue(timerSubsequent * 60)
+  end
   clockTimer.Clock.pauseStart()
 end
 
@@ -1653,13 +1918,15 @@ function setDouble()
     printToAll("Red team's turn.", redColor)
   end
 
-  -- Set the initial timer to 600 seconds (10 minutes)
+  -- Start the timer
   if timerEnabled == true then
-    clockTimer.setValue(600)
+    firstTurn = true
     timerOn = 1
-    clockTimer.Clock.pauseStart()
-    gameMode = 1
+    startTime()
   end
+
+  -- Change the gameMode to 1
+  gameMode = 1
 
   -- Game has successfully started
   newGameStarting = false
@@ -1798,6 +2065,9 @@ function onObjectDrop(color, object)
               -- Set the timer to 0 and disable
               timerOn = 0
               clockTimer.setValue(0)
+
+              -- Set the game back to initial state
+              gameMode = 0
 
               -- Move the remaining agents to their codes
               endGame()
@@ -2069,6 +2339,9 @@ function toggleTurns()
   -- Reset the timer warning
   timerWarning = -1
 
+  -- Make sure it isn't the first turn
+  firstTurn = false
+
   -- Reset the guesses each team has left
   guessesLeft = -1
 
@@ -2105,6 +2378,9 @@ function endTurn(button, color)
 
       -- Reset the timer warning
       timerWarning = -1
+
+      -- Make sure it isn't the first turn
+      firstTurn = false
 
       -- Reset the guesses each team has left
       guessesLeft = -1
