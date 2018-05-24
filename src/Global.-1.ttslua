@@ -1000,11 +1000,15 @@ function onPlayerDisconnect(player)
 end
 
 function onPlayerChangeColor(color)
-  if not shufflingPlayers and ( color == "Grey" or color == "Black" ) then
-    for i, player in ipairs(codemasterQueue) do
-      if Player[color].steam_id == player.steam_id then
-        table.remove(codemasterQueue, i)
-        break
+  if not shufflingPlayers then
+    for _, player in ipairs(Player.getPlayers()) do
+      if player.color == "Black" or player.color == "Grey" then
+        for i, queuePlayer in ipairs(codemasterQueue) do
+          if player.steam_id == queuePlayer.steam_id then
+            table.remove(codemasterQueue, i)
+            break
+          end
+        end
       end
     end
     redrawQueue()
