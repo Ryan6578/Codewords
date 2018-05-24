@@ -885,6 +885,8 @@ function startShuffle()
       count = 0
     end
 
+    shufflingPlayers = false
+    
     redrawQueue()
 
     -- Delay afterwards
@@ -894,7 +896,6 @@ function startShuffle()
         coroutine.yield(0)
     end
 
-    shufflingPlayers = false
 
     -- Continue game setup if in progress
     if newGameStarting == true then
