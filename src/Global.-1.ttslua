@@ -802,7 +802,6 @@ function startShuffle()
   local seatedPlayers = Player.getPlayers()
   local players = {}
   local seats = {}
-  local masters = {}
   for _, p in ipairs(seatedPlayers) do
     if p.color != "Grey" and p.color != "Black" then
       table.insert(players, p)
