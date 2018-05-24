@@ -97,6 +97,8 @@ function onload(saveState)
   firstTurn = true
   -- Keeps track of whether or not a new game is in the process of starting
   newGameStarting = false
+  -- Keeps track of whether or not we are currently shuffling players
+  shufflingPlayers = false
   -- 0 = timer off; 1 = timer on
   timerEnabled = true
   timerOn = 1
@@ -816,6 +818,9 @@ function startShuffle()
     end
   end
   if #players > 0 then
+
+    shufflingPlayers = true
+
     local seatColors = {
       "Blue",
       "Red",
@@ -888,6 +893,8 @@ function startShuffle()
         count = count + 1
         coroutine.yield(0)
     end
+
+    shufflingPlayers = false
 
     -- Continue game setup if in progress
     if newGameStarting == true then
@@ -993,7 +1000,7 @@ function onPlayerDisconnect(player)
 end
 
 function onPlayerChangeColor(color)
-  if color == "Black" then
+  if not shufflingPlayers and ( color == "Grey" or color == "Black" ) then
     for i, player in ipairs(codemasterQueue) do
       if Player[color].steam_id == player.steam_id then
         table.remove(codemasterQueue, i)
