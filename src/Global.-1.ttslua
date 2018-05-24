@@ -808,9 +808,9 @@ function startShuffle()
       table.insert(players, p)
     else
       -- remove gray or black players from the codemasterQueue
-      for k,v in ipairs(codemasterQueue) do
-        if p.steam_id == v.steam_id then
-          table.remove(codemasterQueue,k)
+      for i, q in ipairs(codemasterQueue) do
+        if p.steam_id == q.steam_id then
+          table.remove(codemasterQueue,i)
         end
       end
     end
@@ -859,11 +859,11 @@ function startShuffle()
     count = 0
     for i, seat in ipairs(seats) do
       if playerQueue and i <= 2 and #codemasterQueue > 0 then
-        for k,v in ipairs(players) do
-          if v.steam_id == codemasterQueue[1].steam_id then
-            table.remove(players, k)
+        for i, player in ipairs(players) do
+          if player.steam_id == codemasterQueue[1].steam_id then
+            table.remove(players, i)
             table.remove(codemasterQueue,1)
-            v.changeColor(seat)
+            player.changeColor(seat)
             break
           end
         end
@@ -939,12 +939,12 @@ function redrawQueue()
   for i = nButtons+2,3,-1 do
     queuePanel.removeButton(i)
   end
-  for k,v in ipairs(codemasterQueue) do
+  for i, player in ipairs(codemasterQueue) do
     local PlayerButtonParam = {
-      label=v.steam_name,
+      label=player.steam_name,
       click_function="nullFunction",
       function_owner=self,
-      position={-6.35 + (1.1*k),0.2,0},
+      position={-6.35 + (1.1*i),0.2,0},
       rotation={0,-90,0},
       height=500,
       width=4200,
@@ -973,9 +973,9 @@ function joinQueue(o, color)
 end
 
 function leaveQueue(o, color)
-  for k,v in ipairs(codemasterQueue) do
-    if Player[color].steam_id == v.steam_id then
-      table.remove(codemasterQueue, k)
+  for i, player in ipairs(codemasterQueue) do
+    if Player[color].steam_id == player.steam_id then
+      table.remove(codemasterQueue, i)
       break
     end
   end
@@ -983,9 +983,9 @@ function leaveQueue(o, color)
 end
 
 function onPlayerDisconnect(player)
-  for k,v in ipairs(codemasterQueue) do
-    if player.steam_id == v.steam_id then
-      table.remove(codemasterQueue, k)
+  for i, player in ipairs(codemasterQueue) do
+    if player.steam_id == player.steam_id then
+      table.remove(codemasterQueue, i)
       break
     end
   end
@@ -994,9 +994,9 @@ end
 
 function onPlayerChangeColor(color)
   if color == "Black" then
-    for k,v in ipairs(codemasterQueue) do
-      if Player[color].steam_id == v.steam_id then
-        table.remove(codemasterQueue, k)
+    for i, player in ipairs(codemasterQueue) do
+      if Player[color].steam_id == player.steam_id then
+        table.remove(codemasterQueue, i)
         break
       end
     end
