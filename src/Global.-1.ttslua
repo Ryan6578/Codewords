@@ -958,8 +958,8 @@ end
 
 
 function joinQueue(o, color)
-  for _,v in ipairs(codemasterQueue) do
-    if Player[color].steam_id == v.steam_id then
+  for _, player in ipairs(codemasterQueue) do
+    if Player[color].steam_id == player.steam_id then
       return
     end
   end
