@@ -807,7 +807,7 @@ function startShuffle()
       table.insert(players, p)
     else
       for k,v in ipairs(codemasterQueue) do
-        if p.steam_id == v[1] then
+        if player.steam_id == v.steam_id then
           table.remove(codemasterQueue,k)
         end
       end
@@ -858,7 +858,7 @@ function startShuffle()
     for i, seat in ipairs(seats) do
       if playerQueue and i <= 2 and #codemasterQueue > 0 then
         for k,v in ipairs(players) do
-          if v.steam_id == codemasterQueue[1][1] then
+          if v.steam_id == codemasterQueue[1].steam_id then
             table.remove(players, k)
             table.remove(codemasterQueue,1)
             v.changeColor(seat)
@@ -939,7 +939,7 @@ function redrawQueue()
   end
   for k,v in ipairs(codemasterQueue) do
     local PlayerButtonParam = {
-      label=v[2],
+      label=v.steam_name,
       click_function="nullFunction",
       function_owner=self,
       position={-6.35 + (1.1*k),0.2,0},
@@ -957,17 +957,22 @@ end
 
 function joinQueue(o, color)
   for _,v in ipairs(codemasterQueue) do
-    if Player[color].steam_id == v[1] then
+    if Player[color].steam_id == v.steam_id then
       return
     end
   end
-  table.insert(codemasterQueue,{Player[color].steam_id, Player[color].steam_name})
+  local playerInfo =
+  {
+    steam_id   = Player[color].steam_id,
+    steam_name = Player[color].steam_name
+  }
+  table.insert(codemasterQueue,playerInfo)
   redrawQueue()
 end
 
 function leaveQueue(o, color)
   for k,v in ipairs(codemasterQueue) do
-    if Player[color].steam_id == v[1] then
+    if Player[color].steam_id == v.steam_id then
       table.remove(codemasterQueue, k)
       break
     end
@@ -977,7 +982,7 @@ end
 
 function onPlayerDisconnect(player)
   for k,v in ipairs(codemasterQueue) do
-    if player.steam_id == v[1] then
+    if player.steam_id == v.steam_id then
       table.remove(codemasterQueue, k)
       break
     end
@@ -988,7 +993,7 @@ end
 function onPlayerChangeColor(color)
   if color == "Black" then
     for k,v in ipairs(codemasterQueue) do
-      if Player[color].steam_id == v[1] then
+      if Player[color].steam_id == v.steam_id then
         table.remove(codemasterQueue, k)
         break
       end
