@@ -803,9 +803,11 @@ function startShuffle()
   local players = {}
   local seats = {}
   for _, p in ipairs(seatedPlayers) do
+    -- grab all players that aren't gray or black
     if p.color != "Grey" and p.color != "Black" then
       table.insert(players, p)
     else
+      -- remove gray or black players from the codemasterQueue
       for k,v in ipairs(codemasterQueue) do
         if player.steam_id == v.steam_id then
           table.remove(codemasterQueue,k)
@@ -931,8 +933,10 @@ end
 
 
 function redrawQueue()
+  -- get number of buttons, ignoring the original 3
   local nButtons = #queuePanel.getButtons() - 3
   if nButtons > 0 then
+    -- removing buttons back to front so that indexes don't shift down while we are looping
     for i = nButtons+2,3,-1 do
       queuePanel.removeButton(i)
     end
