@@ -815,7 +815,7 @@ function startShuffle()
     end
   end
   if #players > 0 then
-    local seatColors  = {
+    local seatColors = {
       "Blue",
       "Red",
       "Teal",
