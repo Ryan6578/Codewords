@@ -113,6 +113,8 @@ function onload(saveState)
 
   -- Configuration panel settings
   playerShuffle = true
+  playerQueue = true
+  codemasterQueue = {}
   afkProtect = true
   afkMinutes = 10
   afkTracker = {}
@@ -427,6 +429,74 @@ function onload(saveState)
   customizationPanel.createButton(checkboxParam)
   --[[ END Subsequent Timer ]]
 
+  -- Queue Toggle button
+
+  local checkboxParam = {
+    label="✔",
+    click_function="toggleQueue",
+    function_owner=self,
+    position={-6.5,0.2,3.8},
+    rotation={0,0,0},
+    height=500,
+    width=500,
+    font_size=400
+  }
+  local checkboxTextParam = {
+    label="Enable Codemaster Queue",
+    click_function="nullFunction",
+    function_owner=self,
+    position={0,0.2,3.9},
+    rotation={0,0,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  customizationPanel.createButton(checkboxParam)
+  customizationPanel.createButton(checkboxTextParam)
+
+  -- Codemaster Queue
+
+  queuePanel = getObjectFromGUID("cb8c83")
+  local queueTextParam = {
+    label="Codemaster Queue",
+    click_function="nullFunction",
+    function_owner=self,
+    position={-6.75,0.2,0},
+    rotation={0,-90,0},
+    height=0,
+    width=0,
+    font_color={1,1,1},
+    font_size=500
+  }
+  local joinButtonParam = {
+      label="Join",
+      click_function="joinQueue",
+      function_owner=self,
+      position={6.75,0.2,2.2},
+      rotation={0,-90,0},
+      height=500,
+      width=2000,
+      font_size=400
+    }
+  local leaveButtonParam = {
+    label="Leave",
+    click_function="leaveQueue",
+    function_owner=self,
+    position={6.75,0.2,-2.2},
+    rotation={0,-90,0},
+    height=500,
+    width=2000,
+    font_size=400
+  }
+
+  queuePanel.createButton(queueTextParam)
+  queuePanel.createButton(joinButtonParam)
+  queuePanel.createButton(leaveButtonParam)
+
+
+
+
   deckVanilla = getObjectFromGUID("83b607")
   deckHanii = getObjectFromGUID("92bb6b")
   deckCHRY = getObjectFromGUID("41f57c")
@@ -732,13 +802,20 @@ function startShuffle()
   local seatedPlayers = Player.getPlayers()
   local players = {}
   local seats = {}
+  local masters = {}
   for _, p in ipairs(seatedPlayers) do
     if p.color != "Grey" and p.color != "Black" then
       table.insert(players, p)
+    else
+      for k,v in ipairs(codemasterQueue) do
+        if p.steam_id == v[1] then
+          table.remove(codemasterQueue,k)
+        end
+      end
     end
   end
   if #players > 0 then
-    local seatColors = {
+    local seatColors  = {
       "Blue",
       "Red",
       "Teal",
@@ -751,6 +828,8 @@ function startShuffle()
       "Brown"
     }
     local randSide = math.random(0,1)
+    local randMast = math.random(0,1)
+
 
     -- Remove the colors we don't need
     for i, seat in ipairs(seatColors) do
@@ -760,6 +839,8 @@ function startShuffle()
         else
           table.insert(seats, seatColors[i])
         end
+      else
+        break
       end
     end
 
@@ -776,17 +857,30 @@ function startShuffle()
 
     -- Sit players back down
     count = 0
-    for _, seat in ipairs(seats) do
-      local playerIndex = math.random(1, #players)
-      local randPlayer = players[playerIndex]
-      table.remove(players, playerIndex)
-      randPlayer.changeColor(seat)
+    for i, seat in ipairs(seats) do
+      if i <= 2 and #codemasterQueue > 0 then
+        for k,v in ipairs(players) do
+          if v.steam_id == codemasterQueue[1][1] then
+            table.remove(players, k)
+            table.remove(codemasterQueue,1)
+            v.changeColor(seat)
+            break
+          end
+        end
+      else
+        local playerIndex = math.random(1, #players)
+        local randPlayer = players[playerIndex]
+        table.remove(players, playerIndex)
+        randPlayer.changeColor(seat)
+      end
       while count < 5 do
         count = count + 1
         coroutine.yield(0)
       end
       count = 0
     end
+
+    redrawQueue()
 
     -- Delay afterwards
     count = 0
@@ -818,6 +912,90 @@ function toggleShuffle(o, color)
       index = 0,
       label = buttonText
     })
+  end
+end
+
+
+function toggleQueue(o, color)
+  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+    playerQueue = not playerQueue
+    local buttonText = "✔"
+    if playerQueue == false then
+      buttonText = ""
+    end
+    o.editButton({
+      index = 18,
+      label = buttonText
+    })
+  end
+end
+
+
+
+function redrawQueue()
+  local nButtons = #queuePanel.getButtons() - 3
+  if nButtons > 0 then
+    for i = nButtons+2,3,-1 do
+      queuePanel.removeButton(i)
+    end
+  end
+  for k,v in ipairs(codemasterQueue) do
+    local PlayerButtonParam = {
+      label=v[2],
+      click_function="nullFunction",
+      function_owner=self,
+      position={-6.35 + (1.1*k),0.2,0},
+      rotation={0,-90,0},
+      height=500,
+      width=4200,
+      font_size=400
+    }
+
+    queuePanel.createButton(PlayerButtonParam)
+  end
+
+end
+
+
+function joinQueue(o, color)
+  for _,v in ipairs(codemasterQueue) do
+    if Player[color].steam_id == v[1] then
+      return
+    end
+  end
+  table.insert(codemasterQueue,{Player[color].steam_id, Player[color].steam_name})
+  redrawQueue()
+end
+
+function leaveQueue(o, color)
+  for k,v in ipairs(codemasterQueue) do
+    if Player[color].steam_id == v[1] then
+      table.remove(codemasterQueue, k)
+      break
+    end
+  end
+  redrawQueue()
+end
+
+function onPlayerDisconnect(player)
+  for k,v in ipairs(codemasterQueue) do
+    if player.steam_id == v[1] then
+      table.remove(codemasterQueue, k)
+      break
+    end
+  end
+  redrawQueue()
+end
+
+function onPlayerChangeColor(color)
+  if color == "Black" then
+    for k,v in ipairs(codemasterQueue) do
+      if Player[color].steam_id == v[1] then
+        table.remove(codemasterQueue, k)
+        break
+      end
+    end
+    redrawQueue()
   end
 end
 
