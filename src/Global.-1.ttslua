@@ -858,7 +858,7 @@ function startShuffle()
     -- Sit players back down
     count = 0
     for i, seat in ipairs(seats) do
-      if i <= 2 and #codemasterQueue > 0 then
+      if playerQueue and i <= 2 and #codemasterQueue > 0 then
         for k,v in ipairs(players) do
           if v.steam_id == codemasterQueue[1][1] then
             table.remove(players, k)
