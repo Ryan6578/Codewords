@@ -828,7 +828,6 @@ function startShuffle()
       "Brown"
     }
     local randSide = math.random(0,1)
-    local randMast = math.random(0,1)
 
 
     -- Remove the colors we don't need
