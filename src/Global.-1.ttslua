@@ -966,7 +966,8 @@ end
 
 
 function joinQueue(o, color)
-  if color == "Grey" or color == "Black" then
+  if color == "Black" then
+    Player[color].broadcast("Please switch colors before attempting to join the codemaster queue.", redColor)
     return
   end
   for _, player in ipairs(codemasterQueue) do
@@ -984,7 +985,7 @@ function joinQueue(o, color)
 end
 
 function leaveQueue(o, color)
-  if color == "Grey" or color == "Black" then
+  if color == "Black" then
     return
   end
   for i, player in ipairs(codemasterQueue) do
