@@ -804,14 +804,14 @@ function startShuffle()
   local seatedPlayers = Player.getPlayers()
   local players = {}
   local seats = {}
-  for _, p in ipairs(seatedPlayers) do
+  for _, player in ipairs(seatedPlayers) do
     -- grab all players that aren't gray or black
-    if p.color != "Grey" and p.color != "Black" then
-      table.insert(players, p)
+    if player.color != "Grey" and player.color != "Black" then
+      table.insert(players, player)
     else
       -- remove gray or black players from the codemasterQueue
-      for i, q in ipairs(codemasterQueue) do
-        if p.steam_id == q.steam_id then
+      for i, queuePlayer in ipairs(codemasterQueue) do
+        if player.steam_id == queuePlayer.steam_id then
           table.remove(codemasterQueue,i)
         end
       end
