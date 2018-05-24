@@ -485,7 +485,7 @@ function onload(saveState)
   buttonRed = getObjectFromGUID("f16a9a")
   buttonBlu = getObjectFromGUID("c91f34")
   buttonTeams = getObjectFromGUID("8a85e8")
-  --buttonTeams.interactable = false
+  buttonTeams.interactable = false
   buttonTeams.setLock(true)
 
   -- Red team plaque position and rotation
@@ -693,8 +693,8 @@ end
 function decAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     if afkProtect == true then
-      if timerFirst > 1 then
-        timerFirst = timerFirst - 1
+      if afkMinutes > 1 then
+        afkMinutes = afkMinutes - 1
         o.editButton({
           index = 4,
           label = tostring(afkMinutes)
@@ -1450,14 +1450,14 @@ function onPlayerChangedColor(color)
   -- Tell players which team they are on
   if color =="Red" or color =="Orange" or color =="Yellow" or color =="Pink" or color =="Brown" then
     Player[color].broadcast("You are team RED.", {0.856, 0.1, 0.094})
-    --announceTeam("Red", color)
+    --announceTeam(color)
   elseif color == "Blue" or color =="Teal" or color =="Purple" or color =="Green" or color =="White" then
     Player[color].broadcast("You are team BLUE.", {0.118, 0.53, 1})
     --announceTeam("Blue", color)
   end
 end
 
-function announceTeam(team, color)
+function announceTeam(color)
   -- Stop the UI element from showing - buggy
   --[[local attributes = {
     active = false,
@@ -1469,27 +1469,28 @@ function announceTeam(team, color)
     UI.hide(color .. "Announce")
     Timer.destroy(announceTracker[color])
   end]]
-
+  Timer.destroy(color .. "Welcome")
+  UI.setAttribute(color .. "Welcome", "active", "false")
   local params = {}
-  params.team = team
-  params.color = color
-  params.id = tostring(math.random())
-  announceTracker[color] = params.id
+  params.id = color .. "Welcome"
   Timer.create({identifier=params.id, function_name='announceStart', parameters=params, delay=1})
 end
 
 function announceStart(params)
-  local id = params.team .. "Team"
-  UI.setAttribute(id, "visibility", params.color)
-  UI.show(id)
+  print("Announce started")
+  Timer.destroy(params.id)
+  local id = params.id
+  --UI.show(id)
+  UI.setAttribute(id, "active", "true")
   Timer.create({identifier=params.id, function_name='announceEnd', parameters=params, delay=5})
 end
 
 function announceEnd(params)
-  local id = params.team .. "Team"
-  UI.hide(id)
-  UI.setAttribute(id, "visibility", "")
+  print("Announce ended")
   Timer.destroy(params.id)
+  local id = params.id
+  --UI.hide(id)
+  UI.setAttribute(id, "active", "false")
 end
 
 function startTime()
