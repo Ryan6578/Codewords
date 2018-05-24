@@ -809,7 +809,7 @@ function startShuffle()
     else
       -- remove gray or black players from the codemasterQueue
       for k,v in ipairs(codemasterQueue) do
-        if player.steam_id == v.steam_id then
+        if p.steam_id == v.steam_id then
           table.remove(codemasterQueue,k)
         end
       end
