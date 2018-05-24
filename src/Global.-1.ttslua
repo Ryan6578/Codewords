@@ -935,11 +935,9 @@ end
 function redrawQueue()
   -- get number of buttons, ignoring the original 3
   local nButtons = #queuePanel.getButtons() - 3
-  if nButtons > 0 then
-    -- removing buttons back to front so that indexes don't shift down while we are looping
-    for i = nButtons+2,3,-1 do
-      queuePanel.removeButton(i)
-    end
+  -- removing buttons back to front so that indexes don't shift down while we are looping
+  for i = nButtons+2,3,-1 do
+    queuePanel.removeButton(i)
   end
   for k,v in ipairs(codemasterQueue) do
     local PlayerButtonParam = {
