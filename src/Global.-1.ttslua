@@ -88,6 +88,22 @@ agentColors =
   ['a0d86a'] = 'red'
 }
 
+size = {}
+-- Small buttons
+size.small =
+{
+  width     = 1800,
+  height    = 1200,
+  font_size = 340
+}
+-- Medium buttons
+size.medium =
+{
+  width     = 3200,
+  height    = 1200,
+  font_size = 400
+}
+
 function onload(saveState)
 
   -- Global variables --
@@ -101,7 +117,6 @@ function onload(saveState)
   shufflingPlayers = false
   -- 0 = timer off; 1 = timer on
   timerEnabled = true
-  timerOn = 1
   timerFirst = 10
   timerSubsequent = 5
   -- Timer warning variable
@@ -117,7 +132,7 @@ function onload(saveState)
   playerShuffle = true
   playerQueue = true
   codemasterQueue = {}
-  afkProtect = true
+  afkDetect = true
   afkMinutes = 10
   afkTracker = {}
 
@@ -172,294 +187,15 @@ function onload(saveState)
   teams_blue = getObjectFromGUID("6072b1")
   teams_blue.interactable = false
 
-  buttonHandler = getObjectFromGUID("ec0882")
-  buttonHandler.createButton({
-      label="Vanilla\nCodenames", click_function="resetVanilla", function_owner=self,
-      position={-5.5,0.2,-3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="Haniis\nCodenames", click_function="resetHanii", function_owner=self,
-      position={-5.5,0.2,0}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="CHRYs\nCodenames", click_function="resetCHRY", function_owner=self,
-      position={-1.5,0.2,-3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="Codenames:\nUndercover", click_function="resetUndercover", function_owner=self,
-      position={-1.5,0.2,0}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="Saydi's\nCodenames", click_function="resetSaydi", function_owner=self,
-      position={-5.5,0.2,3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="Mayor's\nCodenames", click_function="resetMayor", function_owner=self,
-      position={-1.5,0.2,3}, height=1200, width=1800, font_size=340, rotation={0,0,0}
-  })
-  buttonHandler.createButton({
-      label="New Game\n(Reset)", click_function="newGame", function_owner=self,
-      position={4,0.2,-3}, height=1200, width=3200, font_size=400, rotation={0,0,0}
-  })
+  -- Control panel declarations
+  gameCP = getObjectFromGUID("ec0882")
+  settingsCP = getObjectFromGUID("0837df")
 
-  customizationPanel = getObjectFromGUID("0837df")
-  local checkboxParam = {
-    label="✔",
-    click_function="toggleShuffle",
-    function_owner=self,
-    position={-6.5,0.2,-3.5},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  local checkboxTextParam = {
-    label="Shuffle Players at Start",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-0.5,0.2,-3.4},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  checkboxParam = {
-    label="✔",
-    click_function="toggleAFK",
-    function_owner=self,
-    position={-6.5,0.2,-2.3},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  checkboxTextParam = {
-    label="AFK Protection",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-2.4,0.2,-2.2},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  --[[ Timeout Counter ]]
-  checkboxParam = {
-    label="10",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-5,0.2,-1.1},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  checkboxTextParam = {
-    label="minutes",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-2,0.2,-1},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  -- Decrement
-  checkboxParam = {
-    label="-",
-    click_function="decAFK",
-    function_owner=self,
-    position={-5.8,0.2,-1.1},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-
-  -- Increment
-  checkboxParam = {
-    label="+",
-    click_function="incAFK",
-    function_owner=self,
-    position={-4.2,0.2,-1.1},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-  --[[ END Timeout Counter ]]
-
-  checkboxParam = {
-    label="✔",
-    click_function="toggleTimer",
-    function_owner=self,
-    position={-6.5,0.2,0.1},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400,
-  }
-  checkboxTextParam = {
-    label="Timer Enabled",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-2.4,0.2,0.2},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  --[[ Initial Timer ]]
-  checkboxParam = {
-    label="10",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-5,0.2,1.4},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  checkboxTextParam = {
-    label="minutes (round 1)",
-    click_function="nullFunction",
-    function_owner=self,
-    position={0.2,0.2,1.5},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  -- Decrement
-  checkboxParam = {
-    label="-",
-    click_function="decInitTimer",
-    function_owner=self,
-    position={-5.8,0.2,1.4},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-
-  -- Increment
-  checkboxParam = {
-    label="+",
-    click_function="incInitTimer",
-    function_owner=self,
-    position={-4.2,0.2,1.4},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-  --[[ END Initial Timer ]]
-
-  --[[ Subsequent Timer ]]
-  checkboxParam = {
-    label="5",
-    click_function="nullFunction",
-    function_owner=self,
-    position={-5,0.2,2.6},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  checkboxTextParam = {
-    label="minutes (round 2+)",
-    click_function="nullFunction",
-    function_owner=self,
-    position={0.5,0.2,2.7},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
-
-  -- Decrement
-  checkboxParam = {
-    label="-",
-    click_function="decSubTimer",
-    function_owner=self,
-    position={-5.8,0.2,2.6},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-
-  -- Increment
-  checkboxParam = {
-    label="+",
-    click_function="incSubTimer",
-    function_owner=self,
-    position={-4.2,0.2,2.6},
-    rotation={0,0,0},
-    height=250,
-    width=250,
-    font_size=300
-  }
-  customizationPanel.createButton(checkboxParam)
-  --[[ END Subsequent Timer ]]
-
-  -- Queue Toggle button
-
-  local checkboxParam = {
-    label="✔",
-    click_function="toggleQueue",
-    function_owner=self,
-    position={-6.5,0.2,3.8},
-    rotation={0,0,0},
-    height=500,
-    width=500,
-    font_size=400
-  }
-  local checkboxTextParam = {
-    label="Enable Codemaster Queue",
-    click_function="nullFunction",
-    function_owner=self,
-    position={0,0.2,3.9},
-    rotation={0,0,0},
-    height=0,
-    width=0,
-    font_color={1,1,1},
-    font_size=500
-  }
-  customizationPanel.createButton(checkboxParam)
-  customizationPanel.createButton(checkboxTextParam)
+  drawGameCP()
+  drawSettingsCP()
 
   -- Codemaster Queue
-
-  queuePanel = getObjectFromGUID("cb8c83")
+  queuePanel = getObjectFromGUID("c67626")
   local queueTextParam = {
     label="Codemaster Queue",
     click_function="nullFunction",
@@ -495,9 +231,6 @@ function onload(saveState)
   queuePanel.createButton(queueTextParam)
   queuePanel.createButton(joinButtonParam)
   queuePanel.createButton(leaveButtonParam)
-
-
-
 
   deckVanilla = getObjectFromGUID("83b607")
   deckHanii = getObjectFromGUID("92bb6b")
@@ -590,31 +323,14 @@ function onload(saveState)
   blueToken = getObjectFromGUID("3f75b3")
   blueToken.interactable = false
 
-  -- Codemaster encoding stations
-  local inputParams =
-  {
-    input_function  = "cluemasterEncode",
-    function_owner  = self,
-    tooltip         = "- Enter Clue Here -",
-    label           = "- Enter Clue Here -",
-    position        = {0, 1, 0},
-    rotation        = {0, 180, 0},
-    scale           = {0.1, 10, 1/2},
-    alignment       = 3,
-    width           = 4000,
-    height          = 300,
-    font_size       = 250,
-    value           = ""
-  }
-
   -- Blue encoding station
   blueEncoding = getObjectFromGUID("2ef93a")
   blueEncoding.setLock(true)
-  blueEncoding.createInput(inputParams)
+  drawEncodeInput(blueEncoding)
   -- Red encoding station
   redEncoding = getObjectFromGUID("7793cd")
   redEncoding.setLock(true)
-  redEncoding.createInput(inputParams)
+  drawEncodeInput(redEncoding)
 
   -- Load save state - if one exists
   if saveState != "" then
@@ -622,7 +338,6 @@ function onload(saveState)
 
     gameMode = decodedSaveState.gameMode
     timerEnabled = decodedSaveState.timerEnabled
-    timerOn = decodedSaveState.timerOn
     timerWarning = decodedSaveState.timerWarning
     turnTracker = decodedSaveState.turnTracker
     first_random = decodedSaveState.first_random
@@ -659,13 +374,15 @@ function onload(saveState)
   end
 
   -- Start the AFK loop checker
-  Timer.create({
-    identifier     = "afkLoop",
-    function_name  = "afkCheckLoop",
-    function_owner = self,
-    delay          = 1,
-    repetitions    = 0
-  })
+  if afkDetect then
+    Timer.create({
+      identifier     = "afkLoop",
+      function_name  = "afkCheckLoop",
+      function_owner = self,
+      delay          = 1,
+      repetitions    = 0
+    })
+  end
 end
 
 function onSave()
@@ -673,7 +390,6 @@ function onSave()
 
   saveData.gameMode = gameMode
   saveData.timerEnabled = timerEnabled
-  saveData.timerOn = timerOn
   saveData.timerWarning = timerWarning
   saveData.turnTracker = turnTracker
   saveData.first_random = first_random
@@ -698,17 +414,173 @@ function nullFunction()
   -- Nothing
 end
 
+function delayDrawEncodeInput(params)
+  Timer.destroy(params.id)
+  drawEncodeInput(params.obj)
+end
+
+function drawEncodeInput(object)
+  -- Clear existing inputs
+  object.clearInputs()
+
+  -- Draw a new input
+  local inputParams =
+  {
+    input_function  = "cluemasterEncode",
+    function_owner  = self,
+    tooltip         = "- Enter Clue Here -",
+    label           = "- Enter Clue Here -",
+    position        = {0, 1, 0},
+    rotation        = {0, 180, 0},
+    scale           = {0.1, 10, 1/2},
+    alignment       = 3,
+    width           = 4000,
+    height          = 300,
+    font_size       = 250,
+    value           = ""
+  }
+  object.createInput(inputParams)
+end
+
+function drawGameCP()
+  -- Clear all the existing buttons on the CP
+  gameCP.clearButtons()
+
+  -- Draw buttons
+  makeButton(gameCP, "Vanilla\nCodenames", "resetVanilla", {x = -5.5, z = -3}, size.small)
+  makeButton(gameCP, "Haniis\nCodenames", "resetHanii", {x = -5.5, z = 0}, size.small)
+  makeButton(gameCP, "CHRYs\nCodenames", "resetCHRY", {x = -1.5, z = -3}, size.small)
+  makeButton(gameCP, "Codenames:\nUndercover", "resetUndercover", {x = -1.5, z = 0}, size.small)
+  makeButton(gameCP, "Saydi's\nCodenames", "resetSaydi", {x = -5.5, z = 3}, size.small)
+  makeButton(gameCP, "Mayor's\nCodenames", "resetMayor", {x = -1.5, z = 3}, size.small)
+  makeButton(gameCP, "New Game\n(Reset)", "newGame", {x = 4, z = -3}, size.medium)
+end
+
+function drawSettingsCP()
+  -- Clear all the existing buttons on the CP
+  settingsCP.clearButtons()
+
+  -- Draw the buttons with updated values
+  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -6.5, z = -3.5}, 6, playerShuffle)
+  makeCheckbox(settingsCP, "AFK Protection", "toggleAFK", {x = -6.5, z = -2.3}, 4.1, afkDetect)
+  makeCounter(settingsCP, afkMinutes, "minutes", "incAFK", "decAFK", {x = -5, z = -1.1}, 3, not afkDetect)
+  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -6.5, z = 0.1}, 4.1, timerEnabled)
+  makeCounter(settingsCP, timerFirst, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = -5, z = 1.4}, 5.2, not timerEnabled)
+  makeCounter(settingsCP, timerSubsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = -5, z = 2.7}, 5.5, not timerEnabled)
+  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -6.5, z = 3.8}, 6.5, playerQueue)
+end
+
+function makeButton(object, buttonLabel, callback, position, size)
+  local attributes =
+  {
+    click_function  = callback,
+    function_owner  = self,
+    label           = buttonLabel,
+    position        = {x = position.x, y = 0.2, z = position.z},
+    rotation        = {0, 0, 0},
+    width           = size.width,
+    height          = size.height,
+    font_size       = size.font_size
+  }
+  object.createButton(attributes)
+end
+
+function makeCheckbox(object, textLabel, callback, position, textOffset, checked)
+  local check =
+  {
+    label           = (checked and "✔" or ""),
+    click_function  = callback,
+    function_owner  = self,
+    position        = {position.x, 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 500,
+    width           = 500,
+    font_size       = 400
+  }
+  local text =
+  {
+    label           = textLabel,
+    click_function  = "nullFunction",
+    function_owner  = self,
+    position        = {(position.x + textOffset), 0.2, (position.z + 0.1)},
+    rotation        = {0, 0, 0},
+    height          = 0,
+    width           = 0,
+    font_color      = {1, 1, 1},
+    font_size       = 500
+  }
+  object.createButton(check)
+  object.createButton(text)
+end
+
+function makeCounter(object, value, textLabel, incCB, decCB, position, textOffset, disabled)
+  local num =
+  {
+    label           = tostring(value),
+    click_function  = "nullFunction",
+    function_owner  = self,
+    position        = {position.x, 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 500,
+    width           = 500,
+    font_size       = 400
+  }
+  local text =
+  {
+    label           = textLabel,
+    click_function  = "nullFunction",
+    function_owner  = self,
+    position        = {(position.x + textOffset), 0.2, (position.z + 0.1)},
+    rotation        = {0, 0, 0},
+    height          = 0,
+    width           = 0,
+    font_color      = {1, 1, 1},
+    font_size       = 500
+  }
+  local decrement =
+  {
+    label           = "-",
+    click_function  = decCB,
+    function_owner  = self,
+    position        = {(position.x - 0.8), 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 250,
+    width           = 250,
+    font_size       = 300
+  }
+  local increment =
+  {
+    label           = "+",
+    click_function  = incCB,
+    function_owner  = self,
+    position        = {(position.x + 0.8), 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 250,
+    width           = 250,
+    font_size       = 300
+  }
+  if disabled then
+    num.color = {0.5, 0.5, 0.5}
+    num.font_color = {0.25, 0.25, 0.25}
+    text.color = {0.5, 0.5, 0.5}
+    text.font_color = {0.25, 0.25, 0.25}
+    decrement.color = {0.5, 0.5, 0.5}
+    decrement.font_color = {0.25, 0.25, 0.25}
+    increment.color = {0.5, 0.5, 0.5}
+    increment.font_color = {0.25, 0.25, 0.25}
+  end
+  object.createButton(num)
+  object.createButton(text)
+  object.createButton(decrement)
+  object.createButton(increment)
+end
+
 function decInitTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     if timerEnabled == true then
       if timerFirst > 1 then
         timerFirst = timerFirst - 1
-        o.editButton({
-          index = 10,
-          label = tostring(timerFirst)
-        })
-      else
-        -- Can't go above 1 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -719,12 +591,7 @@ function incInitTimer(o, color)
     if timerEnabled == true then
       if timerFirst < 20 then
         timerFirst = timerFirst + 1
-        o.editButton({
-          index = 10,
-          label = tostring(timerFirst)
-        })
-      else
-        -- Can't go below 0 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -735,12 +602,7 @@ function decSubTimer(o, color)
     if timerEnabled == true then
       if timerSubsequent > 1 then
         timerSubsequent = timerSubsequent - 1
-        o.editButton({
-          index = 14,
-          label = tostring(timerSubsequent)
-        })
-      else
-        -- Can't go above 1 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -751,12 +613,7 @@ function incSubTimer(o, color)
     if timerEnabled == true then
       if timerSubsequent < 20 then
         timerSubsequent = timerSubsequent + 1
-        o.editButton({
-          index = 14,
-          label = tostring(timerSubsequent)
-        })
-      else
-        -- Can't go below 0 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -764,15 +621,10 @@ end
 
 function decAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if afkProtect == true then
+    if afkDetect == true then
       if afkMinutes > 1 then
         afkMinutes = afkMinutes - 1
-        o.editButton({
-          index = 4,
-          label = tostring(afkMinutes)
-        })
-      else
-        -- Can't go above 1 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -780,15 +632,10 @@ end
 
 function incAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if afkProtect == true then
+    if afkDetect == true then
       if afkMinutes < 60 then
         afkMinutes = afkMinutes + 1
-        o.editButton({
-          index = 4,
-          label = tostring(afkMinutes)
-        })
-      else
-        -- Can't go below 0 minute AFK threshold
+        drawSettingsCP()
       end
     end
   end
@@ -834,7 +681,6 @@ function startShuffle()
       "Brown"
     }
     local randSide = math.random(0,1)
-
 
     -- Remove the colors we don't need
     for i, seat in ipairs(seatColors) do
@@ -886,7 +732,7 @@ function startShuffle()
     end
 
     shufflingPlayers = false
-    
+
     redrawQueue()
 
     -- Delay afterwards
@@ -912,14 +758,7 @@ end
 function toggleShuffle(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     playerShuffle = not playerShuffle
-    local buttonText = "✔"
-    if playerShuffle == false then
-      buttonText = ""
-    end
-    o.editButton({
-      index = 0,
-      label = buttonText
-    })
+    drawSettingsCP()
   end
 end
 
@@ -927,14 +766,7 @@ end
 function toggleQueue(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     playerQueue = not playerQueue
-    local buttonText = "✔"
-    if playerQueue == false then
-      buttonText = ""
-    end
-    o.editButton({
-      index = 18,
-      label = buttonText
-    })
+    drawSettingsCP()
   end
 end
 
@@ -1007,24 +839,8 @@ function onPlayerDisconnect(player)
   redrawQueue()
 end
 
-function onPlayerChangeColor(color)
-  if not shufflingPlayers then
-    for _, player in ipairs(Player.getPlayers()) do
-      if player.color == "Black" or player.color == "Grey" then
-        for i, queuePlayer in ipairs(codemasterQueue) do
-          if player.steam_id == queuePlayer.steam_id then
-            table.remove(codemasterQueue, i)
-            break
-          end
-        end
-      end
-    end
-    redrawQueue()
-  end
-end
-
 function afkCheckLoop()
-  if afkProtect == true then
+  if afkDetect == true then
     --print(tostring(os.time()))
     local colorsToCheck = {
       "Teal",
@@ -1072,54 +888,18 @@ end
 
 function toggleAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    afkProtect = not afkProtect
-    local buttonText = "✔"
-    if afkProtect == false then
-      buttonText = ""
-      o.editButton({
-        index = 4,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 5,
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 6,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 7,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-    else
-      o.editButton({
-        index = 4,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 5,
-        font_color={1,1,1}
-      })
-      o.editButton({
-        index = 6,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 7,
-        color={1,1,1},
-        font_color={0,0,0}
+    afkDetect = not afkDetect
+    Timer.destroy("afkLoop")
+    if afkDetect then
+      Timer.create({
+        identifier     = "afkLoop",
+        function_name  = "afkCheckLoop",
+        function_owner = self,
+        delay          = 1,
+        repetitions    = 0
       })
     end
-    o.editButton({
-      index = 2,
-      label = buttonText
-    })
+    drawSettingsCP()
   end
 end
 
@@ -1155,6 +935,14 @@ function cluemasterEncode(object, playerColor, input, selected)
               guessesLeft = tostring(number) + 1
             end
             encodeClue(playerColor, clue .. " - " .. number)
+            local timerID = tostring(math.random())
+            Timer.create({
+              identifier     = timerID,
+              function_name  = "delayDrawEncodeInput",
+              function_owner = self,
+              parameters     = {id = timerID, obj = object},
+              delay          = 0.25
+            })
             return ""
           end
         else
@@ -1495,100 +1283,16 @@ end
 function toggleTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     timerEnabled = not timerEnabled
-    local buttonText = "✔"
     if timerEnabled == true then
-
       startTime()
-
-      o.editButton({
-        index = 10,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 11,
-        font_color={1,1,1}
-      })
-      o.editButton({
-        index = 12,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 13,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 14,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 15,
-        font_color={1,1,1}
-      })
-      o.editButton({
-        index = 16,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
-      o.editButton({
-        index = 17,
-        color={1,1,1},
-        font_color={0,0,0}
-      })
       printToAll("Timer Enabled", {1,1,1})
     else
       if gameMode == 1 then
-        timerOn = 0
         clockTimer.setValue(0)
       end
-      o.editButton({
-        index = 10,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 11,
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 12,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 13,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 14,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 15,
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 16,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
-      o.editButton({
-        index = 17,
-        color={0.5,0.5,0.5},
-        font_color={0.25,0.25,0.25}
-      })
       printToAll("Timer Disabled", {1,1,1})
-      buttonText = ""
     end
-    o.editButton({
-      index = 8,
-      label = buttonText
-    })
+    drawSettingsCP()
   end
 end
 
@@ -1608,7 +1312,7 @@ function deleteclues()
   blueCluesTracker = 0
 end
 
-function onPlayerChangedColor(color)
+function onPlayerChangeColor(color)
   -- Change the player's view
   if color != "Grey" then
     Player[color].lookAt({
@@ -1657,6 +1361,20 @@ function onPlayerChangedColor(color)
     Player[color].broadcast("You are team BLUE.", {0.118, 0.53, 1})
     --announceTeam("Blue", color)
   end
+
+  if not shufflingPlayers then
+    for _, player in ipairs(Player.getPlayers()) do
+      if player.color == "Black" or player.color == "Grey" then
+        for i, queuePlayer in ipairs(codemasterQueue) do
+          if player.steam_id == queuePlayer.steam_id then
+            table.remove(codemasterQueue, i)
+            break
+          end
+        end
+      end
+    end
+    redrawQueue()
+  end
 end
 
 function announceTeam(color)
@@ -1682,8 +1400,8 @@ function announceStart(params)
   print("Announce started")
   Timer.destroy(params.id)
   local id = params.id
-  --UI.show(id)
-  UI.setAttribute(id, "active", "true")
+  UI.show(id)
+  --UI.setAttribute(id, "active", "true")
   Timer.create({identifier=params.id, function_name='announceEnd', parameters=params, delay=5})
 end
 
@@ -1691,8 +1409,8 @@ function announceEnd(params)
   print("Announce ended")
   Timer.destroy(params.id)
   local id = params.id
-  --UI.hide(id)
-  UI.setAttribute(id, "active", "false")
+  UI.hide(id)
+  --UI.setAttribute(id, "active", "false")
 end
 
 function startTime()
@@ -2552,7 +2270,6 @@ function debugInfo(o, color)
   print("-----[ Game Information ]-----")
   print("gameMode=" .. gameMode)
   print("timerEnabled=" .. tostring(timerEnabled))
-  print("timerOn=" .. timerOn)
   print("turnTracker=" .. (turnTracker == 0 and "red" or "blue"))
   print("illegalMove=" .. tostring(illegalMove))
   print("-----[ Winner Status ] -----")
