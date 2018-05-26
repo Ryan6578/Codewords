@@ -45,8 +45,8 @@ agentLocations =
   ['f8f6a1']={ 0.04, 2, -21.7 },
   ['a05e4e']={ 5.74, 2, -21.7 }, ['1ebedd']={ 5.74, 2, -17.84 }, ['3d7b86']={ 5.74, 2, -14 };
   -- Double agents
-  ['3b1be2']={ 0.04, 2, -14 };
-  ['a0d86a']={ 0.04, 3, -14 };
+  ['1e9282']={ 0.04, 2, -14 };
+  ['3ef1ca']={ 0.04, 3, -14 };
 }
 
 agentColors =
@@ -84,24 +84,27 @@ agentColors =
   ['3d7b86'] = 'white',
 
   -- Double agents
-  ['3b1be2'] = 'blue',
-  ['a0d86a'] = 'red'
+  ['1e9282'] = 'blue',
+  ['3ef1ca'] = 'red'
 }
 
-size = {}
--- Small buttons
-size.small =
+size =
 {
-  width     = 1800,
-  height    = 1200,
-  font_size = 340
-}
--- Medium buttons
-size.medium =
-{
-  width     = 3200,
-  height    = 1200,
-  font_size = 400
+  -- Small buttons
+  small =
+  {
+    width     = 1800,
+    height    = 1200,
+    font_size = 340
+  },
+
+  -- Medium buttons
+  medium =
+  {
+    width     = 3200,
+    height    = 1200,
+    font_size = 400
+  }
 }
 
 function onload(saveState)
@@ -109,31 +112,43 @@ function onload(saveState)
   -- Global variables --
 
   -- Global game mode
-  gameMode = 0
+  gameStarted = false
   firstTurn = true
   -- Keeps track of whether or not a new game is in the process of starting
   newGameStarting = false
   -- Keeps track of whether or not we are currently shuffling players
   shufflingPlayers = false
-  -- 0 = timer off; 1 = timer on
-  timerEnabled = true
-  timerFirst = 10
-  timerSubsequent = 5
   -- Timer warning variable
   timerWarning = -1
   -- 0 = RED; 1 = BLUE
   turnTracker = 1
+
+  settings =
+  {
+    playerShuffle = false,
+
+    afkDetection =
+    {
+      enabled   = true,
+      threshold = 10
+    },
+
+    timer =
+    {
+      enabled     = true,
+      initial     = 10,
+      subsequent  = 5
+    },
+
+    codemasterQueue = true
+  }
 
   -- Illegal move tracking
   updateTimer = 0
   illegalMove = false
 
   -- Configuration panel settings
-  playerShuffle = true
-  playerQueue = true
   codemasterQueue = {}
-  afkDetect = true
-  afkMinutes = 10
   afkTracker = {}
 
   -- Tracks the amount of guesses the current team has left
@@ -189,13 +204,16 @@ function onload(saveState)
 
   -- Control panel declarations
   gameCP = getObjectFromGUID("ec0882")
+  gameCP.interactable = false
   settingsCP = getObjectFromGUID("0837df")
+  settingsCP.interactable = false
 
   drawGameCP()
   drawSettingsCP()
 
   -- Codemaster Queue
   queuePanel = getObjectFromGUID("c67626")
+  queuePanel.interactable = false
   local queueTextParam = {
     label="Codemaster Queue",
     click_function="nullFunction",
@@ -231,6 +249,7 @@ function onload(saveState)
   queuePanel.createButton(queueTextParam)
   queuePanel.createButton(joinButtonParam)
   queuePanel.createButton(leaveButtonParam)
+
 
   deckVanilla = getObjectFromGUID("83b607")
   deckHanii = getObjectFromGUID("92bb6b")
@@ -336,8 +355,8 @@ function onload(saveState)
   if saveState != "" then
     local decodedSaveState = JSON.decode(saveState)
 
-    gameMode = decodedSaveState.gameMode
-    timerEnabled = decodedSaveState.timerEnabled
+    gameStarted = decodedSaveState.gameStarted
+    settings = decodedSaveState.settings
     timerWarning = decodedSaveState.timerWarning
     turnTracker = decodedSaveState.turnTracker
     first_random = decodedSaveState.first_random
@@ -374,7 +393,7 @@ function onload(saveState)
   end
 
   -- Start the AFK loop checker
-  if afkDetect then
+  if settings.afkDetection.enabled then
     Timer.create({
       identifier     = "afkLoop",
       function_name  = "afkCheckLoop",
@@ -388,8 +407,8 @@ end
 function onSave()
   local saveData = {}
 
-  saveData.gameMode = gameMode
-  saveData.timerEnabled = timerEnabled
+  saveData.gameStarted = gameStarted
+  saveData.settings = settings
   saveData.timerWarning = timerWarning
   saveData.turnTracker = turnTracker
   saveData.first_random = first_random
@@ -461,13 +480,13 @@ function drawSettingsCP()
   settingsCP.clearButtons()
 
   -- Draw the buttons with updated values
-  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -6.5, z = -3.5}, 6, playerShuffle)
-  makeCheckbox(settingsCP, "AFK Protection", "toggleAFK", {x = -6.5, z = -2.3}, 4.1, afkDetect)
-  makeCounter(settingsCP, afkMinutes, "minutes", "incAFK", "decAFK", {x = -5, z = -1.1}, 3, not afkDetect)
-  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -6.5, z = 0.1}, 4.1, timerEnabled)
-  makeCounter(settingsCP, timerFirst, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = -5, z = 1.4}, 5.2, not timerEnabled)
-  makeCounter(settingsCP, timerSubsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = -5, z = 2.7}, 5.5, not timerEnabled)
-  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -6.5, z = 3.8}, 6.5, playerQueue)
+  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -6.5, z = -3.5}, 6, settings.playerShuffle, false)
+  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -6.5, z = -2.3}, 6.5, settings.codemasterQueue, false)
+  makeCheckbox(settingsCP, "AFK Detection", "toggleAFK", {x = -6.5, z = -1.1}, 4.1, settings.afkDetection.enabled, false)
+  makeCounter(settingsCP, settings.afkDetection.threshold, "minutes", "incAFK", "decAFK", {x = -5, z = 0.1}, 3, not settings.afkDetection.enabled)
+  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -6.5, z = 1.3}, 4.1, settings.timer.enabled, false)
+  makeCounter(settingsCP, settings.timer.initial, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = -5, z = 2.5}, 5.2, not settings.timer.enabled)
+  makeCounter(settingsCP, settings.timer.subsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = -5, z = 3.7}, 5.5, not settings.timer.enabled)
 end
 
 function makeButton(object, buttonLabel, callback, position, size)
@@ -485,7 +504,7 @@ function makeButton(object, buttonLabel, callback, position, size)
   object.createButton(attributes)
 end
 
-function makeCheckbox(object, textLabel, callback, position, textOffset, checked)
+function makeCheckbox(object, textLabel, callback, position, textOffset, checked, disabled)
   local check =
   {
     label           = (checked and "✔" or ""),
@@ -509,6 +528,12 @@ function makeCheckbox(object, textLabel, callback, position, textOffset, checked
     font_color      = {1, 1, 1},
     font_size       = 500
   }
+  if disabled then
+    check.color = {0.5, 0.5, 0.5}
+    check.font_color = {0.25, 0.25, 0.25}
+    text.color = {0.5, 0.5, 0.5}
+    text.font_color = {0.25, 0.25, 0.25}
+  end
   object.createButton(check)
   object.createButton(text)
 end
@@ -577,9 +602,9 @@ end
 
 function decInitTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if timerEnabled == true then
-      if timerFirst > 1 then
-        timerFirst = timerFirst - 1
+    if settings.timer.enabled then
+      if settings.timer.initial > 1 then
+        settings.timer.initial = settings.timer.initial - 1
         drawSettingsCP()
       end
     end
@@ -588,9 +613,9 @@ end
 
 function incInitTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if timerEnabled == true then
-      if timerFirst < 20 then
-        timerFirst = timerFirst + 1
+    if settings.timer.enabled then
+      if settings.timer.initial < 20 then
+        settings.timer.initial = settings.timer.initial + 1
         drawSettingsCP()
       end
     end
@@ -599,9 +624,9 @@ end
 
 function decSubTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if timerEnabled == true then
-      if timerSubsequent > 1 then
-        timerSubsequent = timerSubsequent - 1
+    if settings.timer.enabled then
+      if settings.timer.subsequent > 1 then
+        settings.timer.subsequent = settings.timer.subsequent - 1
         drawSettingsCP()
       end
     end
@@ -610,9 +635,9 @@ end
 
 function incSubTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if timerEnabled == true then
-      if timerSubsequent < 20 then
-        timerSubsequent = timerSubsequent + 1
+    if settings.timer.enabled then
+      if settings.timer.subsequent < 20 then
+        settings.timer.subsequent = settings.timer.subsequent + 1
         drawSettingsCP()
       end
     end
@@ -621,9 +646,9 @@ end
 
 function decAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if afkDetect == true then
-      if afkMinutes > 1 then
-        afkMinutes = afkMinutes - 1
+    if settings.afkDetection.enabled then
+      if settings.afkDetection.threshold > 1 then
+        settings.afkDetection.threshold = settings.afkDetection.threshold - 1
         drawSettingsCP()
       end
     end
@@ -632,9 +657,9 @@ end
 
 function incAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    if afkDetect == true then
-      if afkMinutes < 60 then
-        afkMinutes = afkMinutes + 1
+    if settings.afkDetection.enabled then
+      if settings.afkDetection.threshold < 60 then
+        settings.afkDetection.threshold = settings.afkDetection.threshold + 1
         drawSettingsCP()
       end
     end
@@ -709,7 +734,7 @@ function startShuffle()
     -- Sit players back down
     count = 0
     for i, seat in ipairs(seats) do
-      if playerQueue and i <= 2 and #codemasterQueue > 0 then
+      if settings.codemasterQueue and i <= 2 and #codemasterQueue > 0 then
         for i, player in ipairs(players) do
           if player.steam_id == codemasterQueue[1].steam_id then
             table.remove(players, i)
@@ -744,7 +769,7 @@ function startShuffle()
 
 
     -- Continue game setup if in progress
-    if newGameStarting == true then
+    if newGameStarting then
       dealCards(cardsToDeal)
       reset_keymap()
     end
@@ -757,7 +782,7 @@ end
 
 function toggleShuffle(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    playerShuffle = not playerShuffle
+    settings.playerShuffle = not settings.playerShuffle
     drawSettingsCP()
   end
 end
@@ -765,12 +790,19 @@ end
 
 function toggleQueue(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    playerQueue = not playerQueue
+    settings.codemasterQueue = not settings.codemasterQueue
+    if settings.codemasterQueue then
+      -- Show the panel
+      queuePanel.setRotation({0, 270, 0})
+      queuePanel.setPosition({-8, 0.91, -32})
+    else
+      -- Hide the panel
+      queuePanel.setPosition({-8, -0.5, -32})
+      queuePanel.setRotation({0, 90, 180})
+    end
     drawSettingsCP()
   end
 end
-
-
 
 function redrawQueue()
   -- get number of buttons, ignoring the original 3
@@ -840,7 +872,7 @@ function onPlayerDisconnect(player)
 end
 
 function afkCheckLoop()
-  if afkDetect == true then
+  if settings.afkDetection.enabled then
     --print(tostring(os.time()))
     local colorsToCheck = {
       "Teal",
@@ -855,7 +887,7 @@ function afkCheckLoop()
     local players = Player.getPlayers()
     for _, color in ipairs(colorsToCheck) do
       local player = Player[color]
-      if player.seated == true then
+      if player.seated then
         -- Only if there's a player in this seat
         local playerInfo = afkTracker[color]
         local pos = player.getPointerPosition()
@@ -871,11 +903,11 @@ function afkCheckLoop()
           playerInfo.cursorPosition = pos
           afkTracker[color] = playerInfo
         else
-          local timeToAFK = round((afkMinutes * 60) - (os.time() - playerInfo.timestamp), 0)
+          local timeToAFK = round((settings.afkDetection.threshold * 60) - (os.time() - playerInfo.timestamp), 0)
           if timeToAFK <= 0 then
             -- Switch player to spectator
-            player.broadcast("You have been moved to spectator to AFKing for more than " .. tostring(afkMinutes) .. " minute(s).", redColor)
-            printToAll("Player " .. player.steam_name .. " has been moved to spectator for being AFK for more than " .. tostring(afkMinutes) .. " minute(s).",  stringColorToRGB(color))
+            player.broadcast("You have been moved to spectator to AFKing for more than " .. tostring(settings.afkDetection.threshold) .. " minute(s).", redColor)
+            printToAll("Player " .. player.steam_name .. " has been moved to spectator for being AFK for more than " .. tostring(settings.afkDetection.threshold) .. " minute(s).",  stringColorToRGB(color))
             player.changeColor("Grey")
           elseif timeToAFK <= 5 then
             player.broadcast("You will be removed due to AFK in: " .. timeToAFK, redColor)
@@ -888,9 +920,9 @@ end
 
 function toggleAFK(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    afkDetect = not afkDetect
+    settings.afkDetection.enabled = not settings.afkDetection.enabled
     Timer.destroy("afkLoop")
-    if afkDetect then
+    if settings.afkDetection.enabled then
       Timer.create({
         identifier     = "afkLoop",
         function_name  = "afkCheckLoop",
@@ -906,7 +938,7 @@ end
 function cluemasterEncode(object, playerColor, input, selected)
   if (playerColor == "Blue" and object.guid == blueEncoding.guid) or (playerColor == "Red" and object.guid == redEncoding.guid) then
     -- Handle encoding
-    if string.match(input, "\n") and selected == true then
+    if string.match(input, "\n") and selected then
       -- Make sure that it's the current codemaster's turn
       if (playerColor == "Blue" and turnTracker == 0) or (playerColor == "Red" and turnTracker == 1) then
         Player[playerColor].broadcast("It's not your turn to enter a clue.", redColor)
@@ -963,7 +995,7 @@ function cluemasterEncode(object, playerColor, input, selected)
       team = "blue"
     end
 
-    if selected == true then
+    if selected then
       if team != "" then
         Player[playerColor].broadcast("You don't have permission to make clues for the " .. team .. " team!", redColor)
       else
@@ -998,7 +1030,7 @@ function playClue(team, clue, number)
 end
 
 function playClueCallback(returnData)
-  if returnData.is_done == true then
+  if returnData.is_done then
     local mediaFile = string.match(returnData.text, "^.+<path>(.+)</path>.+$")
     if mediaFile != nil then
       -- Ensure that the returned media file was able to be found in the return XML
@@ -1049,7 +1081,7 @@ function getClueDetails(processedClue)
 
     for _, check in ipairs(checks) do
       local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
-      if status == true then
+      if status then
         -- Parsing successful - check for nil values just in case
         if clue != nil and number != nil then
           -- Return the clue and number
@@ -1077,7 +1109,7 @@ function getClueDetails(processedClue)
 
     for _, check in ipairs(checks) do
       local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
-      if status == true then
+      if status then
         -- Parsing successful - check for nil values just in case
         if clue != nil and number != nil then
           -- Return the clue and number
@@ -1102,7 +1134,7 @@ function getClueDetails(processedClue)
 
     for _, check in ipairs(checks) do
       local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
-      if status == true then
+      if status then
         -- Parsing successful - check for nil values just in case
         if clue != nil and number != nil then
           -- Return the clue and number
@@ -1156,7 +1188,7 @@ function encodeClue(color, clue)
         end
       end
 
-      if deletedClues == true then
+      if deletedClues then
         redCluesTracker = 0
         redClues = newClueOrder
         for i = 0, (newClueOrderIndex - 1) do
@@ -1197,7 +1229,7 @@ function encodeClue(color, clue)
         end
       end
 
-      if deletedClues == true then
+      if deletedClues then
         blueCluesTracker = 0
         blueClues = newClueOrder
         for i = 0, (newClueOrderIndex - 1) do
@@ -1282,12 +1314,12 @@ end
 
 function toggleTimer(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    timerEnabled = not timerEnabled
-    if timerEnabled == true then
+    settings.timer.enabled = not settings.timer.enabled
+    if settings.timer.enabled then
       startTime()
       printToAll("Timer Enabled", {1,1,1})
     else
-      if gameMode == 1 then
+      if gameStarted then
         clockTimer.setValue(0)
       end
       printToAll("Timer Disabled", {1,1,1})
@@ -1414,11 +1446,11 @@ function announceEnd(params)
 end
 
 function startTime()
-  if timerEnabled == true and gameMode == 1 then
-    if firstTurn == true then
-      clockTimer.setValue(timerFirst * 60)
+  if settings.timer.enabled and gameStarted then
+    if firstTurn then
+      clockTimer.setValue(settings.timer.initial * 60)
     else
-      clockTimer.setValue(timerSubsequent * 60)
+      clockTimer.setValue(settings.timer.subsequent * 60)
     end
     clockTimer.Clock.pauseStart()
   end
@@ -1509,7 +1541,7 @@ function newGame(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     if newGameStarting == false then
       local deckFound = findDeck()
-      if deckFound == true then
+      if deckFound then
         newGameStarting = true
         reset_agentLocations()
         deleteclues()
@@ -1539,7 +1571,7 @@ function findDeck()
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
               clearZone(zoneToClear)
               -- Shuffle players
-              if playerShuffle == true then
+              if settings.playerShuffle then
                 cardsToDeal = v
                 startLuaCoroutine(Global, "startShuffle")
               else
@@ -1566,55 +1598,64 @@ function dealCards(deck)
           local c = deck.takeObject(draw_parameters)
           cardsInPlayArea[i] = c
           local cPos = c.getPosition()
-          c.setLuaScript(
-            "function onLoad()\n"
-                .."position = {" .. pos.x .. ", " .. pos.y .. ", " .. pos.z .. "}\n"
-                .."rotation = {0, 180, 0}\n"
-              .."end\n\n"
+          c.setLuaScript([[
+          function onLoad()]]
+            .. "local timeSet =" .. os.time()
+            .. "position = {"
+            .. pos.x .. ", "
+            .. pos.y .. ", "
+            .. pos.z ..
+            [[}
+            rotation = {0, 180, 0}
+            if os.time() - timeSet > 5 then
+              self.setPosition(position)
+              self.setRotation(rotation)
+            end
+          end
 
-              .."function onCollisionEnter(collision_info)\n"
-                .."local res, e = pcall(getObject, collision_info)\n"
-                .."if res == false then\n"
-                  .."self.setPosition(position)\n"
-                  .."self.setRotation(rotation)\n"
-                .."else\n"
-                  .."if e != 'Surface' then\n"
-                    .."self.setPosition(position)\n"
-                    .."self.setRotation(rotation)\n"
-                  .."end\n"
-                .."end\n"
-              .."end\n"
+          function onCollisionEnter(collision_info)
+            local res, e = pcall(getObject, collision_info)
+            if res == false then
+              self.setPosition(position)
+              self.setRotation(rotation)
+            else
+              if e != 'Surface' then
+                self.setPosition(position)
+                self.setRotation(rotation)
+              end
+            end
+          end
 
-              .."function onCollisionStay(collision_info)\n"
-                .."local res, e = pcall(getObject, collision_info)\n"
-                .."if res == false then\n"
-                  .."self.setPosition(position)\n"
-                  .."self.setRotation(rotation)\n"
-                .."else\n"
-                  .."if e != 'Surface' then\n"
-                    .."self.setPosition(position)\n"
-                    .."self.setRotation(rotation)\n"
-                  .."end\n"
-                .."end\n"
-              .."end\n"
+          function onCollisionStay(collision_info)
+            local res, e = pcall(getObject, collision_info)
+            if res == false then
+              self.setPosition(position)
+              self.setRotation(rotation)
+            else
+              if e != 'Surface' then
+                self.setPosition(position)
+                self.setRotation(rotation)
+              end
+            end
+          end
 
-              .."function onCollisionExit(collision_info)\n"
-                .."local res, e = pcall(getObject, collision_info)\n"
-                .."if res == false then\n"
-                  .."self.setPosition(position)\n"
-                  .."self.setRotation(rotation)\n"
-                .."else\n"
-                    .."if e != 'Surface' then\n"
-                      .."self.setPosition(position)\n"
-                      .."self.setRotation(rotation)\n"
-                    .."end\n"
-                .."end\n"
-              .."end\n"
+          function onCollisionExit(collision_info)
+            local res, e = pcall(getObject, collision_info)
+            if res == false then
+              self.setPosition(position)
+              self.setRotation(rotation)
+            else
+                if e != 'Surface' then
+                  self.setPosition(position)
+                  self.setRotation(rotation)
+                end
+            end
+          end
 
-              .."function getObject(info)\n"
-                .."return info.collision_object.tag\n"
-              .."end\n"
-          )
+          function getObject(info)
+            return info.collision_object.tag
+          end
+          ]])
     end
 end
 
@@ -1766,42 +1807,41 @@ function shuffle_table( passed_table )
 
 end
 
-
 function setDoubleTimer()
   Timer.destroy("waitfortilereset")
-  Timer.create({identifier="waitfortilereset", function_name='setDouble', delay=2})
+  Timer.create({identifier="waitfortilereset", function_name='setDouble', delay=1})
 end
 
 function setDouble()
   -- Double card set to blue
-  local doubleBlue = getObjectFromGUID('3b1be2')
+  local doubleBlue = getObjectFromGUID('1e9282')
   -- Double card set to red
-  local doubleRed = getObjectFromGUID("a0d86a")
+  local doubleRed = getObjectFromGUID("3ef1ca")
 
   if first_random == 1 then
-    -- Change the state card to blue
-    if doubleBlue == nil then
-      doubleRed.setState(1)
-    end
+    -- Set the correct double card to blue
+    doubleBlue.setLock(false)
+    doubleBlue.setPosition(agentLocations[doubleBlue.guid])
+    doubleBlue.interactable = true
 
     -- Change the location of the turn marker
     buttonTeams.setRotation(blueRot)
     buttonTeams.setPositionSmooth(bluePos)
     printToAll("Blue team's turn.", blueColor)
   elseif first_random == 2 then
-    -- Change the state card to red
-    if doubleRed == nil then
-      doubleBlue.setState(2)
-    end
+    -- Set the correct double card to red
+    doubleRed.setLock(false)
+    doubleRed.setPosition(agentLocations[doubleRed.guid])
+    doubleRed.interactable = true
 
     -- Change the location of the turn marker
     buttonTeams.setRotation(redRot)
-    buttonTeams.setPositionSmooth(redPos)
+    buttonTeams.setPosition(redPos)
     printToAll("Red team's turn.", redColor)
   end
 
-  -- Change the gameMode to 1
-  gameMode = 1
+  -- Change the gameStarted to 1
+  gameStarted = true
 
   -- Start the timer
   firstTurn = true
@@ -1812,17 +1852,31 @@ function setDouble()
 end
 
 function reset_agentLocations()
+  -- Double card set to blue
+  local doubleBlue = getObjectFromGUID('1e9282')
+  -- Double card set to red
+  local doubleRed = getObjectFromGUID("3ef1ca")
 
--- resets the agent cards to their start positions
-    for card_GUID,placement in pairs(agentLocations) do
-        local card_object = getObjectFromGUID(card_GUID)
-        if card_object then -- do not try to work with the uninstantiated card if it can't be found
-            card_object.setPosition(placement)
-            card_object.setRotation({0,180,180})
-            card_object.unlock()
-            card_object.interactable = true
-        end
+  -- resets the agent cards to their start positions
+  for guid, pos in pairs(agentLocations) do
+    local card = getObjectFromGUID(guid)
+    if card then
+      if card.guid == doubleRed.guid then
+        doubleRed.interactable = false
+        doubleRed.setLock(true)
+        doubleRed.setPosition({0, -2, -14})
+      elseif card.guid == doubleBlue.guid then
+        doubleBlue.interactable = false
+        doubleBlue.setLock(true)
+        doubleBlue.setPosition({0, -2, -14})
+      else
+        card.setPosition(pos)
+        card.setRotation({0,180,180})
+        card.unlock()
+        card.interactable = true
+      end
     end
+  end
 end
 
 function onObjectDrop(color, agent)
@@ -1846,7 +1900,7 @@ function onObjectDrop(color, agent)
       -- Check to see if the agent card was placed correctly, but only if placed by blue or red
       if color == "Red" or color == "Blue" then
         --If illegal condition is set, dont allow for any more placing
-        if illegalMove == true then
+        if illegalMove then
           agent.setPositionSmooth(agentTracker[agent.guid])
           return
         end
@@ -1872,15 +1926,15 @@ function onObjectDrop(color, agent)
 
             for guid, agtColor in pairs(agentColors) do
               if agtColor == "red" then
-                if first_random == 1 and guid == "a0d86a" then
+                if first_random == 1 and guid == "3ef1ca" then
                   -- Red double agent not in use
-                elseif getObjectFromGUID(guid).interactable == true then
+                elseif getObjectFromGUID(guid).interactable then
                   redWon = false
                 end
               elseif agtColor == "blue" then
-                if first_random == 2 and guid == "3b1be2" then
+                if first_random == 2 and guid == "1e9282" then
                   -- Blue double agent not in use
-                elseif getObjectFromGUID(guid).interactable == true then
+                elseif getObjectFromGUID(guid).interactable then
                   blueWon = false
                 end
               end
@@ -1898,20 +1952,20 @@ function onObjectDrop(color, agent)
             -- If card is white, or card is of the opposite color, then toggle toggleTurns
             -- 0 = RED; 1 = BLUE
             guessesLeft = guessesLeft - 1
-            if codeColor == "black" or blueWon == true or redWon == true then
+            if codeColor == "black" or blueWon or redWon then
               -- End game scenario
-              if (codeColor == "black" and turnTracker == 0) or blueWon == true then
+              if (codeColor == "black" and turnTracker == 0) or blueWon then
                 -- Red placed black card, blue wins
                 -- or blue placed all of their cards
                 broadcastToAll("Blue team wins!", blueColor)
-              elseif (codeColor == "black" and turnTracker == 1) or redWon == true then
+              elseif (codeColor == "black" and turnTracker == 1) or redWon then
                 -- Blue placed black card, red wins
                 -- or red placed all of their cards
                 broadcastToAll("Red team wins!", redColor)
               end
 
               -- Set the game back to initial state
-              gameMode = 0
+              gameStarted = false
 
               -- Set the timer to 0 and disable
               clockTimer.setValue(0)
@@ -2003,7 +2057,7 @@ function onObjectPickUp(color, object)
   end
 
   -- Agent dealCards
-  if illegalMove == true and object.tag == "Tile" and agentColors[object.guid] != nil then
+  if illegalMove and object.tag == "Tile" and agentColors[object.guid] != nil then
     -- Only check entire board if an error condition exists
     local boardIsCorrect = true
     local placedTiles = clueZone.getObjects()
@@ -2015,7 +2069,7 @@ function onObjectPickUp(color, object)
         end
       end
     end
-    if boardIsCorrect == true then
+    if boardIsCorrect then
       illegalMove = false
     end
   end
@@ -2046,20 +2100,20 @@ function endGame()
   -- Get the remaining agent cards
   for guid, agtColor in pairs(agentColors) do
     if agtColor == "red" then
-      if first_random == 1 and guid == "a0d86a" then
+      if first_random == 1 and guid == "3ef1ca" then
         -- Red double agent not in use
-      elseif getObjectFromGUID(guid).interactable == true then
+      elseif getObjectFromGUID(guid).interactable then
         redAgentsLeft[#redAgentsLeft+1] = guid
       end
     elseif agtColor == "blue" then
-      if first_random == 2 and guid == "3b1be2" then
+      if first_random == 2 and guid == "1e9282" then
         -- Blue double agent not in use
-      elseif getObjectFromGUID(guid).interactable == true then
+      elseif getObjectFromGUID(guid).interactable then
         blueAgentsLeft[#blueAgentsLeft+1] = guid
       end
-    elseif agtColor == "white" and getObjectFromGUID(guid).interactable == true then
+    elseif agtColor == "white" and getObjectFromGUID(guid).interactable then
       whiteAgentsLeft[#whiteAgentsLeft+1] = guid
-    elseif agtColor == "black" and getObjectFromGUID(guid).interactable == true then
+    elseif agtColor == "black" and getObjectFromGUID(guid).interactable then
       blackAgentsLeft[#blackAgentsLeft+1] = guid
     end
   end
@@ -2126,7 +2180,7 @@ end
 
 function onUpdate()
   -- Check for clock rundown if timer is enabled
-  if timerEnabled == true and newGameStarting == false and gameMode == 1 and illegalMove == false then
+  if settings.timer.enabled and newGameStarting == false and gameStarted and illegalMove == false then
     local timerVal = clockTimer.getValue()
     if timerVal == 0 then
       -- Switch turns
@@ -2143,7 +2197,7 @@ function onUpdate()
   end
 
   -- Notify codemasters of illegal move
-  if illegalMove == true then
+  if illegalMove then
     if updateTimer == 100 then
       Player["Blue"].broadcast("A card has been placed incorrectly. Please correct it before ending your turn.", redColor)
       Player["Red"].broadcast("A card has been placed incorrectly. Please correct it before ending your turn.", redColor)
@@ -2240,42 +2294,4 @@ function endTurn(button, color)
       Player[color].broadcast("Please fix the incorrectly placed agent cards before ending your turn.", redColor)
     end
   end
-end
-
-function debugInfo(o, color)
-  local redWon = true
-  local blueWon = true
-  local numred = 0
-  local numblue = 0
-
-  for guid, agtColor in pairs(agentColors) do
-    if agtColor == "red" then
-      if first_random == 1 and guid == "a0d86a" then
-        -- Red double agent not in use
-      elseif getObjectFromGUID(guid).interactable == true then
-        numred = numred + 1
-        redWon = false
-      end
-    elseif agtColor == "blue" then
-      if first_random == 2 and guid == "3b1be2" then
-        -- Blue double agent not in use
-      elseif getObjectFromGUID(guid).interactable == true then
-        numblue = numblue + 1
-        blueWon = false
-      end
-    end
-  end
-
-  print()
-  print("-----[ Game Information ]-----")
-  print("gameMode=" .. gameMode)
-  print("timerEnabled=" .. tostring(timerEnabled))
-  print("turnTracker=" .. (turnTracker == 0 and "red" or "blue"))
-  print("illegalMove=" .. tostring(illegalMove))
-  print("-----[ Winner Status ] -----")
-  print("redAgentsLeft=" .. numred)
-  print("redWon=" .. tostring(redWon))
-  print("blueAgentsLeft=" .. numblue)
-  print("blueWon=" .. tostring(blueWon))
-  print()
 end
