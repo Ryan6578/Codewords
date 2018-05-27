@@ -1017,16 +1017,6 @@ function leaveQueue(o, color)
   redrawQueue()
 end
 
-function onPlayerDisconnect(player)
-  for i, player in ipairs(codemasterQueue) do
-    if player.steam_id == player.steam_id then
-      table.remove(codemasterQueue, i)
-      break
-    end
-  end
-  redrawQueue()
-end
-
 function afkCheckLoop()
   if settings.afkDetection.enabled then
     --print(tostring(os.time()))
