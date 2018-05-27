@@ -742,6 +742,7 @@ local players = {}
       table.remove(swap,randSeat)
       for _, player in ipairs(Player.getPlayers()) do
         if player.steam_id == codemasterQueue[1].steam_id then
+          if player == Player[seat] then break end
           oldPlayer = Player[seat]
           oldColor = player.color
 
