@@ -705,19 +705,19 @@ local players = {}
   local reinsert = {}
 
   for i, seat in ipairs(seats) do
-    if seat.seated then
+    if Player[seat].seated then
       table.insert(free, seat)
     else
       table.insert(swap, seat)
     end
   end
 
-  shufflingPlayer = true
+  shufflingPlayers = true
   for i = 1,2 do
     if #codemasterQueue < 1 then break end
     count = 0
     if #free > 0 then
-      randSeat = math.random(0,#free)
+      randSeat = math.random(1,#free)
       seat = free[randSeat]
       table.remove(free,randSeat)
       for _, player in ipairs(Player.getPlayers()) do
@@ -735,7 +735,7 @@ local players = {}
         coroutine.yield(0)
       end
     else
-      randSeat = math.random(0,#swap)
+      randSeat = math.random(1,#swap)
       seat = swap[randSeat]
       table.remove(swap,randSeat)
       for _, player in ipairs(Player.getPlayers()) do
