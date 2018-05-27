@@ -683,6 +683,12 @@ function shufflePlayers(o, color)
   end
 end
 
+function sleep(s)
+  for i=1,s do
+    coroutine.yield(0)
+  end
+end
+
 function swapCodemasters()
 local players = {}
   -- remove gray or black players from the codemasterQueue
@@ -715,7 +721,6 @@ local players = {}
   shufflingPlayers = true
   for i = 1,2 do
     if #codemasterQueue < 1 then break end
-    count = 0
     if #free > 0 then
       randSeat = math.random(1,#free)
       seat = free[randSeat]
@@ -730,10 +735,7 @@ local players = {}
           end
         end
       end
-      while count < 5 do
-        count = count + 1
-        coroutine.yield(0)
-      end
+      sleep(5)
     else
       randSeat = math.random(1,#swap)
       seat = swap[randSeat]
@@ -741,32 +743,23 @@ local players = {}
       for _, player in ipairs(Player.getPlayers()) do
         if player.steam_id == codemasterQueue[1].steam_id then
           oldPlayer = Player[seat]
-          oldPlayer.changeColor("Grey")
-          while count < 5 do
-            count = count + 1
-            coroutine.yield(0)
-          end
-          count = 0
           oldColor = player.color
-          player.changeColor(seat)
+
           if codemasterQueue[1].stay then
             table.insert(reinsert,table.remove(codemasterQueue,1))
           else
             table.remove(codemasterQueue,1)
           end
-          while count < 5 do
-            count = count + 1
-            coroutine.yield(0)
-          end
-          count = 0
+
+          oldPlayer.changeColor("Grey")
+          sleep(5)
+          player.changeColor(seat)
+          sleep(5)
           oldPlayer.changeColor(oldColor)
         end
       end
-      while count < 5 do
-        count = count + 1
-        coroutine.yield(0)
-      end
     end
+    sleep(5)
   end
 
   shufflingPlayer = false
@@ -776,11 +769,8 @@ local players = {}
   redrawQueue()
 
   -- Delay afterwards
-  count = 0
-  while count < 250 do
-      count = count + 1
-      coroutine.yield(0)
-  end
+
+  sleep(250)
 
   -- Continue game setup if in progress
   if newGameStarting then
