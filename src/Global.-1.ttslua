@@ -683,8 +683,8 @@ function shufflePlayers(o, color)
   end
 end
 
-function sleep(s)
-  for i=1,s do
+function sleep(t)
+  for i=1,t do
     coroutine.yield(0)
   end
 end
@@ -830,15 +830,10 @@ function startShuffle()
       end
     end
 
-    -- Stand all players
-    count = 0
+    -- Stand all player
     for _, player in ipairs(players) do
       player.changeColor("Grey")
-      while count < 5 do
-          count = count + 1
-          coroutine.yield(0)
-      end
-      count = 0
+      sleep(5)
     end
 
     -- Sit players back down
@@ -863,11 +858,7 @@ function startShuffle()
         table.remove(players, playerIndex)
         randPlayer.changeColor(seat)
       end
-      while count < 5 do
-        count = count + 1
-        coroutine.yield(0)
-      end
-      count = 0
+      sleep(5)
     end
 
     for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
@@ -876,11 +867,8 @@ function startShuffle()
     redrawQueue()
 
     -- Delay afterwards
-    count = 0
-    while count < 250 do
-        count = count + 1
-        coroutine.yield(0)
-    end
+
+    sleep(250)
 
 
     -- Continue game setup if in progress
