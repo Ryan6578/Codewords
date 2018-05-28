@@ -719,7 +719,7 @@ local players = {}
   local reinsert = {}
 
   for i, seat in ipairs(seats) do
-    if not Player[seat].seated then
+    if not dPlayer[seat].seated then
       table.insert(free, seat)
     else
       table.insert(swap, seat)
@@ -747,7 +747,7 @@ local players = {}
     elseif not player.color == seat then
       oldPlayer = Player[seat]
       oldColor = player.color
-a
+
       oldPlayer.changeColor("Grey")
       sleep(5)
       player.changeColor(seat)
