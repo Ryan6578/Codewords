@@ -718,6 +718,7 @@ local players = {}
   local swap = {}
   local reinsert = {}
 
+  --Sort seats to prefer empty seats
   for i, seat in ipairs(seats) do
     if not Player[seat].seated then
       table.insert(free, seat)
@@ -727,15 +728,21 @@ local players = {}
   end
 
   shufflingPlayers = true
+  --run up to 2 times
   for i = 1,2 do
+    --if the queue is empty, break
     if #codemasterQueue < 1 then break end
+    --grab random seat from empty seats if available
     if #free > 0 then
       seat = table.remove(free,math.random(1,#free))
     else
       seat = table.remove(swap,math.random(1,#swap))
     end
 
+    --get the first player in the queue
     player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+
+    --if they are selected to stay, save them to reinsert later
     if codemasterQueue[1].stay then
       table.insert(reinsert,table.remove(codemasterQueue,1))
     else
@@ -743,21 +750,27 @@ local players = {}
     end
 
     if not Player[seat].seated then
+        --if the seat is empty, we only have to seat the player there
       player.changeColor(seat)
     elseif not player.color == seat then
+      -- if the seat is occupied, get the player that is currently sitting there
       oldPlayer = Player[seat]
+      --get the color of queued player
       oldColor = player.color
 
+      --change the player in the seat to grey
       oldPlayer.changeColor("Grey")
       sleep(5)
+      --move the queued player to the seat
       player.changeColor(seat)
       sleep(5)
+      --move the old player to the queued players old seat
       oldPlayer.changeColor(oldColor)
     end
     sleep(5)
   end
 
-  shufflingPlayer = false
+  shufflingPlayers = false
 
   for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
 
