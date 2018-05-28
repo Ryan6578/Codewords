@@ -748,12 +748,6 @@ local players = {}
       oldPlayer = Player[seat]
       oldColor = player.color
 
-      if codemasterQueue[1].stay then
-        table.insert(reinsert,table.remove(codemasterQueue,1))
-      else
-        table.remove(codemasterQueue,1)
-      end
-
       oldPlayer.changeColor("Grey")
       sleep(5)
       player.changeColor(seat)
