@@ -683,6 +683,14 @@ function shufflePlayers(o, color)
   end
 end
 
+function findPlayerBySteamID(steam_id)
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.steam_id == steam_id then
+      return player
+    end
+  end
+end
+
 function sleep(t)
   for i=1,t do
     coroutine.yield(0)
@@ -704,7 +712,7 @@ local players = {}
 
   local seats = {
     "Blue",
-    "Red",
+    "Red"
   }
   local free = {}
   local swap = {}
@@ -725,40 +733,34 @@ local players = {}
       randSeat = math.random(1,#free)
       seat = free[randSeat]
       table.remove(free,randSeat)
-      for _, player in ipairs(Player.getPlayers()) do
-        if player.steam_id == codemasterQueue[1].steam_id then
-          player.changeColor(seat)
-          if codemasterQueue[1].stay then
-            table.insert(reinsert,table.remove(codemasterQueue,1))
-          else
-            table.remove(codemasterQueue,1)
-          end
-        end
+
+      player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+      player.changeColor(seat)
+      if codemasterQueue[1].stay then
+        table.insert(reinsert,table.remove(codemasterQueue,1))
+      else
+        table.remove(codemasterQueue,1)
       end
-      sleep(5)
     else
       randSeat = math.random(1,#swap)
       seat = swap[randSeat]
       table.remove(swap,randSeat)
-      for _, player in ipairs(Player.getPlayers()) do
-        if player.steam_id == codemasterQueue[1].steam_id then
-          if player == Player[seat] then break end
-          oldPlayer = Player[seat]
-          oldColor = player.color
+      player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+      if player == Player[seat] then break end
+      oldPlayer = Player[seat]
+      oldColor = player.color
 
-          if codemasterQueue[1].stay then
-            table.insert(reinsert,table.remove(codemasterQueue,1))
-          else
-            table.remove(codemasterQueue,1)
-          end
-
-          oldPlayer.changeColor("Grey")
-          sleep(5)
-          player.changeColor(seat)
-          sleep(5)
-          oldPlayer.changeColor(oldColor)
-        end
+      if codemasterQueue[1].stay then
+        table.insert(reinsert,table.remove(codemasterQueue,1))
+      else
+        table.remove(codemasterQueue,1)
       end
+
+      oldPlayer.changeColor("Grey")
+      sleep(5)
+      player.changeColor(seat)
+      sleep(5)
+      oldPlayer.changeColor(oldColor)
     end
     sleep(5)
   end
@@ -839,7 +841,7 @@ function startShuffle()
 
     -- Sit players back down
     count = 0
-    for i, seat in ipairs(seats) do
+    for _, seat in ipairs(seats) do
       if settings.codemasterQueue and i <= 2 and #codemasterQueue > 0 then
         for i, player in ipairs(players) do
           if player.steam_id == codemasterQueue[1].steam_id then
