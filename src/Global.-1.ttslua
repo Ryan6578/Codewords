@@ -730,23 +730,21 @@ local players = {}
   for i = 1,2 do
     if #codemasterQueue < 1 then break end
     if #free > 0 then
-      randSeat = math.random(1,#free)
-      seat = free[randSeat]
-      table.remove(free,randSeat)
-
-      player = findPlayerBySteamID(codemasterQueue[1].steam_id)
-      player.changeColor(seat)
-      if codemasterQueue[1].stay then
-        table.insert(reinsert,table.remove(codemasterQueue,1))
-      else
-        table.remove(codemasterQueue,1)
-      end
+      seat = table.remove(free,math.random(1,#free))
     else
-      randSeat = math.random(1,#swap)
-      seat = swap[randSeat]
-      table.remove(swap,randSeat)
-      player = findPlayerBySteamID(codemasterQueue[1].steam_id)
-      if player == Player[seat] then break end
+      seat = table.remove(swap,math.random(1,#swap))
+    end
+
+    player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+    if codemasterQueue[1].stay then
+      table.insert(reinsert,table.remove(codemasterQueue,1))
+    else
+      table.remove(codemasterQueue,1)
+    end
+
+    if not Player[seat].seated then
+      player.changeColor(seat)
+    elseif not player.color == seat then
       oldPlayer = Player[seat]
       oldColor = player.color
 
