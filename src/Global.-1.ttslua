@@ -864,11 +864,11 @@ function startShuffle()
 
     -- Sit players back down
     count = 0
-    for _, seat in ipairs(seats) do
+    for i, seat in ipairs(seats) do
       if settings.codemasterQueue and i <= 2 and #codemasterQueue > 0 then
-        for i, player in ipairs(players) do
+        for index, player in ipairs(players) do
           if player.steam_id == codemasterQueue[1].steam_id then
-            table.remove(players, i)
+            table.remove(players, index)
             if codemasterQueue[1].stay then
               table.insert(reinsert,table.remove(codemasterQueue,1))
             else
