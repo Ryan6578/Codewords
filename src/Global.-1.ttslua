@@ -143,6 +143,24 @@ function onload(saveState)
     codemasterQueue = true
   }
 
+  -- Used for game analytics - ryan6578.com
+  analytics =
+  {
+    -- Opt out of analytics?
+    optOut = false, -- Opt out of analytics if you so wish
+    g = "",
+    h = "",
+    d = ""
+  }
+  if not analytics.optOut then
+    for i, player in ipairs(Player.getPlayers()) do
+      if player.host then
+        analytics.h = player.steam_id
+        break
+      end
+    end
+  end
+
   -- Illegal move tracking
   updateTimer = 0
   illegalMove = false
@@ -1107,6 +1125,17 @@ function cluemasterEncode(object, playerColor, input, selected)
               parameters     = {id = timerID, obj = object},
               delay          = 0.25
             })
+            if not analytics.optOut then
+              local payload =
+              {
+                a = "c",
+                g = tostring(analytics.g),
+                c = tostring(clue),
+                n = tostring(number == "∞" and -1 or number),
+                cm = tostring(Player[playerColor].steam_id)
+              }
+              WebRequest.post("https://ryan6578.com/codenames/analytics.php", payload, self, "nullCallback")
+            end
             return ""
           end
         else
@@ -1153,12 +1182,14 @@ function playClue(team, clue, number)
       message = message .. " words."
     end
   end
-  local payload = {
-    msg = message,
-    voice = "Chris",
-    engine = "1"
-  }
-  WebRequest.post("https://www.lumenvox.com/products/tts/processTTS.ashx", payload, self, "playClueCallback")
+  if not analytics.optOut then
+    local payload = {
+      msg = message,
+      voice = "Chris",
+      engine = "1"
+    }
+    WebRequest.post("https://www.lumenvox.com/products/tts/processTTS.ashx", payload, self, "playClueCallback")
+  end
 end
 
 function playClueCallback(returnData)
@@ -1677,6 +1708,13 @@ function newGame(o, color)
         newGameStarting = true
         reset_agentLocations()
         deleteclues()
+        local payload =
+        {
+          a = "s",
+          h = tostring(analytics.h),
+          d = tostring(analytics.d)
+        }
+        WebRequest.post("https://ryan6578.com/codenames/analytics.php", payload, self, "setG")
       else
         Player[color].broadcast("You need to choose a deck before starting.", redColor)
       end
@@ -1684,6 +1722,15 @@ function newGame(o, color)
       Player[color].broadcast("A new game is already starting. Please wait.", redColor)
     end
   end
+end
+
+function setG(g)
+  if g.is_done then
+    analytics.g = g.text
+  end
+end
+
+function nullCallback(null)
 end
 
 -- Find deck on top of deck dealer
@@ -1702,6 +1749,7 @@ function findDeck()
             local dZ = toolPosZ - vPosZ
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
               clearZone(zoneToClear)
+              analytics.d = v.getName()
               -- Shuffle players
               if settings.playerShuffle then
                 cardsToDeal = v
@@ -2107,6 +2155,14 @@ function onObjectDrop(color, agent)
 
               -- Move the remaining agents to their codes
               endGame()
+              if not analytics.optOut then
+                local payload =
+                {
+                  a = "e",
+                  g = tostring(analytics.g)
+                }
+                WebRequest.post("https://ryan6578.com/codenames/analytics.php", payload, self, "nullCallback")
+              end
             elseif guessesLeft == 0 or codeColor == "white" or (codeColor == "red" and turnTracker == 1) or (codeColor == "blue" and turnTracker == 0) then
               toggleTurns()
             end
