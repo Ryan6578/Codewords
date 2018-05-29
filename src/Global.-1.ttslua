@@ -885,9 +885,7 @@ function startShuffle()
           end
         end
       else
-        local playerIndex = math.random(1, #players)
-        local randPlayer = players[playerIndex]
-        table.remove(players, playerIndex)
+        local randPlayer = table.remove(players, math.random(1, #players))
         randPlayer.changeColor(seat)
       end
       sleep(5)
