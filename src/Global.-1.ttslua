@@ -709,6 +709,14 @@ function findPlayerBySteamID(steam_id)
   end
 end
 
+function findPlayerByColor(color)
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.color == color then
+      return player
+    end
+  end
+end
+
 function sleep(t)
   for i=1,t do
     coroutine.yield(0)
@@ -758,7 +766,7 @@ local players = {}
     end
 
     --get the first player in the queue
-    player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+    local player = findPlayerBySteamID(codemasterQueue[1].steam_id)
 
     --if they are selected to stay, save them to reinsert later
     if codemasterQueue[1].stay then
@@ -772,10 +780,9 @@ local players = {}
       player.changeColor(seat)
     elseif not player.color == seat then
       -- if the seat is occupied, get the player that is currently sitting there
-      oldPlayer = Player[seat]
+      local oldPlayer = FindPlayerByColor(seat)
       --get the color of queued player
       oldColor = player.color
-
       --change the player in the seat to grey
       oldPlayer.changeColor("Grey")
       sleep(5)
@@ -863,7 +870,6 @@ function startShuffle()
     end
 
     -- Sit players back down
-    count = 0
     for i, seat in ipairs(seats) do
       if settings.codemasterQueue and i <= 2 and #codemasterQueue > 0 then
         for index, player in ipairs(players) do
