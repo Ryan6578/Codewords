@@ -780,9 +780,9 @@ local players = {}
       player.changeColor(seat)
     elseif not player.color == seat then
       -- if the seat is occupied, get the player that is currently sitting there
-      local oldPlayer = FindPlayerByColor(seat)
+      local oldPlayer = findPlayerByColor(seat)
       --get the color of queued player
-      oldColor = player.color
+      local oldColor = player.color
       --change the player in the seat to grey
       oldPlayer.changeColor("Grey")
       sleep(5)
