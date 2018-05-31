@@ -1511,6 +1511,16 @@ function deleteclues()
   blueCluesTracker = 0
 end
 
+function onPlayerDisconnect(player)
+  for i, queuePlayer in ipairs(codemasterQueue) do
+    if queuePlayer.steam_id == player.steam_id then
+      table.remove(codemasterQueue, i)
+      break
+    end
+  end
+  redrawQueue()
+end
+
 function onPlayerChangeColor(color)
   -- Change the player's view
   if color != "Grey" then
