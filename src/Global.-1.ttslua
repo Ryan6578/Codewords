@@ -778,7 +778,7 @@ local players = {}
     if not Player[seat].seated then
         --if the seat is empty, we only have to seat the player there
       player.changeColor(seat)
-    elseif not player.color == seat then
+    elseif not (player.color == seat) then
       -- if the seat is occupied, get the player that is currently sitting there
       local oldPlayer = findPlayerByColor(seat)
       --get the color of queued player
