@@ -724,7 +724,7 @@ function sleep(t)
 end
 
 function swapCodemasters()
-local players = {}
+  local players = {}
   -- remove gray or black players from the codemasterQueue
   for _, player in ipairs(Player.getPlayers()) do
     if player.color == "Grey" or player.color == "Black" then
