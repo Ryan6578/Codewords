@@ -244,28 +244,39 @@ function onload(saveState)
     font_size=500
   }
   local joinButtonParam = {
-      label="Join",
-      click_function="joinQueue",
-      function_owner=self,
-      position={6.75,0.2,2.2},
-      rotation={0,-90,0},
-      height=500,
-      width=2000,
-      font_size=400
-    }
+    label="Join",
+    click_function="joinQueue",
+    function_owner=self,
+    position={6.75,0.2,3.2},
+    rotation={0,-90,0},
+    height=500,
+    width=1400,
+    font_size=400
+  }
+  local joinStayButtonParam = {
+    label="Stay",
+    click_function="joinQueueStay",
+    function_owner=self,
+    position={6.75,0.2,0},
+    rotation={0,-90,0},
+    height=500,
+    width=1400,
+    font_size=400
+  }
   local leaveButtonParam = {
     label="Leave",
     click_function="leaveQueue",
     function_owner=self,
-    position={6.75,0.2,-2.2},
+    position={6.75,0.2,-3.2},
     rotation={0,-90,0},
     height=500,
-    width=2000,
+    width=1400,
     font_size=400
   }
 
   queuePanel.createButton(queueTextParam)
   queuePanel.createButton(joinButtonParam)
+  queuePanel.createButton(joinStayButtonParam)
   queuePanel.createButton(leaveButtonParam)
 
 
@@ -690,10 +701,124 @@ function shufflePlayers(o, color)
   end
 end
 
+function findPlayerBySteamID(steam_id)
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.steam_id == steam_id then
+      return player
+    end
+  end
+end
+
+function findPlayerByColor(color)
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.color == color then
+      return player
+    end
+  end
+end
+
+function sleep(t)
+  for i=1,t do
+    coroutine.yield(0)
+  end
+end
+
+function swapCodemasters()
+  local players = {}
+  -- remove gray or black players from the codemasterQueue
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.color == "Grey" or player.color == "Black" then
+      for i, queuePlayer in ipairs(codemasterQueue) do
+        if player.steam_id == queuePlayer.steam_id then
+          table.remove(codemasterQueue,i)
+        end
+      end
+    end
+  end
+
+  local seats = {
+    "Blue",
+    "Red"
+  }
+  local free = {}
+  local swap = {}
+  local reinsert = {}
+
+  --Sort seats to prefer empty seats
+  for i, seat in ipairs(seats) do
+    if not Player[seat].seated then
+      table.insert(free, seat)
+    else
+      table.insert(swap, seat)
+    end
+  end
+
+  shufflingPlayers = true
+
+  --run up to 2 times
+  for i = 1,2 do
+    --if the queue is empty, break
+    if #codemasterQueue < 1 then break end
+    --grab random seat from empty seats if available
+    if #free > 0 then
+      seat = table.remove(free,math.random(1,#free))
+    else
+      seat = table.remove(swap,math.random(1,#swap))
+    end
+
+    --get the first player in the queue
+    local player = findPlayerBySteamID(codemasterQueue[1].steam_id)
+
+    --if they are selected to stay, save them to reinsert later
+    if codemasterQueue[1].stay then
+      table.insert(reinsert,table.remove(codemasterQueue,1))
+    else
+      table.remove(codemasterQueue,1)
+    end
+
+    if not Player[seat].seated then
+        --if the seat is empty, we only have to seat the player there
+      player.changeColor(seat)
+    elseif not (player.color == seat) then
+      -- if the seat is occupied, get the player that is currently sitting there
+      local oldPlayer = findPlayerByColor(seat)
+      --get the color of queued player
+      local oldColor = player.color
+      --change the player in the seat to grey
+      oldPlayer.changeColor("Grey")
+      sleep(5)
+      --move the queued player to the seat
+      player.changeColor(seat)
+      sleep(5)
+      --move the old player to the queued players old seat
+      oldPlayer.changeColor(oldColor)
+    end
+    sleep(5)
+  end
+
+  shufflingPlayers = false
+
+  for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
+
+  redrawQueue()
+
+  -- Delay afterwards
+  sleep(250)
+
+  -- Continue game setup if in progress
+  if newGameStarting then
+    dealCards(cardsToDeal)
+    reset_keymap()
+  end
+
+  return 1
+end
+
 function startShuffle()
   local seatedPlayers = Player.getPlayers()
   local players = {}
   local seats = {}
+  local reinsert = {}
   for _, player in ipairs(seatedPlayers) do
     -- grab all players that aren't gray or black
     if player.color != "Grey" and player.color != "Black" then
@@ -708,8 +833,6 @@ function startShuffle()
     end
   end
   if #players > 0 then
-
-    shufflingPlayers = true
 
     local seatColors = {
       "Blue",
@@ -738,53 +861,44 @@ function startShuffle()
       end
     end
 
-    -- Stand all players
-    count = 0
+    shufflingPlayers = true
+
+    -- Stand all player
     for _, player in ipairs(players) do
       player.changeColor("Grey")
-      while count < 5 do
-          count = count + 1
-          coroutine.yield(0)
-      end
-      count = 0
+      sleep(5)
     end
 
     -- Sit players back down
-    count = 0
     for i, seat in ipairs(seats) do
       if settings.codemasterQueue and i <= 2 and #codemasterQueue > 0 then
-        for i, player in ipairs(players) do
+        for index, player in ipairs(players) do
           if player.steam_id == codemasterQueue[1].steam_id then
-            table.remove(players, i)
-            table.remove(codemasterQueue,1)
+            table.remove(players, index)
+            if codemasterQueue[1].stay then
+              table.insert(reinsert,table.remove(codemasterQueue,1))
+            else
+              table.remove(codemasterQueue,1)
+            end
             player.changeColor(seat)
             break
           end
         end
       else
-        local playerIndex = math.random(1, #players)
-        local randPlayer = players[playerIndex]
-        table.remove(players, playerIndex)
+        local randPlayer = table.remove(players, math.random(1, #players))
         randPlayer.changeColor(seat)
       end
-      while count < 5 do
-        count = count + 1
-        coroutine.yield(0)
-      end
-      count = 0
+      sleep(5)
     end
 
     shufflingPlayers = false
 
+    for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
+
     redrawQueue()
 
     -- Delay afterwards
-    count = 0
-    while count < 250 do
-        count = count + 1
-        coroutine.yield(0)
-    end
-
+    sleep(250)
 
     -- Continue game setup if in progress
     if newGameStarting then
@@ -823,10 +937,10 @@ function toggleQueue(o, color)
 end
 
 function redrawQueue()
-  -- get number of buttons, ignoring the original 3
-  local nButtons = #queuePanel.getButtons() - 3
+  -- get number of buttons, ignoring the original 4
+  local nButtons = #queuePanel.getButtons() - 4
   -- removing buttons back to front so that indexes don't shift down while we are looping
-  for i = nButtons+2,3,-1 do
+  for i = nButtons+3,4,-1 do
     queuePanel.removeButton(i)
   end
   for i, player in ipairs(codemasterQueue) do
@@ -840,7 +954,9 @@ function redrawQueue()
       width=4200,
       font_size=400
     }
-
+    if player.stay then
+      PlayerButtonParam.color = {0.8,1,0.8}
+    end
     queuePanel.createButton(PlayerButtonParam)
   end
 
@@ -854,13 +970,42 @@ function joinQueue(o, color)
   end
   for _, player in ipairs(codemasterQueue) do
     if Player[color].steam_id == player.steam_id then
+      if player.stay then
+        player.stay = false
+        redrawQueue()
+      end
       return
     end
   end
   local playerInfo =
   {
     steam_id   = Player[color].steam_id,
-    steam_name = Player[color].steam_name
+    steam_name = Player[color].steam_name,
+    stay       = false
+  }
+  table.insert(codemasterQueue,playerInfo)
+  redrawQueue()
+end
+
+function joinQueueStay(o, color)
+  if color == "Black" then
+    Player[color].broadcast("Please switch colors before attempting to join the codemaster queue.", redColor)
+    return
+  end
+  for _, player in ipairs(codemasterQueue) do
+    if Player[color].steam_id == player.steam_id then
+      if not player.stay then
+        player.stay = true
+        redrawQueue()
+      end
+      return
+    end
+  end
+  local playerInfo =
+  {
+    steam_id   = Player[color].steam_id,
+    steam_name = Player[color].steam_name,
+    stay       = true
   }
   table.insert(codemasterQueue,playerInfo)
   redrawQueue()
@@ -872,16 +1017,6 @@ function leaveQueue(o, color)
   end
   for i, player in ipairs(codemasterQueue) do
     if Player[color].steam_id == player.steam_id then
-      table.remove(codemasterQueue, i)
-      break
-    end
-  end
-  redrawQueue()
-end
-
-function onPlayerDisconnect(player)
-  for i, player in ipairs(codemasterQueue) do
-    if player.steam_id == player.steam_id then
       table.remove(codemasterQueue, i)
       break
     end
@@ -1375,6 +1510,16 @@ function deleteclues()
   blueCluesTracker = 0
 end
 
+function onPlayerDisconnect(player)
+  for i, queuePlayer in ipairs(codemasterQueue) do
+    if queuePlayer.steam_id == player.steam_id then
+      table.remove(codemasterQueue, i)
+      break
+    end
+  end
+  redrawQueue()
+end
+
 function onPlayerChangeColor(color)
   -- Change the player's view
   if color != "Grey" then
@@ -1622,6 +1767,9 @@ function findDeck()
               if settings.playerShuffle then
                 cardsToDeal = v
                 startLuaCoroutine(Global, "startShuffle")
+              elseif settings.codemasterQueue then
+                cardsToDeal = v
+                startLuaCoroutine(Global, "swapCodemasters")
               else
                 dealCards(v)
                 reset_keymap()
