@@ -754,6 +754,7 @@ function swapCodemasters()
   end
 
   shufflingPlayers = true
+
   --run up to 2 times
   for i = 1,2 do
     --if the queue is empty, break
@@ -802,7 +803,6 @@ function swapCodemasters()
   redrawQueue()
 
   -- Delay afterwards
-
   sleep(250)
 
   -- Continue game setup if in progress
@@ -834,8 +834,6 @@ function startShuffle()
   end
   if #players > 0 then
 
-    shufflingPlayers = true
-
     local seatColors = {
       "Blue",
       "Red",
@@ -862,6 +860,8 @@ function startShuffle()
         break
       end
     end
+
+    shufflingPlayers = true
 
     -- Stand all player
     for _, player in ipairs(players) do
@@ -891,15 +891,14 @@ function startShuffle()
       sleep(5)
     end
 
-    for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
     shufflingPlayers = false
+
+    for _, player in ipairs(reinsert) do table.insert(codemasterQueue,player) end
 
     redrawQueue()
 
     -- Delay afterwards
-
     sleep(250)
-
 
     -- Continue game setup if in progress
     if newGameStarting then
