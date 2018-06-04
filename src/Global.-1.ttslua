@@ -18,6 +18,39 @@
 
 ]]
 
+disclaimer =
+[[
+This mod collects certain data to improve the
+experience and provide meaningful insight
+into usage and play. You may, at your own
+discretion, opt out of this data collection
+via the checkbox below.
+
+More info:
+[8bb5ff]https://ryan6578.com/codenames/stats/privacy[-]
+
+Statistics:
+[8bb5ff]https://ryan6578.com/codenames/stats[-]
+]]
+
+chatDisclaimer =
+[[
+
+                  [da1918]ANALYTICS DISCLAIMER[-]
+[-]This mod collects certain data to improve the
+experience and provide meaningful insight
+into usage and play. You may, at your own
+discretion, opt out of this data collection
+via the checkbox below.
+
+More info:
+[8bb5ff]https://ryan6578.com/codenames/stats/privacy[-]
+
+Statistics:
+[8bb5ff]https://ryan6578.com/codenames/stats[-]
+
+]]
+
 redColor = {0.856, 0.1, 0.094}
 blueColor = {0.118, 0.53, 1}
 
@@ -144,6 +177,7 @@ function onload(saveState)
   }
 
   -- Used for game analytics - ryan6578.com
+  analyticsLocked = false
   analytics =
   {
     -- Opt out of analytics?
@@ -225,9 +259,12 @@ function onload(saveState)
   gameCP.interactable = false
   settingsCP = getObjectFromGUID("0837df")
   settingsCP.interactable = false
+  analyticsCP = getObjectFromGUID("071c46")
+  analyticsCP.interactable = false
 
   drawGameCP()
   drawSettingsCP()
+  drawAnalyticsCP()
 
   -- Codemaster Queue
   queuePanel = getObjectFromGUID("c67626")
@@ -518,6 +555,18 @@ function drawSettingsCP()
   makeCounter(settingsCP, settings.timer.subsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = -5, z = 3.7}, 5.5, not settings.timer.enabled)
 end
 
+function drawAnalyticsCP()
+  -- Clear all the existing buttons on the CP
+  analyticsCP.clearButtons()
+
+  -- Draw the disclaimer
+  makeText(analyticsCP, "Analytics Disclaimer", {x = 0, z = -4}, redColor, 500)
+  makeText(analyticsCP, disclaimer, {x = 0, z = 0.35}, {1, 1, 1}, 300)
+
+  -- Draw the buttons with updated values
+  makeCheckbox(analyticsCP, "[8bff9b]Send usage and statistics[-]", "toggleAnalytics", {x = -5.75, z = 4}, 6.3, not analytics.optOut, analyticsLocked)
+end
+
 function makeButton(object, buttonLabel, callback, position, size)
   local attributes =
   {
@@ -564,6 +613,22 @@ function makeCheckbox(object, textLabel, callback, position, textOffset, checked
     text.font_color = {0.25, 0.25, 0.25}
   end
   object.createButton(check)
+  object.createButton(text)
+end
+
+function makeText(object, contents, position, color, size)
+  local text =
+  {
+    label           = contents,
+    click_function  = "nullFunction",
+    function_owner  = self,
+    position        = {position.x, 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 0,
+    width           = 0,
+    font_color      = color,
+    font_size       = size
+  }
   object.createButton(text)
 end
 
@@ -803,7 +868,7 @@ function swapCodemasters()
   redrawQueue()
 
   -- Delay afterwards
-  sleep(250)
+  sleep(50)
 
   -- Continue game setup if in progress
   if newGameStarting then
@@ -898,7 +963,7 @@ function startShuffle()
     redrawQueue()
 
     -- Delay afterwards
-    sleep(250)
+    sleep(50)
 
     -- Continue game setup if in progress
     if newGameStarting then
@@ -916,6 +981,13 @@ function toggleShuffle(o, color)
   if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
     settings.playerShuffle = not settings.playerShuffle
     drawSettingsCP()
+  end
+end
+
+function toggleAnalytics(o, color)
+  if not analyticsLocked and Player[color].host == true then
+    analytics.optOut = not analytics.optOut
+    drawAnalyticsCP()
   end
 end
 
@@ -1510,7 +1582,24 @@ function deleteclues()
   blueCluesTracker = 0
 end
 
+function onPlayerConnect(player)
+  if not analytics.optOut then
+    local disclaimerParam = {}
+    disclaimerParam.player = player
+    Timer.create({identifier=disclaimerParam.player.steam_id, function_name='displayDisclaimer', parameters=disclaimerParam, delay=10})
+  end
+end
+
+function displayDisclaimer(params)
+  Timer.destroy(params.player.steam_id)
+  params.player.print(chatDisclaimer, {1, 1, 1})
+end
+
 function onPlayerDisconnect(player)
+  -- Destroy the timer for the disclaimer, if one exists
+  Timer.destroy(player.steam_id)
+
+  -- Remove player from codemaster queue if they are queued
   for i, queuePlayer in ipairs(codemasterQueue) do
     if queuePlayer.steam_id == player.steam_id then
       table.remove(codemasterQueue, i)
@@ -1721,13 +1810,21 @@ function newGame(o, color)
         newGameStarting = true
         reset_agentLocations()
         deleteclues()
-        local payload =
-        {
-          a = "s",
-          h = tostring(analytics.h),
-          d = tostring(analytics.d)
-        }
-        WebRequest.post("https://ryan6578.com/codenames/analytics.php", payload, self, "setG")
+        if not analyticsLocked then
+          analyticsLocked = true
+          drawAnalyticsCP()
+          analyticsCP.setRotation({0, 180, 180})
+          analyticsCP.setPosition({0, 0, -34.75})
+        end
+        if not analytics.optOut then
+          local payload =
+          {
+            a = "s",
+            h = tostring(analytics.h),
+            d = tostring(analytics.d)
+          }
+          WebRequest.post("https://ryan6578.com/codenames/analytics.php", payload, self, "setG")
+        end
       else
         Player[color].broadcast("You need to choose a deck before starting.", redColor)
       end
