@@ -39,9 +39,9 @@ chatDisclaimer =
                   [da1918]ANALYTICS DISCLAIMER[-]
 [-]This mod collects certain data to improve the
 experience and provide meaningful insight
-into usage and play. You may, at your own
-discretion, opt out of this data collection
-via the checkbox below.
+into usage and play. By continuing, you
+acknowledge and accept this in accordance
+with the privacy policy outlined below.
 
 More info:
 [8bb5ff]https://ryan6578.com/codenames/stats/privacy[-]
@@ -137,7 +137,30 @@ size =
     width     = 3200,
     height    = 1200,
     font_size = 400
+  },
+
+  -- Large buttons
+  large =
+  {
+    width     = 3200,
+    height    = 4100,
+    font_size = 400
   }
+}
+
+buttonColor =
+{
+  ["Blue"]    = {{31/255, 135/255, 255/255}, {0/255, 109/255, 235/255}, {0/255, 85/255, 184/255}},
+  ["Teal"]    = {{33/255, 177/255, 155/255}, {25/255, 134/255, 117/255}, {17/255, 91/255, 79/255}},
+  ["Purple"]  = {{160/255, 32/255, 240/255}, {133/255, 14/255, 207/255}, {102/255, 11/255, 159/255}},
+  ["Green"]   = {{49/255, 179/255, 43/255}, {38/255, 138/255, 33/255}, {27/255, 97/255, 23/255}},
+  ["White"]   = {{255/255, 255/255, 255/255}, {229/255, 229/255, 229/255}, {203/255, 203/255, 203/255}},
+
+  ["Red"]     = {{218/255, 25/255, 24/255}, {172/255, 20/255, 19/255}, {126/255, 15/255, 14/255}},
+  ["Orange"]  = {{244/255, 100/255, 29/255}, {212/255, 77/255, 10/255}, {163/255, 59/255, 8/255}},
+  ["Yellow"]  = {{231/255, 229/255, 44/255}, {201/255, 199/255, 23/255}, {155/255, 154/255, 18/255}},
+  ["Pink"]    = {{245/255, 112/255, 206/255}, {242/255, 64/255, 190/255}, {239/255, 16/255, 174/255}},
+  ["Brown"]   = {{133/255, 59/255, 23/255}, {71/255, 37/255, 14/255}, {28/255, 15/255, 6/255}}
 }
 
 function onload(saveState)
@@ -532,27 +555,29 @@ function drawGameCP()
   gameCP.clearButtons()
 
   -- Draw buttons
-  makeButton(gameCP, "Vanilla\nCodenames", "resetVanilla", {x = -5.5, z = -3}, size.small)
-  makeButton(gameCP, "Haniis\nCodenames", "resetHanii", {x = -5.5, z = 0}, size.small)
-  makeButton(gameCP, "CHRYs\nCodenames", "resetCHRY", {x = -1.5, z = -3}, size.small)
-  makeButton(gameCP, "Codenames:\nUndercover", "resetUndercover", {x = -1.5, z = 0}, size.small)
-  makeButton(gameCP, "Saydi's\nCodenames", "resetSaydi", {x = -5.5, z = 3}, size.small)
-  makeButton(gameCP, "Mayor's\nCodenames", "resetMayor", {x = -1.5, z = 3}, size.small)
-  makeButton(gameCP, "New Game\n(Reset)", "newGame", {x = 4, z = -3}, size.medium)
+  makeButton(gameCP, "Vanilla\nCodenames", "resetVanilla", {x = -5.5, z = -3}, false, size.small, nil)
+  makeButton(gameCP, "Hanii's\nCodenames", "resetHanii", {x = -5.5, z = 0}, false, size.small, nil)
+  makeButton(gameCP, "CHRY's\nCodenames", "resetCHRY", {x = -1.5, z = -3}, false, size.small, nil)
+  makeButton(gameCP, "Codenames:\nUndercover", "resetUndercover", {x = -1.5, 0, z = 0}, false, size.small, nil)
+  makeButton(gameCP, "Saydi's\nCodenames", "resetSaydi", {x = -5.5, z = 3}, false, size.small, nil)
+  makeButton(gameCP, "Mayor's\nCodenames", "resetMayor", {x = -1.5, z = 3}, false, size.small, nil)
+  makeButton(gameCP, "New Game\n(Reset)", "newGame", {x = 4, z = 0}, false, size.large, "Green")
 end
 
 function drawSettingsCP()
   -- Clear all the existing buttons on the CP
   settingsCP.clearButtons()
 
+  makeText(settingsCP, "Game Settings", {x = -6.75, z = 0}, true, {1, 1, 1}, 500)
+
   -- Draw the buttons with updated values
-  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -6.5, z = -3.5}, 6, settings.playerShuffle, false)
-  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -6.5, z = -2.3}, 6.5, settings.codemasterQueue, false)
-  makeCheckbox(settingsCP, "AFK Detection", "toggleAFK", {x = -6.5, z = -1.1}, 4.1, settings.afkDetection.enabled, false)
-  makeCounter(settingsCP, settings.afkDetection.threshold, "minutes", "incAFK", "decAFK", {x = -5, z = 0.1}, 3, not settings.afkDetection.enabled)
-  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -6.5, z = 1.3}, 4.1, settings.timer.enabled, false)
-  makeCounter(settingsCP, settings.timer.initial, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = -5, z = 2.5}, 5.2, not settings.timer.enabled)
-  makeCounter(settingsCP, settings.timer.subsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = -5, z = 3.7}, 5.5, not settings.timer.enabled)
+  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -5.5, z = 4.15}, true, 4.2, settings.playerShuffle, false)
+  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -4.3, z = 4.15}, true, 4.6, settings.codemasterQueue, false)
+  makeCheckbox(settingsCP, "AFK Detection", "toggleAFK", {x = -3.1, z = 4.15}, true, 2.8, settings.afkDetection.enabled, false)
+  makeCounter(settingsCP, settings.afkDetection.threshold, "minutes", "incAFK", "decAFK", {x = -1.9, z = 3.15}, true, 2.5, not settings.afkDetection.enabled)
+  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -0.7, z = 4.15}, true, 2.8, settings.timer.enabled, false)
+  makeCounter(settingsCP, settings.timer.initial, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = 0.5, z = 3.15}, true, 4.0, not settings.timer.enabled)
+  makeCounter(settingsCP, settings.timer.subsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = 1.7, z = 3.15}, true, 4.2, not settings.timer.enabled)
 end
 
 function drawAnalyticsCP()
@@ -560,51 +585,57 @@ function drawAnalyticsCP()
   analyticsCP.clearButtons()
 
   -- Draw the disclaimer
-  makeText(analyticsCP, "Analytics Disclaimer", {x = 0, z = -4}, redColor, 500)
-  makeText(analyticsCP, disclaimer, {x = 0, z = 0.35}, {1, 1, 1}, 300)
+  makeText(analyticsCP, "Analytics Disclaimer", {x = 0, z = -4}, false, redColor, 500)
+  makeText(analyticsCP, disclaimer, {x = 0, z = 0.35}, false, {1, 1, 1}, 300)
 
   -- Draw the buttons with updated values
-  makeCheckbox(analyticsCP, "[8bff9b]Send usage and statistics[-]", "toggleAnalytics", {x = -5.75, z = 4}, 6.3, not analytics.optOut, analyticsLocked)
+  makeCheckbox(analyticsCP, "[8bff9b]Send usage and statistics[-]", "toggleAnalytics", {x = -4, z = 4}, false, 4.5, not analytics.optOut, analyticsLocked)
 end
 
-function makeButton(object, buttonLabel, callback, position, size)
+function makeButton(object, buttonLabel, callback, position, flip, size, colorScheme)
   local attributes =
   {
     click_function  = callback,
     function_owner  = self,
     label           = buttonLabel,
     position        = {x = position.x, y = 0.2, z = position.z},
-    rotation        = {0, 0, 0},
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     width           = size.width,
     height          = size.height,
     font_size       = size.font_size
   }
+  if colorScheme != nil then
+    attributes.font_color   = {1, 1, 1}
+    attributes.color        = buttonColor[colorScheme][1]
+    attributes.hover_color  = buttonColor[colorScheme][2]
+    attributes.press_color  = buttonColor[colorScheme][3]
+  end
   object.createButton(attributes)
 end
 
-function makeCheckbox(object, textLabel, callback, position, textOffset, checked, disabled)
+function makeCheckbox(object, textLabel, callback, position, flip, textOffset, checked, disabled)
   local check =
   {
     label           = (checked and "✔" or ""),
     click_function  = callback,
     function_owner  = self,
     position        = {position.x, 0.2, position.z},
-    rotation        = {0, 0, 0},
-    height          = 500,
-    width           = 500,
-    font_size       = 400
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
+    height          = 400,
+    width           = 400,
+    font_size       = 300
   }
   local text =
   {
     label           = textLabel,
     click_function  = "nullFunction",
     function_owner  = self,
-    position        = {(position.x + textOffset), 0.2, (position.z + 0.1)},
-    rotation        = {0, 0, 0},
+    position        = (flip and {(position.x + 0.1), 0.2, (position.z - textOffset)} or {(position.x + textOffset), 0.2, (position.z + 0.1)}),
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     height          = 0,
     width           = 0,
     font_color      = {1, 1, 1},
-    font_size       = 500
+    font_size       = 350
   }
   if disabled then
     check.color = {0.5, 0.5, 0.5}
@@ -616,14 +647,14 @@ function makeCheckbox(object, textLabel, callback, position, textOffset, checked
   object.createButton(text)
 end
 
-function makeText(object, contents, position, color, size)
+function makeText(object, contents, position, flip, color, size)
   local text =
   {
     label           = contents,
     click_function  = "nullFunction",
     function_owner  = self,
     position        = {position.x, 0.2, position.z},
-    rotation        = {0, 0, 0},
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     height          = 0,
     width           = 0,
     font_color      = color,
@@ -632,37 +663,37 @@ function makeText(object, contents, position, color, size)
   object.createButton(text)
 end
 
-function makeCounter(object, value, textLabel, incCB, decCB, position, textOffset, disabled)
+function makeCounter(object, value, textLabel, incCB, decCB, position, flip, textOffset, disabled)
   local num =
   {
     label           = tostring(value),
     click_function  = "nullFunction",
     function_owner  = self,
     position        = {position.x, 0.2, position.z},
-    rotation        = {0, 0, 0},
-    height          = 500,
-    width           = 500,
-    font_size       = 400
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
+    height          = 400,
+    width           = 400,
+    font_size       = 300
   }
   local text =
   {
     label           = textLabel,
     click_function  = "nullFunction",
     function_owner  = self,
-    position        = {(position.x + textOffset), 0.2, (position.z + 0.1)},
-    rotation        = {0, 0, 0},
+    position        = (flip and {(position.x + 0.1), 0.2, (position.z - textOffset)} or {(position.x + textOffset), 0.2, (position.z + 0.1)}),
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     height          = 0,
     width           = 0,
     font_color      = {1, 1, 1},
-    font_size       = 500
+    font_size       = 350
   }
   local decrement =
   {
     label           = "-",
     click_function  = decCB,
     function_owner  = self,
-    position        = {(position.x - 0.8), 0.2, position.z},
-    rotation        = {0, 0, 0},
+    position        = (flip and {position.x, 0.2, (position.z + 0.8)} or {(position.x - 0.8), 0.2, position.z}),
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     height          = 250,
     width           = 250,
     font_size       = 300
@@ -672,8 +703,8 @@ function makeCounter(object, value, textLabel, incCB, decCB, position, textOffse
     label           = "+",
     click_function  = incCB,
     function_owner  = self,
-    position        = {(position.x + 0.8), 0.2, position.z},
-    rotation        = {0, 0, 0},
+    position        = (flip and {position.x, 0.2, (position.z - 0.8)} or {(position.x + 0.8), 0.2, position.z}),
+    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
     height          = 250,
     width           = 250,
     font_size       = 300
@@ -695,7 +726,7 @@ function makeCounter(object, value, textLabel, incCB, decCB, position, textOffse
 end
 
 function decInitTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.timer.enabled then
       if settings.timer.initial > 1 then
         settings.timer.initial = settings.timer.initial - 1
@@ -706,7 +737,7 @@ function decInitTimer(o, color)
 end
 
 function incInitTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.timer.enabled then
       if settings.timer.initial < 20 then
         settings.timer.initial = settings.timer.initial + 1
@@ -717,7 +748,7 @@ function incInitTimer(o, color)
 end
 
 function decSubTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.timer.enabled then
       if settings.timer.subsequent > 1 then
         settings.timer.subsequent = settings.timer.subsequent - 1
@@ -728,7 +759,7 @@ function decSubTimer(o, color)
 end
 
 function incSubTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.timer.enabled then
       if settings.timer.subsequent < 20 then
         settings.timer.subsequent = settings.timer.subsequent + 1
@@ -739,7 +770,7 @@ function incSubTimer(o, color)
 end
 
 function decAFK(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.afkDetection.enabled then
       if settings.afkDetection.threshold > 1 then
         settings.afkDetection.threshold = settings.afkDetection.threshold - 1
@@ -750,19 +781,13 @@ function decAFK(o, color)
 end
 
 function incAFK(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     if settings.afkDetection.enabled then
       if settings.afkDetection.threshold < 60 then
         settings.afkDetection.threshold = settings.afkDetection.threshold + 1
         drawSettingsCP()
       end
     end
-  end
-end
-
-function shufflePlayers(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    startLuaCoroutine(Global, "startShuffle")
   end
 end
 
@@ -978,7 +1003,7 @@ function startShuffle()
 end
 
 function toggleShuffle(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     settings.playerShuffle = not settings.playerShuffle
     drawSettingsCP()
   end
@@ -993,7 +1018,7 @@ end
 
 
 function toggleQueue(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     settings.codemasterQueue = not settings.codemasterQueue
     if settings.codemasterQueue then
       -- Show the panel
@@ -1144,7 +1169,7 @@ function afkCheckLoop()
 end
 
 function toggleAFK(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if Player[color].host or Player[color].promoted then
     settings.afkDetection.enabled = not settings.afkDetection.enabled
     Timer.destroy("afkLoop")
     if settings.afkDetection.enabled then
