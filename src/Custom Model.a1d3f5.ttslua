@@ -1,0 +1,171 @@
+colors =
+{
+  ["Blue"]    = {{31/255, 135/255, 255/255}, {0/255, 109/255, 235/255}, {0/255, 85/255, 184/255}},
+  ["Teal"]    = {{33/255, 177/255, 155/255}, {25/255, 134/255, 117/255}, {17/255, 91/255, 79/255}},
+  ["Purple"]  = {{160/255, 32/255, 240/255}, {133/255, 14/255, 207/255}, {102/255, 11/255, 159/255}},
+  ["Green"]   = {{49/255, 179/255, 43/255}, {38/255, 138/255, 33/255}, {27/255, 97/255, 23/255}},
+  ["White"]   = {{255/255, 255/255, 255/255}, {229/255, 229/255, 229/255}, {203/255, 203/255, 203/255}},
+
+  ["Red"]     = {{218/255, 25/255, 24/255}, {172/255, 20/255, 19/255}, {126/255, 15/255, 14/255}},
+  ["Orange"]  = {{244/255, 100/255, 29/255}, {212/255, 77/255, 10/255}, {163/255, 59/255, 8/255}},
+  ["Yellow"]  = {{231/255, 229/255, 44/255}, {201/255, 199/255, 23/255}, {155/255, 154/255, 18/255}},
+  ["Pink"]    = {{245/255, 112/255, 206/255}, {242/255, 64/255, 190/255}, {239/255, 16/255, 174/255}},
+  ["Brown"]   = {{133/255, 59/255, 23/255}, {71/255, 37/255, 14/255}, {28/255, 15/255, 6/255}}
+}
+--[{}, {}, {}]
+function onLoad()
+  seatTracker =
+  {
+    ["Blue"]    = false,
+    ["Teal"]    = false,
+    ["Purple"]  = false,
+    ["Green"]   = false,
+    ["White"]   = false,
+
+    ["Red"]     = false,
+    ["Orange"]  = false,
+    ["Yellow"]  = false,
+    ["Pink"]    = false,
+    ["Brown"]   = false
+  }
+  drawSeats()
+end
+
+function drawSeats()
+    pcall(
+      function()
+        -- Update the tracker with vacant seats
+        for color,_ in pairs(seatTracker) do
+          if Player[color].seated then
+            seatTracker[color] = true
+          else
+            seatTracker[color] = false
+          end
+        end
+
+        -- Remove all existing buttons
+        self.clearButtons()
+
+        -- Labels
+        makeText(self, "RED\nTEAM", {x = -3, z = 0}, {0.856, 0.1, 0.094}, 550)
+        makeText(self, "BLUE\nTEAM", {x = 3, z = 0}, {0.118, 0.53, 1}, 550)
+
+        -- Blue team
+        makeButton(self, "Blue", "changeToBlue", {x = 3, z = 3}, {0.118, 0.53, 1}, seatTracker["Blue"])
+        makeButton(self, "Teal", "changeToTeal", {x = 6, z = 3}, {0.129, 0.694, 0.607}, seatTracker["Teal"])
+        makeButton(self, "Purple", "changeToPurple", {x = 6, z = 0}, {0.627, 0.125, 0.941}, seatTracker["Purple"])
+        makeButton(self, "Green", "changeToGreen", {x = 6, z = -3}, {0.192, 0.701, 0.168}, seatTracker["Green"])
+        makeButton(self, "White", "changeToWhite", {x = 3, z = -3}, {1, 1, 1}, seatTracker["White"])
+
+        -- Red team
+        makeButton(self, "Red", "changeToRed", {x = -3, z = 3}, {0.856, 0.1, 0.094}, seatTracker["Red"])
+        makeButton(self, "Orange", "changeToOrange", {x = -6, z = 3}, {0.956, 0.392, 0.113}, seatTracker["Orange"])
+        makeButton(self, "Yellow", "changeToYellow", {x = -6, z = 0}, {0.905, 0.898, 0.172}, seatTracker["Yellow"])
+        makeButton(self, "Pink", "changeToPink", {x = -6, z = -3}, {0.96, 0.439, 0.807}, seatTracker["Pink"])
+        makeButton(self, "Brown", "changeToBrown", {x = -3, z = -3}, {0.443, 0.231, 0.09}, seatTracker["Brown"])
+      end
+    )
+end
+
+function makeButton(object, buttonLabel, callback, position, buttonColor, disabled)
+  local attributes =
+  {
+    click_function  = callback,
+    function_owner  = self,
+    label           = buttonLabel,
+    position        = {x = position.x, y = 0.2, z = position.z},
+    rotation        = {0, 0, 0},
+    color           = colors[buttonLabel][1],
+    hover_color     = colors[buttonLabel][2],
+    press_color     = colors[buttonLabel][3],
+    width           = 1350,
+    height          = 1350, --900?
+    font_size       = 400,
+    font_color      = {1, 1, 1}
+  }
+  if disabled then
+    attributes.color        = {170/255, 170/255, 170/255}
+    attributes.hover_color  = {144/255, 144/255, 144/255}
+    attributes.press_color  = {118/255, 118/255, 118/255}
+  end
+  object.createButton(attributes)
+end
+
+function makeText(object, contents, position, color, size)
+  local text =
+  {
+    label           = contents,
+    click_function  = "nullFunction",
+    function_owner  = self,
+    position        = {position.x, 0.2, position.z},
+    rotation        = {0, 0, 0},
+    height          = 0,
+    width           = 0,
+    font_color      = color,
+    font_size       = size
+  }
+  object.createButton(text)
+end
+
+function nullFunction()
+  -- Nothing to see here
+end
+
+function changeSeat(from, to)
+  -- Ensure the seat is empty
+  if Player[to].seated then
+    Player[from].broadcast(to .. " seat is not empty!", {0.856, 0.1, 0.094})
+    return
+  end
+
+  -- Seat is empty, seat the player in the new seat
+  Player[from].changeColor(to)
+end
+
+function onPlayerChangeColor(color)
+  drawSeats()
+end
+
+--[[----------------------------------------]]
+--[[          BUTTON FUNCTIONS              ]]
+--[[----------------------------------------]]
+
+function changeToRed(object, color, notLeftClick)
+  changeSeat(color, "Red")
+end
+
+function changeToOrange(object, color, notLeftClick)
+  changeSeat(color, "Orange")
+end
+
+function changeToYellow(object, color, notLeftClick)
+  changeSeat(color, "Yellow")
+end
+
+function changeToPink(object, color, notLeftClick)
+  changeSeat(color, "Pink")
+end
+
+function changeToBrown(object, color, notLeftClick)
+  changeSeat(color, "Brown")
+end
+
+function changeToBlue(object, color, notLeftClick)
+  changeSeat(color, "Blue")
+end
+
+function changeToTeal(object, color, notLeftClick)
+  changeSeat(color, "Teal")
+end
+
+function changeToPurple(object, color, notLeftClick)
+  changeSeat(color, "Purple")
+end
+
+function changeToGreen(object, color, notLeftClick)
+  changeSeat(color, "Green")
+end
+
+function changeToWhite(object, color, notLeftClick)
+  changeSeat(color, "White")
+end
