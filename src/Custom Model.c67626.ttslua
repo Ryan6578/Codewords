@@ -42,7 +42,7 @@ function drawQueue()
 
   -- Player buttons
   for i = 1, 10, 1 do
-    makeButton("ree", ("remove" .. i), {x = (-6.35 + (1.1 * i)), z = 0}, size.hidden, nil)
+    makeButton("", ("remove" .. i), {x = (-6.35 + (1.1 * i)), z = 0}, size.hidden, nil)
   end
 end
 
@@ -165,8 +165,10 @@ function pruneQueue()
 
   -- Remove all players that aren't supposed to be in queue
   for i, queuePlayer in ipairs(queue) do
+    local playerFound = false
     for _, player in ipairs(Player.getPlayers()) do
       if player.steam_id == queuePlayer.steam_id then
+        playerFound = true
         if player.color == "Grey" or player.color == "Black" or player.color == nil then
           -- Need to remove this player from the queue
           changesMade = true
@@ -177,6 +179,10 @@ function pruneQueue()
         -- This player has been handled - go to next
         break
       end
+    end
+
+    if not playerFound then
+      changesMade = true
     end
   end
 
