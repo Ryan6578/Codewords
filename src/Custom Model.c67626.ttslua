@@ -42,7 +42,7 @@ function drawQueue()
 
   -- Player buttons
   for i = 1, 10, 1 do
-    makeButton("ree", "nullFunction", {x = (-6.35 + (1.1 * i)), z = 0}, size.hidden, nil)
+    makeButton("ree", ("remove" .. i), {x = (-6.35 + (1.1 * i)), z = 0}, size.hidden, nil)
   end
 end
 
@@ -161,26 +161,29 @@ function pruneQueue()
   -- Track to see if a player was removed from the queue
   local changesMade = false
 
-  -- Remove all spectators from the queue
-  for _, player in ipairs(Player.getSpectators()) do
-    for i, queuePlayer in ipairs(queue) do
-      if player.steam_id == queuePlayer.steam_id then
-        table.remove(queue, i)
-        changesMade = true
-      end
-    end
-  end
+  local newQueue = {}
 
-  -- Remove black player from the queue
+  -- Remove all players that aren't supposed to be in queue
   for i, queuePlayer in ipairs(queue) do
-    if Player["Black"] == queuePlayer.steam_id then
-      table.remove(queue, i)
-      changesMade = true
+    for _, player in ipairs(Player.getPlayers()) do
+      if player.steam_id == queuePlayer.steam_id then
+        if player.color == "Grey" or player.color == "Black" or player.color == nil then
+          -- Need to remove this player from the queue
+          changesMade = true
+        else
+          -- This player can be added back to the queue
+          table.insert(newQueue, queuePlayer)
+        end
+        -- This player has been handled - go to next
+        break
+      end
     end
   end
 
   -- Only redraw the queue if a change was made
   if changesMade then
+    -- Update and redraw the queue
+    queue = newQueue
     redrawQueue()
   end
 end
@@ -433,16 +436,74 @@ function debugMessage(msg)
   print(os.date("%x") .. " " .. os.date("%X") .. " | [DEBUG] - " .. msg)
 end
 
---[[  if not shufflingPlayers then
-    for _, player in ipairs(Player.getPlayers()) do
-      if player.color == "Black" or player.color == "Grey" then
-        for i, queuePlayer in ipairs(codemasterQueue) do
-          if player.steam_id == queuePlayer.steam_id then
-            table.remove(codemasterQueue, i)
-            break
-          end
-        end
-      end
-    end
+-- Remove users from queue
+
+function remove1(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 1)
     redrawQueue()
-  end]]
+  end
+end
+
+function remove2(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 2)
+    redrawQueue()
+  end
+end
+
+function remove3(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 3)
+    redrawQueue()
+  end
+end
+
+function remove4(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 4)
+    redrawQueue()
+  end
+end
+
+function remove5(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 5)
+    redrawQueue()
+  end
+end
+
+function remove6(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 6)
+    redrawQueue()
+  end
+end
+
+function remove7(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 7)
+    redrawQueue()
+  end
+end
+
+function remove8(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 8)
+    redrawQueue()
+  end
+end
+
+function remove9(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 9)
+    redrawQueue()
+  end
+end
+
+function remove10(o, color)
+  if Player[color].host or Player[color].promoted then
+    table.remove(queue, 10)
+    redrawQueue()
+  end
+end
