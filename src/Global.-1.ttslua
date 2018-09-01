@@ -773,7 +773,6 @@ end
 
 function afkCheckLoop()
   if settings.afkDetection.enabled then
-    --print(tostring(os.time()))
     local colorsToCheck = {
       "Teal",
       "Orange",
@@ -1207,14 +1206,18 @@ end
 function deleteclues()
   -- Delete red clues
   for _, redClue in pairs(redClues) do
-    redClue.destruct()
+    if redClue != nil then
+      redClue.destruct()
+    end
   end
   redClues = {}
   redCluesTracker = 0
 
   -- Delete blue clues
   for _, blueClue in pairs(blueClues) do
-    blueClue.destruct()
+    if blueClue != nil then
+      blueClue.destruct()
+    end
   end
   blueClues = {}
   blueCluesTracker = 0
@@ -1495,7 +1498,6 @@ function isQueueEnabled()
 end
 
 function startGame()
-  print('test')
   dealCards(cardsToDeal)
   reset_keymap()
 end

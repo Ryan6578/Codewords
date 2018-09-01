@@ -204,7 +204,6 @@ function swapCodemasters()
   -- First pass - looking for empty seats
   for i, seat in ipairs(seats) do
     if not Player[seat].seated then
-      debugMessage('No player sitting in ' .. seat .. '. Added to prioritization queue.')
       table.insert(prioritizedSeats, seats[i])
     else
       -- Is the new codemaster already sitting in red/blue?
@@ -218,8 +217,6 @@ function swapCodemasters()
 
         if Player[seat].steam_id == queue[j].steam_id then
           -- Codemaster queued for next game is already sitting in a codemaster seat
-          debugMessage(Player[seat].steam_name .. ' is already sitting in ' .. seat .. '. Removing seat from queue.')
-
           skip = true
 
           -- Remove or re-queue codemaster
@@ -232,7 +229,6 @@ function swapCodemasters()
       end
 
       if not skip then
-        debugMessage('Adding ' .. seat .. ' to the end of the prioritization queue. Someone is sitting here')
         table.insert(lowPriority, seats[i])
       end
     end
@@ -256,8 +252,6 @@ function swapCodemasters()
       local oldCodemaster = findPlayerByColor(currentSeat)
       local colorSwap = newCodemaster.color
 
-      debugMessage('Swapping ' .. oldCodemaster.steam_name .. ' (' .. oldCodemaster.color .. ') and ' .. newCodemaster.steam_name .. '(' .. newCodemaster.color ..').')
-
       oldCodemaster.changeColor("Grey")
       sleep(1)
       newCodemaster.changeColor(currentSeat)
@@ -266,7 +260,6 @@ function swapCodemasters()
       sleep(1)
     else
       -- No player is seated here - move the new codemaster in
-      debugMessage('Moving ' .. newCodemaster.steam_name .. ' to ' .. currentSeat .. ' (empty).')
       newCodemaster.changeColor(currentSeat)
       sleep(1)
     end
@@ -290,7 +283,6 @@ function swapCodemasters()
   sleep(25)
 
   -- Continue game setup if in progress
-  debugMessage('Game is starting.')
   Global.call("startGame")
 
   return 1
@@ -429,7 +421,6 @@ end
 
 function onPlayerChangeColor(color)
   if not shufflingPlayers then
-    print('changed: ' .. color)
     pruneQueue()
   end
 end
@@ -438,12 +429,7 @@ function onPlayerDisconnect(player_id)
   pruneQueue()
 end
 
-function debugMessage(msg)
-  print(os.date("%x") .. " " .. os.date("%X") .. " | [DEBUG] - " .. msg)
-end
-
 -- Remove users from queue
-
 function remove1(o, color)
   if Player[color].host or Player[color].promoted then
     table.remove(queue, 1)
