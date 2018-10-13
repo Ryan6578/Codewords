@@ -432,13 +432,7 @@ function onload(saveState)
 
   -- Start the AFK loop checker
   if settings.afkDetection.enabled then
-    Timer.create({
-      identifier     = "afkLoop",
-      function_name  = "afkCheckLoop",
-      function_owner = self,
-      delay          = 1,
-      repetitions    = 0
-    })
+    afkWaitID = Wait.time(afkCheckLoop, 1, -1)
   end
 end
 
@@ -820,15 +814,9 @@ end
 function toggleAFK(o, color)
   if Player[color].host or Player[color].promoted then
     settings.afkDetection.enabled = not settings.afkDetection.enabled
-    Timer.destroy("afkLoop")
+    Wait.stop(afkWaitID)
     if settings.afkDetection.enabled then
-      Timer.create({
-        identifier     = "afkLoop",
-        function_name  = "afkCheckLoop",
-        function_owner = self,
-        delay          = 1,
-        repetitions    = 0
-      })
+      afkWaitID = Wait.time(afkCheckLoop, 1, -1)
     end
     drawSettingsCP()
   end
