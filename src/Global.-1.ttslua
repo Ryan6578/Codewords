@@ -465,11 +465,6 @@ function nullFunction()
   -- Nothing
 end
 
-function delayDrawEncodeInput(params)
-  Timer.destroy(params.id)
-  drawEncodeInput(params.obj)
-end
-
 function drawEncodeInput(object)
   -- Clear existing inputs
   object.clearInputs()
@@ -854,14 +849,7 @@ function cluemasterEncode(object, playerColor, input, selected)
               guessesLeft = tostring(number) + 1
             end
             encodeClue(playerColor, clue .. " - " .. number)
-            local timerID = tostring(math.random())
-            Timer.create({
-              identifier     = timerID,
-              function_name  = "delayDrawEncodeInput",
-              function_owner = self,
-              parameters     = {id = timerID, obj = object},
-              delay          = 0.25
-            })
+            Wait.time(function() drawEncodeInput(object) end, 0.25)
             if not analytics.optOut then
               local payload =
               {
@@ -1212,18 +1200,12 @@ function onPlayerConnect(player)
   if not analytics.optOut then
     local disclaimerParam = {}
     disclaimerParam.player = player
-    Timer.create({identifier=disclaimerParam.player.steam_id, function_name='displayDisclaimer', parameters=disclaimerParam, delay=10})
+    Wait.time(function()
+        if player ~= nil then
+            player.print(chatDisclaimer, {1, 1, 1})
+        end
+    end, 10)
   end
-end
-
-function displayDisclaimer(params)
-  Timer.destroy(params.player.steam_id)
-  params.player.print(chatDisclaimer, {1, 1, 1})
-end
-
-function onPlayerDisconnect(player)
-  -- Destroy the timer for the disclaimer, if one exists
-  Timer.destroy(player.steam_id)
 end
 
 function onPlayerChangeColor(color)
@@ -1289,7 +1271,6 @@ function announceTeam(color)
     UI.hide(color .. "Announce")
     Timer.destroy(announceTracker[color])
   end]]
-  Timer.destroy(color .. "Welcome")
   UI.setAttribute(color .. "Welcome", "active", "false")
   local id = color .. "Welcome"
   Wait.time(function() announceStart(id) end, 1)
@@ -1703,8 +1684,7 @@ function shuffle_table( passed_table )
 end
 
 function setDoubleTimer()
-  Timer.destroy("waitfortilereset")
-  Timer.create({identifier="waitfortilereset", function_name='setDouble', delay=1})
+  Wait.time(setDouble, 1)
 end
 
 function setDouble()
@@ -1813,8 +1793,7 @@ function onObjectDrop(color, agent)
             local lockParam = {}
             lockParam.agent = agent
             lockParam.code = code
-            lockParam.id = tostring(math.random())
-            Timer.create({identifier=lockParam.id, function_name='lockCorrect', parameters=lockParam, delay=1})
+            Wait.time(function lockCorrect(lockParam) end, 1)
             -- Check to see if one team has won
             local redWon = true
             local blueWon = true
@@ -1905,23 +1884,18 @@ function lockCorrect(params)
   agent.setPosition(code.getPosition())
   agent.setRotation({0, 180, 180})
 
-  Timer.destroy(params.id)
 
   local ensureParam = {}
-  ensureParam.id = math.random()
   ensureParam.agent = agent
   ensureParam.position = code.getPosition()
 
-  Timer.create({identifier=ensureParam.id, function_name='ensurePos', parameters=ensureParam, delay=1})
+  Wait.time(function ensurePos(ensureParam) end, 1)
 end
 
 function ensurePos(params)
   local agent = params.agent
-
   agent.setPosition(params.position)
   agent.setRotation({0, 180, 180})
-
-  Timer.destroy(params.id)
 end
 
 function onObjectPickUp(color, object)
@@ -2057,8 +2031,7 @@ function endGame()
         endParam.agent = agent
         endParam.code = v
         endParam.pos = pos
-
-        Timer.create({identifier=endParam.id, function_name='endCardSet', parameters=endParam, delay=timeDelay})
+        Wait.time(function() endCardSet(endParam) end, timeDelay)
       end
     end
     timeDelay = timeDelay + 0.15
@@ -2077,8 +2050,6 @@ function endCardSet(endParam)
   agent.setRotation({0, 180, 180})
   agent.setPositionSmooth(pos)
   agent.setLock(true)
-
-  Timer.destroy(endParam.id)
 end
 
 function onUpdate()
