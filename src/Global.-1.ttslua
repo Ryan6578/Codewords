@@ -1148,17 +1148,24 @@ function encodeClue(color, clue)
   finishedClue.setPosition(cluePosition)
   finishedClue.setRotation({0, 180, 0})
   finishedClue.setLock(false)
-  finishedClue.setLuaScript(
-    "function onload()\n"
-      .. "self.createButton({\n"
-        .. "label='" .. clue .. "', click_function='nullFunction', function_owner=self,\n"
-        .. "position={0,0.2,0}, height=0, width=0, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}, font_color={1,1,1}\n"
-      .. "})\n"
-    .. "end\n"
+  finishedClue.setLuaScript(([[
+function onload()
+  self.createButton({
+    label='%s',
+    click_function='nullFunction',
+    function_owner=self,
+    position={0, 0.2, 0},
+    height=0,
+    width=0,
+    font_size=500,
+    rotation={0,0,0},
+    scale={2, 2, 4/3},
+    font_color={1,1,1}
+  }
+end
 
-    .. "function nullFunction()\n"
-    .. "end\n"
-  )
+function nullFunction() end
+]]):format(clue))
   printToAll(color .. " team's clue is: " .. clue, clueColor)
   for _, playerColor in ipairs(broadcastTo) do
     Player[playerColor].broadcast("Your clue is: " .. clue, clueColor)
