@@ -172,8 +172,6 @@ function onload(saveState)
   firstTurn = true
   -- Keeps track of whether or not a new game is in the process of starting
   newGameStarting = false
-  -- Keeps track of whether or not we are currently shuffling players
-  shufflingPlayers = false
   -- Timer warning variable
   timerWarning = -1
   -- 0 = RED; 1 = BLUE
@@ -1149,7 +1147,7 @@ function onload()
     rotation={0,0,0},
     scale={2, 2, 4/3},
     font_color={1,1,1}
-  }
+  })
 end
 
 function nullFunction() end
