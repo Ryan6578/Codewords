@@ -662,7 +662,7 @@ function makeCounter(object, value, textLabel, incCB, decCB, position, flip, tex
 end
 
 function decInitTimer(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.timer.enabled then
       if settings.timer.initial > 1 then
         settings.timer.initial = settings.timer.initial - 1
@@ -673,7 +673,7 @@ function decInitTimer(o, color)
 end
 
 function incInitTimer(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.timer.enabled then
       if settings.timer.initial < 20 then
         settings.timer.initial = settings.timer.initial + 1
@@ -684,7 +684,7 @@ function incInitTimer(o, color)
 end
 
 function decSubTimer(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.timer.enabled then
       if settings.timer.subsequent > 1 then
         settings.timer.subsequent = settings.timer.subsequent - 1
@@ -695,7 +695,7 @@ function decSubTimer(o, color)
 end
 
 function incSubTimer(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.timer.enabled then
       if settings.timer.subsequent < 20 then
         settings.timer.subsequent = settings.timer.subsequent + 1
@@ -706,7 +706,7 @@ function incSubTimer(o, color)
 end
 
 function decAFK(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.afkDetection.enabled then
       if settings.afkDetection.threshold > 1 then
         settings.afkDetection.threshold = settings.afkDetection.threshold - 1
@@ -717,7 +717,7 @@ function decAFK(o, color)
 end
 
 function incAFK(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     if settings.afkDetection.enabled then
       if settings.afkDetection.threshold < 60 then
         settings.afkDetection.threshold = settings.afkDetection.threshold + 1
@@ -728,7 +728,7 @@ function incAFK(o, color)
 end
 
 function toggleShuffle(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     settings.playerShuffle = not settings.playerShuffle
     drawSettingsCP()
   end
@@ -743,7 +743,7 @@ end
 
 
 function toggleQueue(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     settings.codemasterQueue = not settings.codemasterQueue
     if settings.codemasterQueue then
       -- Show the panel
@@ -805,7 +805,7 @@ function afkCheckLoop()
 end
 
 function toggleAFK(o, color)
-  if Player[color].host or Player[color].promoted then
+  if Player[color].admin then
     settings.afkDetection.enabled = not settings.afkDetection.enabled
     Wait.stop(afkWaitID)
     if settings.afkDetection.enabled then
@@ -1159,7 +1159,7 @@ function nullFunction() end
 end
 
 function toggleTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     settings.timer.enabled = not settings.timer.enabled
     if settings.timer.enabled then
       startTime()
@@ -1340,44 +1340,44 @@ end
 
 -- Call functions get deck + clear deckZone
 function resetVanilla(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(1)
   end
 end
 
 function resetHanii(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(2)
   end
 end
 
 function resetCHRY(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(3)
   end
 end
 
 function resetUndercover(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(4)
   end
 end
 
 function resetSaydi(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(5)
   end
 end
 
 function resetMayor(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     fetchDeck(6)
   end
 end
 
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function newGame(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
+  if color=="Red" or color=="Blue" or Player[color].admin then
     if newGameStarting == false then
       newGameStarting = true
       local deckFound = findDeck()
