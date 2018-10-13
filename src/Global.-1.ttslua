@@ -400,7 +400,7 @@ function onload(saveState)
     updateTimer = decodedSaveState.updateTimer
     illegalMove = decodedSaveState.illegalMove
 
-    for pos, guid in pairs(JSON.decode(decodedSaveState.correctTracker)) do
+    for pos, guid in pairs(decodedSaveState.correctTracker or {}) do
       local agent = getObjectFromGUID(guid)
       if getObjectFromGUID(guid).getLock() == true then
         correctTracker[pos] = guid
@@ -408,11 +408,11 @@ function onload(saveState)
       end
     end
 
-    for i, cardGuid in ipairs(JSON.decode(decodedSaveState.cardsInPlayArea)) do
+    for i, cardGuid in ipairs(decodedSaveState.cardsInPlayArea or {}) do
       cardsInPlayArea[i] = getObjectFromGUID(cardGuid)
     end
 
-    for pos, color in pairs(JSON.decode(decodedSaveState.keymap)) do
+    for pos, color in pairs(decodedSaveState.keymap or {}) do
       keymap[pos] = color
     end
   end
@@ -446,15 +446,15 @@ function onSave()
   saveData.updateTimer = updateTimer
   saveData.illegalMove = illegalMove
 
-  saveData.correctTracker = JSON.encode(correctTracker)
+  saveData.correctTracker = correctTracker
 
   local endcodedCardsInPlayArea = {}
   for i, card in ipairs(cardsInPlayArea) do
     endcodedCardsInPlayArea[i] = card.guid
   end
-  saveData.cardsInPlayArea = JSON.encode(endcodedCardsInPlayArea)
+  saveData.cardsInPlayArea = endcodedCardsInPlayArea
 
-  saveData.keymap = JSON.encode(keymap)
+  saveData.keymap = keymap
 
   return JSON.encode(saveData)
 end
