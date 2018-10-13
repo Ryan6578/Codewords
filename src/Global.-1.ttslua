@@ -1291,24 +1291,19 @@ function announceTeam(color)
   end]]
   Timer.destroy(color .. "Welcome")
   UI.setAttribute(color .. "Welcome", "active", "false")
-  local params = {}
-  params.id = color .. "Welcome"
-  Timer.create({identifier=params.id, function_name='announceStart', parameters=params, delay=1})
+  local id = color .. "Welcome"
+  Wait.time(function() announceStart(id) end, 1)
 end
 
-function announceStart(params)
+function announceStart(id)
   print("Announce started")
-  Timer.destroy(params.id)
-  local id = params.id
   UI.show(id)
   --UI.setAttribute(id, "active", "true")
-  Timer.create({identifier=params.id, function_name='announceEnd', parameters=params, delay=5})
+  Wait.time(function() announceEnd(id) end, 5)
 end
 
-function announceEnd(params)
+function announceEnd(id)
   print("Announce ended")
-  Timer.destroy(params.id)
-  local id = params.id
   UI.hide(id)
   --UI.setAttribute(id, "active", "false")
 end
