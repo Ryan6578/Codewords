@@ -940,26 +940,16 @@ function playClueCallback(returnData)
 end
 
 function processClue(clue)
-  local result, status, error
-  if clue == "" then
+  if type(clue) ~= "string" or clue == "" then
     -- Clue is empty
     return nil
   end
-
-  status, result = pcall(function() return string.lower(string.gsub(clue, "\n", "")) end)
-  if status != true then
-    -- Error whilst removing newline
-    return nil
-  end
-
-  status, result = pcall(function() return string.match(clue, "%s*(.-)%s*$") end)
-  if status != true then
-    -- Error whilst trimming clue
-    return nil
-  end
-
+  -- Remove newlines
+  clue = clue:gsub("\n", " ")
+  -- Trim whitespace
+  clue = clue:match( "^%s*(.-)%s*$" )
   -- No errors occured - return the formatted clue
-  return string.lower(result)
+  return clue:lower()
 end
 
 function getClueDetails(processedClue)
