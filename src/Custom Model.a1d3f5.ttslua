@@ -145,8 +145,11 @@ function changeSeat(from, to)
     return
   end
 
-  -- Seat is empty, seat the player in the new seat
-  Player[from].changeColor(to)
+  local player = findPlayerBySteamID(Player[from].steam_id)
+
+  ignoreChanges({steamID = player.steam_id, color = to})
+
+  player.changeColor(to)
 end
 
 function onPlayerChangeColor(color)
@@ -154,6 +157,18 @@ function onPlayerChangeColor(color)
     if Player[seatColor].seated != seatTracker[seatColor] then
       seatTracker[seatColor] = Player[seatColor].seated
       updateButton(seatColor, Player[seatColor].seated)
+    end
+  end
+end
+
+function ignoreChanges(request)
+  Global.call("ignoreChanges", request)
+end
+
+function findPlayerBySteamID(steam_id)
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.steam_id == steam_id then
+      return player
     end
   end
 end
