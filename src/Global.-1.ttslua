@@ -2257,10 +2257,6 @@ function endTurn(button, color)
     rotateclues()
 
     startTime()
-
-  else
-    -- Notify the person trying to end the turn that there are cards incorrectly placed on the board
-    Player[color].broadcast("Please fix the incorrectly placed agent cards before ending your turn.", redColor)
   end
 end
 
