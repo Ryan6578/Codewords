@@ -1311,6 +1311,11 @@ function onPlayerChangeColor(color)
       end
     end
 
+    if sessionPayload == "" then
+      -- Nothing to send
+      return
+    end
+
     local payload =
     {
       sessions = tostring(sessionPayload)

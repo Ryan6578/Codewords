@@ -252,10 +252,6 @@ function swapCodemasters()
       local oldCodemaster = findPlayerByColor(currentSeat)
       local colorSwap = newCodemaster.color
 
-      -- Ignore player color changes
-      --ignoreChanges({steamID = oldCodemaster.steam_id, color = colorSwap})
-      --ignoreChanges({steamID = newCodemaster.steam_id, color = currentSeat})
-
       oldCodemaster.changeColor("Grey")
       sleep(1)
       newCodemaster.changeColor(currentSeat)
@@ -263,8 +259,6 @@ function swapCodemasters()
       oldCodemaster.changeColor(colorSwap)
       sleep(1)
     else
-      -- Ignore player color changes
-      --ignoreChanges({steamID = newCodemaster.steam_id, color = currentSeat})
 
       -- No player is seated here - move the new codemaster in
       newCodemaster.changeColor(currentSeat)
@@ -431,10 +425,6 @@ function onPlayerChangeColor(color)
   if not shufflingPlayers then
     pruneQueue()
   end
-end
-
-function ignoreChanges(request)
-  Global.call("ignoreChanges", request)
 end
 
 function onPlayerDisconnect(player_id)
