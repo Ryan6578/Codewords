@@ -1999,12 +1999,12 @@ function onObjectDrop(color, agent)
         -- Red placed black card, blue wins
         -- or blue placed all of their cards
         broadcastToAll("Blue team wins!", blueColor)
-        payload.winner = "BLUE"
+        endPayload.winner = "BLUE"
       elseif (agentColor == "black" and turnTracker == 1) or redWon then
         -- Blue placed black card, red wins
         -- or red placed all of their cards
         broadcastToAll("Red team wins!", redColor)
-        payload.winner = "RED"
+        endPayload.winner = "RED"
       end
 
       -- Set the game back to initial state
