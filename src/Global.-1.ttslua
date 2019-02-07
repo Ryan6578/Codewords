@@ -1676,17 +1676,20 @@ function startGame()
         local playerPayload = ""
 
         -- Repopulate the teams
-        for i,player in ipairs(Player.getPlayers()) do
+        local i = 1
+        for _, player in ipairs(Player.getPlayers()) do
           local color = player.color
           -- Start session for all players currently seated
           if color == "Red" or color == "Orange" or color == "Yellow" or color == "Pink" or color == "Brown" then
             -- Add this player to the red team
             teamTracker[player.steam_id] = "RED"
             playerPayload = playerPayload .. ((i == 1) and player.steam_id or (',' .. player.steam_id))
+            i = i + 1
           elseif color == "Blue" or color == "Teal" or color == "Purple" or color == "Green" or color == "White" then
             -- Add this player to the blue team
             teamTracker[player.steam_id] = "BLUE"
             playerPayload = playerPayload .. ((i == 1) and player.steam_id or (',' .. player.steam_id))
+            i = i + 1
           end
         end
 
