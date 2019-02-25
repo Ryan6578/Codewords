@@ -220,13 +220,14 @@
 </Panel>
 
 <Panel id="redClues"
-       visibility="Red"
+       active="false"
        rectAlignment="LowerCenter"
        color="#da1918"
        height="100"
        width="650"
        outline="#ffffff"
-       outlineSize="2 -2">
+       outlineSize="2 -2"
+       visibility="Red">
 
        <Panel rectAlignment="UpperRight" width="25" height="25">
          <Text id="codemasterHelp"
@@ -245,17 +246,17 @@
                    lineType="MultiLineNewLine"
                    onValueChanged="clueEntered">
        </InputField>
-
 </Panel>
 
 <Panel id="blueClues"
-       visibility="Blue"
+       active="false"
        rectAlignment="LowerCenter"
        color="#1f87ff"
        height="100"
        width="650"
        outline="#ffffff"
-       outlineSize="2 -2">
+       outlineSize="2 -2"
+       visibility="Blue">
 
        <Panel rectAlignment="UpperRight" width="25" height="25">
          <Text id="codemasterHelp"
@@ -274,5 +275,26 @@
                    lineType="MultiLineNewLine"
                    onValueChanged="clueEntered">
        </InputField>
+</Panel>
 
+<Panel id="timerPanel"
+       width="100"
+       height="45"
+       rectAlignment="UpperCenter"
+       offsetXY="0 -75">
+  <Text id="timer"
+        active="false"
+        fontSize="50"
+        width="100"
+        height="45"
+        rectAlignment="MiddleCenter"
+        resizeTextForBestFit="true"
+        color="#ffffff"
+        outline="#000000"
+        outlinesize="1 -1"
+        allowDragging="true"
+        restrictDraggingToParentBounds="false"
+        returnToOriginalPositionWhenReleased="false">
+        10:00
+  </Text>
 </Panel>
