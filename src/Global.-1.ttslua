@@ -803,15 +803,17 @@ function clueEntered(player, value)
     -- Remove the newline, trim the clue, and convert to lowercase
     value = value:gsub("\n", ""):match("%s*(.-)%s*$"):lower()
 
-    -- Parse the entered clue into its respective parts
-    local clue, number = value:match("^(%a+[%-%a]*%a+)%s*%-?%s*(%d+)$")
+    local success = false
 
-    if clue == nil or number == nil then
+    -- Parse the entered clue into its respective parts
+    local success, clue, number = pcall(function () return value:match("^(%a+[%-%a]-%a+)%s-%-?%s-(%d+)$") end)
+
+    if clue == nil or number == nil or not success then
         -- Try parsing with inf
-        clue, number = value:match("^(%a+[%-%a]*%a+)%s*%-?%s*(inf)$")
+        success, clue, number = pcall(function () return value:match("^(%a+[%-%a]*%a+)%s*%-?%s*(inf)$") end)
     end
 
-    if clue == nil or number == nil or clue:match(".*%-%-+.*") then
+    if clue == nil or number == nil or clue:match(".*%-%-+.*") or not success then
         -- Clue could not be parsed correctly or contains multiple dashes in a row
         Player[color].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
         return
@@ -1719,7 +1721,7 @@ function onObjectDrop(color, agent)
     if d < searchThreshold then
       if closestCard.object ~= nil then
         -- Compare to the current card
-        if d < distance then
+        if d < closestCard.distance then
           closestCard.index = i
           closestCard.object = getObjectFromGUID(cards[i].guid)
           closestCard.distance = d
@@ -1768,15 +1770,13 @@ function onObjectDrop(color, agent)
     local card = getObjectFromGUID(cards[index].guid)
     local position = {cards[index].position.x, 1.03, cards[index].position.z}
 
+    -- Card script and UI no longer needed
+    card.setLuaScript("")
+    card = card.reload()
+
     -- Lock both cards and set them in place
     card.interactable = false
     agent.interactable = false
-
-    -- Remove the UI from the card
-    card.UI.setXml("")
-
-    -- Card script no longer needed
-    card.setLuaScript("")
 
     card.setLock(true)
     agent.setLock(true)
