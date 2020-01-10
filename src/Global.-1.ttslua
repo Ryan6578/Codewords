@@ -1,7 +1,7 @@
 --[[
 
   TTS-Codenames: A LUA script for Codenames on Tabletop Simulator for Steam.
-  Copyright (C) 2018  Ryan6578 (https://ryan6578.com)
+  Copyright (C) 2020  Ryan6578 (https://ryan6578.com)
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -16,21 +16,6 @@
   You should have received a copy of the GNU General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-]]
-
-disclaimer =
-[[
-This mod collects certain data to improve the
-experience and provide meaningful insight
-into usage and play. You may, at your own
-discretion, opt out of this data collection
-via the checkbox below.
-
-More info:
-[8bb5ff]https://ryan6578.com/codenames/stats/privacy[-]
-
-Statistics:
-[8bb5ff]https://ryan6578.com/codenames/stats[-]
 ]]
 
 chatDisclaimer =
@@ -54,215 +39,195 @@ Statistics:
 redColor = {0.856, 0.1, 0.094}
 blueColor = {0.118, 0.53, 1}
 
-agentLocations =
-{
-  -- Assassain
-  ['b97df2']={ 0.04, 2, -17.84 };
-  -- Blue agents
-  ['7fdaee']={ 12.34, 2, -13.97 }, ['99832c']={ 18.07, 2, -13.97 }, ['d9324a']={ 23.77, 2, -13.97 }, ['19b2d5']={ 29.47, 2, -13.97 },
-  ['0f0ec0']={ 12.34, 2, -17.8  }, ['d9054c']={ 18.07, 2, -17.8  }, ['4de840']={ 23.77, 2, -17.8  }, ['05c73d']={ 29.47, 2, -17.8  };
-  -- Red agents
-  ['b48ed4']={ -29.32, 2, -13.97 }, ['6bb4d8']={ -23.62, 2, -13.97 }, ['9cbe84']={ -17.92, 2, -13.97 }, ['746660']={ -12.22, 2, -13.97 },
-  ['4a2969']={ -29.32, 2, -17.8  }, ['e1754e']={ -23.62, 2, -17.8  }, ['b89ba7']={ -17.92, 2, -17.8  }, ['5c1be6']={ -12.22, 2, -17.8  };
-  -- Civialians
-  ['f6786b']={ -5.7, 2, -21.7 }, ['e44594']={ -5.7, 2, -17.84 }, ['1f53f2']={ -5.7, 2, -14 },
-  ['f8f6a1']={ 0.04, 2, -21.7 },
-  ['a05e4e']={ 5.74, 2, -21.7 }, ['1ebedd']={ 5.74, 2, -17.84 }, ['3d7b86']={ 5.74, 2, -14 };
-  -- Double agents
-  ['1e9282']={ 0.04, 2, -14 };
-  ['3ef1ca']={ 0.04, 3, -14 };
-}
+-- Red team plaque position and rotation
+redPos = {-20.7, 0.91, 17.94}
+redRot = {0, 180, 0}
 
-agentColors =
-{
-  -- Assassain
-  ['b97df2'] = 'black',
-
-  -- Blue agents
-  ['7fdaee'] = 'blue',
-  ['99832c'] = 'blue',
-  ['d9324a'] = 'blue',
-  ['19b2d5'] = 'blue',
-  ['0f0ec0'] = 'blue',
-  ['d9054c'] = 'blue',
-  ['4de840'] = 'blue',
-  ['05c73d'] = 'blue',
-
-  -- Red agents
-  ['b48ed4'] = 'red',
-  ['6bb4d8'] = 'red',
-  ['9cbe84'] = 'red',
-  ['746660'] = 'red',
-  ['4a2969'] = 'red',
-  ['e1754e'] = 'red',
-  ['b89ba7'] = 'red',
-  ['5c1be6'] = 'red',
-
-  -- Civialians
-  ['f6786b'] = 'white',
-  ['e44594'] = 'white',
-  ['1f53f2'] = 'white',
-  ['f8f6a1'] = 'white',
-  ['a05e4e'] = 'white',
-  ['1ebedd'] = 'white',
-  ['3d7b86'] = 'white',
-
-  -- Double agents
-  ['1e9282'] = 'blue',
-  ['3ef1ca'] = 'red'
-}
-
-size =
-{
-  -- Small buttons
-  small =
-  {
-    width     = 1800,
-    height    = 1200,
-    font_size = 340
-  },
-
-  -- Medium buttons
-  medium =
-  {
-    width     = 3200,
-    height    = 1200,
-    font_size = 400
-  },
-
-  -- Large buttons
-  large =
-  {
-    width     = 3200,
-    height    = 4100,
-    font_size = 400
-  }
-}
-
-buttonColor =
-{
-  ["Blue"]    = {{31/255, 135/255, 255/255}, {0/255, 109/255, 235/255}, {0/255, 85/255, 184/255}},
-  ["Teal"]    = {{33/255, 177/255, 155/255}, {25/255, 134/255, 117/255}, {17/255, 91/255, 79/255}},
-  ["Purple"]  = {{160/255, 32/255, 240/255}, {133/255, 14/255, 207/255}, {102/255, 11/255, 159/255}},
-  ["Green"]   = {{49/255, 179/255, 43/255}, {38/255, 138/255, 33/255}, {27/255, 97/255, 23/255}},
-  ["White"]   = {{255/255, 255/255, 255/255}, {229/255, 229/255, 229/255}, {203/255, 203/255, 203/255}},
-
-  ["Red"]     = {{218/255, 25/255, 24/255}, {172/255, 20/255, 19/255}, {126/255, 15/255, 14/255}},
-  ["Orange"]  = {{244/255, 100/255, 29/255}, {212/255, 77/255, 10/255}, {163/255, 59/255, 8/255}},
-  ["Yellow"]  = {{231/255, 229/255, 44/255}, {201/255, 199/255, 23/255}, {155/255, 154/255, 18/255}},
-  ["Pink"]    = {{245/255, 112/255, 206/255}, {242/255, 64/255, 190/255}, {239/255, 16/255, 174/255}},
-  ["Brown"]   = {{133/255, 59/255, 23/255}, {71/255, 37/255, 14/255}, {28/255, 15/255, 6/255}}
-}
+-- Blue team plaque position and rotation
+bluePos = {20.7, 0.91, 17.94}
+blueRot = {0, 180, 180}
 
 -- Color = Blue/Red/Black/White
 cards =
 {
   -- Row 1 (cards 1-5)
-  {position = {x = -11.4, z = 12.6}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  -5.7, z = 12.6}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =     0, z = 12.6}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =   5.7, z = 12.6}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  11.4, z = 12.6}, guid = nil, value = nil, size = nil, color = nil, covered = false},
+  {position = {x = -11.4, z = 12.6}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  -5.7, z = 12.6}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =     0, z = 12.6}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =   5.7, z = 12.6}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  11.4, z = 12.6}, guid = nil, value = nil, color = nil, covered = false},
 
   -- Row 2 (cards 6-10)
-  {position = {x = -11.4, z = 8.75}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  -5.7, z = 8.75}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =     0, z = 8.75}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =   5.7, z = 8.75}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  11.4, z = 8.75}, guid = nil, value = nil, size = nil, color = nil, covered = false},
+  {position = {x = -11.4, z = 8.75}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  -5.7, z = 8.75}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =     0, z = 8.75}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =   5.7, z = 8.75}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  11.4, z = 8.75}, guid = nil, value = nil, color = nil, covered = false},
 
   -- Row 3 (cards 11-15)
-  {position = {x = -11.4, z =  4.9}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  -5.7, z =  4.9}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =     0, z =  4.9}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =   5.7, z =  4.9}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  11.4, z =  4.9}, guid = nil, value = nil, size = nil, color = nil, covered = false},
+  {position = {x = -11.4, z =  4.9}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  -5.7, z =  4.9}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =     0, z =  4.9}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =   5.7, z =  4.9}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  11.4, z =  4.9}, guid = nil, value = nil, color = nil, covered = false},
 
   -- Row 4 (cards 16-20)
-  {position = {x = -11.4, z = 1.05}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  -5.7, z = 1.05}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =     0, z = 1.05}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =   5.7, z = 1.05}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  11.4, z = 1.05}, guid = nil, value = nil, size = nil, color = nil, covered = false},
+  {position = {x = -11.4, z = 1.05}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  -5.7, z = 1.05}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =     0, z = 1.05}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =   5.7, z = 1.05}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  11.4, z = 1.05}, guid = nil, value = nil, color = nil, covered = false},
 
   -- Row 5 (cards 21-25)
-  {position = {x = -11.4, z = -2.8}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  -5.7, z = -2.8}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =     0, z = -2.8}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =   5.7, z = -2.8}, guid = nil, value = nil, size = nil, color = nil, covered = false},
-  {position = {x =  11.4, z = -2.8}, guid = nil, value = nil, size = nil, color = nil, covered = false},
+  {position = {x = -11.4, z = -2.8}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  -5.7, z = -2.8}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =     0, z = -2.8}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =   5.7, z = -2.8}, guid = nil, value = nil, color = nil, covered = false},
+  {position = {x =  11.4, z = -2.8}, guid = nil, value = nil, color = nil, covered = false}
+}
+
+agents =
+{
+  -- Assassain
+  ['b97df2'] = {position = {x = 0.04, y = 2, z = -17.84 }, color = "Black", enabled = true},
+
+  -- Blue agents
+  ['1e9282'] = {position = {x = 0.04, y = 2, z = -14 }, color = "Blue", enabled = false},
+  ['7fdaee'] = {position = {x = 12.34, y = 2, z = -13.97 }, color = "Blue", enabled = true},
+  ['99832c'] = {position = {x = 18.07, y = 2, z = -13.97 }, color = "Blue", enabled = true},
+  ['d9324a'] = {position = {x = 23.77, y = 2, z = -13.97 }, color = "Blue", enabled = true},
+  ['19b2d5'] = {position = {x = 29.47, y = 2, z = -13.97 }, color = "Blue", enabled = true},
+  ['0f0ec0'] = {position = {x = 12.34, y = 2, z = -17.8  }, color = "Blue", enabled = true},
+  ['d9054c'] = {position = {x = 18.07, y = 2, z = -17.8  }, color = "Blue", enabled = true},
+  ['4de840'] = {position = {x = 23.77, y = 2, z = -17.8  }, color = "Blue", enabled = true},
+  ['05c73d'] = {position = {x = 29.47, y = 2, z = -17.8  }, color = "Blue", enabled = true},
+
+  -- Red agents
+  ['3ef1ca'] = {position = {x = 0.04, y = 2, z = -14 }, color = "Red", enabled = false},
+  ['746660'] = {position = {x = -12.22, y = 2, z = -13.97 }, color = "Red", enabled = true},
+  ['9cbe84'] = {position = {x = -17.92, y = 2, z = -13.97 }, color = "Red", enabled = true},
+  ['6bb4d8'] = {position = {x = -23.62, y = 2, z = -13.97 }, color = "Red", enabled = true},
+  ['b48ed4'] = {position = {x = -29.32, y = 2, z = -13.97 }, color = "Red", enabled = true},
+  ['5c1be6'] = {position = {x = -12.22, y = 2, z = -17.8  }, color = "Red", enabled = true},
+  ['b89ba7'] = {position = {x = -17.92, y = 2, z = -17.8  }, color = "Red", enabled = true},
+  ['e1754e'] = {position = {x = -23.62, y = 2, z = -17.8  }, color = "Red", enabled = true},
+  ['4a2969'] = {position = {x = -29.32, y = 2, z = -17.8  }, color = "Red", enabled = true},
+
+  -- Civialians
+  ['f6786b'] = {position = {x = -5.7, y = 2, z = -21.7 }, color = "White", enabled = true},
+  ['e44594'] = {position = {x = -5.7, y = 2, z = -17.84 }, color = "White", enabled = true},
+  ['1f53f2'] = {position = {x = -5.7, y = 2, z = -14 }, color = "White", enabled = true},
+  ['f8f6a1'] = {position = {x = 0.04, y = 2, z = -21.7 }, color = "White", enabled = true},
+  ['a05e4e'] = {position = {x = 5.74, y = 2, z = -21.7 }, color = "White", enabled = true},
+  ['1ebedd'] = {position = {x = 5.74, y = 2, z = -17.84 }, color = "White", enabled = true},
+  ['3d7b86'] = {position = {x = 5.74, y = 2, z = -14 }, color = "White", enabled = true}
+}
+
+votes =
+{
+  [0] =
+  {
+    ["Orange"]  = {
+      card = 0
+    },
+    ["Yellow"]  = {
+      card = 0
+    },
+    ["Pink"]    = {
+      card = 0
+    },
+    ["Brown"]   = {
+      card = 0
+    }
+  },
+  [1] =
+  {
+    ["Teal"]    = {
+      card = 0
+    },
+    ["Purple"]  = {
+      card = 0
+    },
+    ["Green"]   = {
+      card = 0
+    },
+    ["White"]   = {
+      card = 0
+    }
+  }
 }
 
 function onload(saveState)
 
   -- Global variables --
+  -- Timer warning variable
+  timerWarning = -1
 
-  -- Global game mode
-  gameStarted = false
-  firstTurn = true
-  -- Keeps track of whether or not a new game is in the process of starting
-  newGameStarting = false
-  -- Keeps track of whether or not we are currently shuffling players
-  shufflingPlayers = false
-  -- 0 = RED; 1 = BLUE
-  turnTracker = 1
+  ---------------------------------------------------------------------------------------------
 
-  gameStatus =
+  ----------[ Game state ]----------
+  gameState =
   {
-    -- Tracks whether the current game has started
-    started = false,
+    -- Tracks whether the current game has started (-1 = not started, 0 = starting, 1 = started)
+    status = -1,
 
     -- Current game is on the first turn or not
     firstTurn = false,
+
+    -- Tracks whose turn it currently is
+    turnTracker = 1
   }
 
+  ----------[ Game settings ]----------
   settings =
   {
-    playerShuffle = false,
+    -- Shuffle players at start
+    playerShuffle = true,
 
+    -- Enable codemaster queue
+    codemasterQueue = true,
+
+    -- Quick color switcher buttons
+    colorSwitcher = true,
+
+    -- AFK detection
     afkDetection =
     {
-      enabled   = true,
+      enabled   = false,
       threshold = 10
     },
 
+    -- Timer enabled
     timer =
     {
       enabled     = true,
-      initial     = 10,
-      subsequent  = 5
+      initial     = 8,
+      subsequent  = 4
     },
 
-    codemasterQueue = true
+    -- Automod functions
+    automod =
+    {
+      autokick = true
+    }
   }
 
-  -- Used for game analytics - ryan6578.com
-  analyticsLocked = false
+  ----------[ Game analytics ]----------
   analytics =
   {
-    -- Opt out of analytics?
-    optOut = false, -- Opt out of analytics if you so wish
-    url = "https://www.ryan6578.com/codenames/API/v2/",
+    url = "https://ryan6578.com:8080/api/",
     gameID = "",
     host = "",
     deck = "",
     clueID = nil,
-    teams =
-    {
-      red = {},
-      blue = {}
-    }
+    players = {}
   }
-  for i, player in ipairs(Player.getPlayers()) do
+  for _, player in ipairs(Player.getPlayers()) do
     if player.host then
       analytics.host = player.steam_id
       break
     end
   end
-
-
-  -- Illegal move tracking
-  updateTimer = 0
 
   -- Configuration panel settings
   codemasterQueue = {}
@@ -271,8 +236,8 @@ function onload(saveState)
   -- Tracks the amount of guesses the current team has left
   guessesLeft = -1
 
-  -- Keep track of team announcements
-  announceTracker = {}
+  -- Tracks if the current team is able to vote
+  canVote = false
 
   -- Red clue tracker
   redClues = {}
@@ -285,58 +250,61 @@ function onload(saveState)
   -- Keeps track of the players to ignore for color switching
   playersToIgnore = {}
 
-  -- Tracks pickup locations of agents
-  agentTracker = {}
-  for guid, loc in pairs(agentLocations) do
-    agentTracker[guid] = loc
-  end
+  ----------[ Script object initialization ]----------
+  -- Control panels and table objects
+  tableObject     = getObjectFromGUID("246b85")
 
-  -- lights toggles
-  spaceParticles = getObjectFromGUID("8430cf")
-  spaceParticles.interactable = false
-  ambient_bot = getObjectFromGUID("6fb111")
-  ambient_bot.interactable = false
-  ambient_top = getObjectFromGUID("05032c")
-  ambient_top.interactable = false
-  teams_red = getObjectFromGUID("a1b2cd")
-  teams_red.interactable = false
-  teams_blue = getObjectFromGUID("6072b1")
-  teams_blue.interactable = false
+  -- Game objects
+  deckDealer      = getObjectFromGUID("27d226")
+  buttonTeams     = getObjectFromGUID("8a85e8")
+  redToken        = getObjectFromGUID("f3cdf2")
+  blueToken       = getObjectFromGUID("3f75b3")
+  clockTimer      = getObjectFromGUID("0b1336")
+  buttonRed       = getObjectFromGUID("f16a9a")
+  buttonBlu       = getObjectFromGUID("c91f34")
 
-  -- Control panel declarations
-  gameCP = getObjectFromGUID("ec0882")
-  gameCP.interactable = false
-  settingsCP = getObjectFromGUID("0837df")
-  settingsCP.interactable = false
-  analyticsCP = getObjectFromGUID("071c46")
-  if analyticsCP ~= nil then
-    -- Only set to not interactable at the beginning of the game
-    -- Not if a result of a rewind
-    analyticsCP.interactable = false
-  end
-  queueCP = getObjectFromGUID("c67626")
-  queueCP.interactable = false
+  -- Decks
+  deckVanilla     = getObjectFromGUID("83b607")
+  deckHanii       = getObjectFromGUID("92bb6b")
+  deckCHRY        = getObjectFromGUID("41f57c")
+  deckUndercover  = getObjectFromGUID("ee8afd")
+  deckSaydi       = getObjectFromGUID("d75160")
+  deckMayor       = getObjectFromGUID("3a3e8c")
 
-  drawGameCP()
-  drawSettingsCP()
-  if analyticsCP ~= nil then
-    -- Only set to not interactable at the beginning of the game
-    -- Not if a result of a rewind
-    drawAnalyticsCP()
-  end
+  -- Lights
+  spaceParticles  = getObjectFromGUID("8430cf")
+  ambient_bot     = getObjectFromGUID("6fb111")
+  ambient_top     = getObjectFromGUID("05032c")
+  teams_red       = getObjectFromGUID("a1b2cd")
+  teams_blue      = getObjectFromGUID("6072b1")
 
-  deckVanilla = getObjectFromGUID("83b607")
-  deckHanii = getObjectFromGUID("92bb6b")
-  deckCHRY = getObjectFromGUID("41f57c")
-  deckUndercover = getObjectFromGUID("ee8afd")
-  deckSaydi = getObjectFromGUID("d75160")
-  deckMayor = getObjectFromGUID("3a3e8c")
-  deckVanilla.interactable = false
-  deckHanii.interactable = false
-  deckCHRY.interactable = false
+  -- Zones
+  deckZone        = getObjectFromGUID("33d9ff")
+
+  ----------[ Interactable objects ]----------
+  -- Control panels and table objects
+  tableObject.interactable    = false
+
+  -- Game objects
+  deckDealer.interactable     = false
+  buttonTeams.interactable    = false
+  redToken.interactable       = false
+  blueToken.interactable      = false
+
+  -- Decks
+  deckVanilla.interactable    = false
+  deckHanii.interactable      = false
+  deckCHRY.interactable       = false
   deckUndercover.interactable = false
-  deckSaydi.interactable = false
-  deckMayor.interactable = false
+  deckSaydi.interactable      = false
+  deckMayor.interactable      = false
+
+  -- Lights
+  spaceParticles.interactable = false
+  ambient_bot.interactable    = false
+  ambient_top.interactable    = false
+  teams_red.interactable      = false
+  teams_blue.interactable     = false
 
   decks = {
     -- Vanilla
@@ -358,33 +326,6 @@ function onload(saveState)
     [6] = deckMayor
   }
 
-  -- Until the clue announcements work
-  --clueTablet = getObjectFromGUID("69b440")
-  --clueTablet.interactable = false
-
-  deckZone = getObjectFromGUID("33d9ff")
-
-  deckDealer = getObjectFromGUID("27d226")
-
-  zoneToClear = getObjectFromGUID("f71f4c")
-  clueZone = getObjectFromGUID("f71f4c")
-
-  buttonRed = getObjectFromGUID("f16a9a")
-  buttonBlu = getObjectFromGUID("c91f34")
-  buttonTeams = getObjectFromGUID("8a85e8")
-  buttonTeams.interactable = false
-  buttonTeams.setLock(true)
-
-  -- Red team plaque position and rotation
-  redPos = {-20.7, 0.91, 17.94}
-  redRot = {0, 180, 0}
-
-  -- Blue team plaque position and rotation
-  bluePos = {20.7, 0.91, 17.94}
-  blueRot = {0, 180, 180}
-
-  tileZone = getObjectFromGUID("06b292")
-
   buttonBlu.createButton({
   label="[END TURN]", click_function="endTurn", function_owner=self,
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
@@ -395,33 +336,9 @@ function onload(saveState)
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
   })
 
-  -- red clue encoder
-  redToken = getObjectFromGUID("f3cdf2")
-  redToken.interactable = false
-
-  -- blue clue encoder
-  blueToken = getObjectFromGUID("3f75b3")
-  blueToken.interactable = false
-
-  -- Load save state - if one exists
-  if saveState != "" then
-    local decodedSaveState = JSON.decode(saveState)
-
-    gameStarted = decodedSaveState.gameStarted
-    settings = decodedSaveState.settings
-    turnTracker = decodedSaveState.turnTracker
-    first_random = decodedSaveState.first_random
-
-    updateTimer = decodedSaveState.updateTimer
-
-    cards = decodedSaveState.cards
-
-  end
-
   -- Change seated players views
   seatedPlayers = Player.getPlayers()
   for _, player in ipairs(seatedPlayers) do
-
     player.lookAt({
       position = {0, 0, 0},
       pitch    = 60,
@@ -430,302 +347,77 @@ function onload(saveState)
     })
   end
 
+  -- Load save state - if one exists
+  if saveState != "" then
+    local decodedSaveState = JSON.decode(saveState)
+
+  end
+
   -- Start the AFK loop checker
   if settings.afkDetection.enabled then
-    afkID = Wait.time(function() afkCheckLoop() end, 1, -1)
+    Timer.create({
+      identifier     = "afkLoop",
+      function_name  = "afkCheckLoop",
+      function_owner = self,
+      delay          = 1,
+      repetitions    = 0
+    })
   end
 end
 
+--[[ FIX LATER
 function onSave()
   local saveData = {}
 
-  saveData.gameStarted = gameStarted
-  saveData.settings = settings
-  saveData.turnTracker = turnTracker
-  saveData.first_random = first_random
-
-  saveData.updateTimer = updateTimer
-
-  saveData.cards = cards
-
   return JSON.encode(saveData)
-end
+end]]
 
-function nullFunction()
-  -- Nothing
-end
+------------------------------------------------------------------------
+--------------------[ SETTERS/GETTERS FOR SETTINGS ]--------------------
+------------------------------------------------------------------------
 
-function drawGameCP()
-  -- Clear all the existing buttons on the CP
-  gameCP.clearButtons()
+function setShuffle(enabled) settings.playerShuffle = enabled end
+function getShuffle() return settings.playerShuffle end
 
-  -- Draw buttons
-  makeButton(gameCP, "Vanilla\nCodenames", "resetVanilla", {x = -5.5, z = -3}, false, size.small, nil)
-  makeButton(gameCP, "Hanii's\nCodenames", "resetHanii", {x = -5.5, z = 0}, false, size.small, nil)
-  makeButton(gameCP, "CHRY's\nCodenames", "resetCHRY", {x = -1.5, z = -3}, false, size.small, nil)
-  makeButton(gameCP, "Codenames:\nUndercover", "resetUndercover", {x = -1.5, 0, z = 0}, false, size.small, nil)
-  makeButton(gameCP, "Saydi's\nCodenames", "resetSaydi", {x = -5.5, z = 3}, false, size.small, nil)
-  makeButton(gameCP, "Mayor's\nCodenames", "resetMayor", {x = -1.5, z = 3}, false, size.small, nil)
-  makeButton(gameCP, "New Game\n(Reset)", "newGame", {x = 4, z = 0}, false, size.large, "Green")
-end
+function setQueue(enabled) settings.codemasterQueue = enabled end
+function getQueue() return settings.codemasterQueue end
 
-function drawSettingsCP()
-  -- Clear all the existing buttons on the CP
-  settingsCP.clearButtons()
+function setSwitcher(enabled) settings.colorSwitcher = enabled end
+function getSwitcher() return settings.colorSwitcher end
 
-  makeText(settingsCP, "Game Settings", {x = -6.75, z = 0}, true, {1, 1, 1}, 500)
-
-  -- Draw the buttons with updated values
-  makeCheckbox(settingsCP, "Shuffle Players at Start", "toggleShuffle", {x = -5.5, z = 4.15}, true, 4.2, settings.playerShuffle, false)
-  makeCheckbox(settingsCP, "Enable Codemaster Queue", "toggleQueue", {x = -4.3, z = 4.15}, true, 4.6, settings.codemasterQueue, false)
-  makeCheckbox(settingsCP, "AFK Detection", "toggleAFK", {x = -3.1, z = 4.15}, true, 2.8, settings.afkDetection.enabled, false)
-  makeCounter(settingsCP, settings.afkDetection.threshold, "minutes", "incAFK", "decAFK", {x = -1.9, z = 3.15}, true, 2.5, not settings.afkDetection.enabled)
-  makeCheckbox(settingsCP, "Timer Enabled", "toggleTimer", {x = -0.7, z = 4.15}, true, 2.8, settings.timer.enabled, false)
-  makeCounter(settingsCP, settings.timer.initial, "minutes (round 1)", "incInitTimer", "decInitTimer", {x = 0.5, z = 3.15}, true, 4.0, not settings.timer.enabled)
-  makeCounter(settingsCP, settings.timer.subsequent, "minutes (round 2+)", "incSubTimer", "decSubTimer", {x = 1.7, z = 3.15}, true, 4.2, not settings.timer.enabled)
-end
-
-function drawAnalyticsCP()
-  -- Clear all the existing buttons on the CP
-  analyticsCP.clearButtons()
-
-  -- Draw the disclaimer
-  makeText(analyticsCP, "Analytics Disclaimer", {x = 0, z = -4}, false, redColor, 500)
-  makeText(analyticsCP, disclaimer, {x = 0, z = 0.35}, false, {1, 1, 1}, 300)
-
-  -- Draw the buttons with updated values
-  makeCheckbox(analyticsCP, "[8bff9b]Send usage and statistics[-]", "toggleAnalytics", {x = -4, z = 4}, false, 4.5, not analytics.optOut, analyticsLocked)
-end
-
-function makeButton(object, buttonLabel, callback, position, flip, size, colorScheme)
-  local attributes =
-  {
-    click_function  = callback,
-    function_owner  = self,
-    label           = buttonLabel,
-    position        = {x = position.x, y = 0.2, z = position.z},
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    width           = size.width,
-    height          = size.height,
-    font_size       = size.font_size
-  }
-  if colorScheme != nil then
-    attributes.font_color   = {1, 1, 1}
-    attributes.color        = buttonColor[colorScheme][1]
-    attributes.hover_color  = buttonColor[colorScheme][2]
-    attributes.press_color  = buttonColor[colorScheme][3]
+function setAfk(enabled)
+  settings.afkDetection.enabled = enabled
+  Timer.destroy("afkLoop")
+  if settings.afkDetection.enabled then
+    Timer.create({
+      identifier     = "afkLoop",
+      function_name  = "afkCheckLoop",
+      function_owner = self,
+      delay          = 1,
+      repetitions    = 0
+    })
   end
-  object.createButton(attributes)
 end
 
-function makeCheckbox(object, textLabel, callback, position, flip, textOffset, checked, disabled)
-  local check =
-  {
-    label           = (checked and "✔" or ""),
-    click_function  = callback,
-    function_owner  = self,
-    position        = {position.x, 0.2, position.z},
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 400,
-    width           = 400,
-    font_size       = 300
-  }
-  local text =
-  {
-    label           = textLabel,
-    click_function  = "nullFunction",
-    function_owner  = self,
-    position        = (flip and {(position.x + 0.1), 0.2, (position.z - textOffset)} or {(position.x + textOffset), 0.2, (position.z + 0.1)}),
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 0,
-    width           = 0,
-    font_color      = {1, 1, 1},
-    font_size       = 350
-  }
-  if disabled then
-    check.color = {0.5, 0.5, 0.5}
-    check.font_color = {0.25, 0.25, 0.25}
-    text.color = {0.5, 0.5, 0.5}
-    text.font_color = {0.25, 0.25, 0.25}
-  end
-  object.createButton(check)
-  object.createButton(text)
-end
-
-function makeText(object, contents, position, flip, color, size)
-  local text =
-  {
-    label           = contents,
-    click_function  = "nullFunction",
-    function_owner  = self,
-    position        = {position.x, 0.2, position.z},
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 0,
-    width           = 0,
-    font_color      = color,
-    font_size       = size
-  }
-  object.createButton(text)
-end
-
-function makeCounter(object, value, textLabel, incCB, decCB, position, flip, textOffset, disabled)
-  local num =
-  {
-    label           = tostring(value),
-    click_function  = "nullFunction",
-    function_owner  = self,
-    position        = {position.x, 0.2, position.z},
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 400,
-    width           = 400,
-    font_size       = 300
-  }
-  local text =
-  {
-    label           = textLabel,
-    click_function  = "nullFunction",
-    function_owner  = self,
-    position        = (flip and {(position.x + 0.1), 0.2, (position.z - textOffset)} or {(position.x + textOffset), 0.2, (position.z + 0.1)}),
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 0,
-    width           = 0,
-    font_color      = {1, 1, 1},
-    font_size       = 350
-  }
-  local decrement =
-  {
-    label           = "-",
-    click_function  = decCB,
-    function_owner  = self,
-    position        = (flip and {position.x, 0.2, (position.z + 0.8)} or {(position.x - 0.8), 0.2, position.z}),
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 250,
-    width           = 250,
-    font_size       = 300
-  }
-  local increment =
-  {
-    label           = "+",
-    click_function  = incCB,
-    function_owner  = self,
-    position        = (flip and {position.x, 0.2, (position.z - 0.8)} or {(position.x + 0.8), 0.2, position.z}),
-    rotation        = (flip and {0, 270, 0} or {0, 0, 0}),
-    height          = 250,
-    width           = 250,
-    font_size       = 300
-  }
-  if disabled then
-    num.color = {0.5, 0.5, 0.5}
-    num.font_color = {0.25, 0.25, 0.25}
-    text.color = {0.5, 0.5, 0.5}
-    text.font_color = {0.25, 0.25, 0.25}
-    decrement.color = {0.5, 0.5, 0.5}
-    decrement.font_color = {0.25, 0.25, 0.25}
-    increment.color = {0.5, 0.5, 0.5}
-    increment.font_color = {0.25, 0.25, 0.25}
-  end
-  object.createButton(num)
-  object.createButton(text)
-  object.createButton(decrement)
-  object.createButton(increment)
-end
-
-function decInitTimer(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.timer.enabled then
-      if settings.timer.initial > 1 then
-        settings.timer.initial = settings.timer.initial - 1
-        drawSettingsCP()
-      end
+function setTimer(enabled)
+  settings.timer.enabled = enabled
+  if settings.timer.enabled then
+    startTime()
+  else
+    if gameState.status == 1 then
+      clockTimer.setValue(0)
     end
   end
 end
 
-function incInitTimer(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.timer.enabled then
-      if settings.timer.initial < 20 then
-        settings.timer.initial = settings.timer.initial + 1
-        drawSettingsCP()
-      end
-    end
-  end
-end
+function setTimer1Time(value) settings.timer.initial = value end
+function getTimer1Time() return settings.timer.initial end
 
-function decSubTimer(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.timer.enabled then
-      if settings.timer.subsequent > 1 then
-        settings.timer.subsequent = settings.timer.subsequent - 1
-        drawSettingsCP()
-      end
-    end
-  end
-end
+function setTimer2Time(value) settings.timer.subsequent = value end
+function getTimer2Time() return settings.timer.subsequent end
 
-function incSubTimer(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.timer.enabled then
-      if settings.timer.subsequent < 20 then
-        settings.timer.subsequent = settings.timer.subsequent + 1
-        drawSettingsCP()
-      end
-    end
-  end
-end
-
-function decAFK(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.afkDetection.enabled then
-      if settings.afkDetection.threshold > 1 then
-        settings.afkDetection.threshold = settings.afkDetection.threshold - 1
-        drawSettingsCP()
-      end
-    end
-  end
-end
-
-function incAFK(o, color)
-  if Player[color].host or Player[color].promoted then
-    if settings.afkDetection.enabled then
-      if settings.afkDetection.threshold < 60 then
-        settings.afkDetection.threshold = settings.afkDetection.threshold + 1
-        drawSettingsCP()
-      end
-    end
-  end
-end
-
-function toggleShuffle(o, color)
-  if Player[color].host or Player[color].promoted then
-    settings.playerShuffle = not settings.playerShuffle
-    drawSettingsCP()
-  end
-end
-
-function toggleAnalytics(o, color)
-  if not analyticsLocked and Player[color].host == true then
-    analytics.optOut = not analytics.optOut
-    drawAnalyticsCP()
-  end
-end
-
-
-function toggleQueue(o, color)
-  if Player[color].host or Player[color].promoted then
-    settings.codemasterQueue = not settings.codemasterQueue
-    if settings.codemasterQueue then
-      -- Show the panel
-      queueCP.setRotation({0, 270, 0})
-      queueCP.setPosition({-8, 0.91, -32})
-    else
-      -- Hide the panel
-      queueCP.setPosition({-8, -0.5, -32})
-      queueCP.setRotation({0, 90, 180})
-    end
-    drawSettingsCP()
-  end
-end
+function setAutokick(enabled) settings.automod.autokick = enabled end
+function getAutokick() return settings.automod.autokick end
 
 function afkCheckLoop()
   if settings.afkDetection.enabled then
@@ -772,17 +464,6 @@ function afkCheckLoop()
   end
 end
 
-function toggleAFK(o, color)
-  if Player[color].host or Player[color].promoted then
-    settings.afkDetection.enabled = not settings.afkDetection.enabled
-    Wait.stop(afkID)
-    if settings.afkDetection.enabled then
-      afkID = Wait.time(function() afkCheckLoop() end, 1, -1)
-    end
-    drawSettingsCP()
-  end
-end
-
 function clueEntered(player, value)
   if value:match("\n") then
     local color = player.color
@@ -794,8 +475,14 @@ function clueEntered(player, value)
     }
     UI.setAttributes(color:lower() .. "ClueText", resetInput)
 
+    -- if the game hasn't been started, a clue cannot be entered
+    if gameState.status ~= 1 then
+      Player[color].broadcast("You must start a game to enter a clue.", redColor)
+      return
+    end
+
     -- Make sure that it's the current codemaster's turn
-    if (color == "Blue" and turnTracker == 0) or (color == "Red" and turnTracker == 1) then
+    if (color == "Blue" and gameState.turnTracker == 0) or (color == "Red" and gameState.turnTracker == 1) then
       Player[color].broadcast("It's not your turn to enter a clue.", redColor)
       return
     end
@@ -803,23 +490,15 @@ function clueEntered(player, value)
     -- Remove the newline, trim the clue, and convert to lowercase
     value = value:gsub("\n", ""):match("%s*(.-)%s*$"):lower()
 
-    local success = false
-
     -- Parse the entered clue into its respective parts
-    local success, clue, number = pcall(function () return value:match("^(%a+[%-%a]-%a+)%s-%-?%s-(%d+)$") end)
+    local clue, number, error = getClueDetails(value)
 
-    if clue == nil or number == nil or not success then
-        -- Try parsing with inf
-        success, clue, number = pcall(function () return value:match("^(%a+[%-%a]*%a+)%s*%-?%s*(inf)$") end)
-    end
-
-    if clue == nil or number == nil or clue:match(".*%-%-+.*") or not success then
-        -- Clue could not be parsed correctly or contains multiple dashes in a row
-        Player[color].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
-        return
-    end
-
-    if number != "inf" and tonumber(number) > 9 then
+    -- Handle clue parsing errors
+    if error then
+      -- Clue wasn't able to be parsed - general error
+      Player[color].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
+      return
+    elseif number != "inf" and tonumber(number) > 9 then
       -- Clue was larger than 9 words (not 0 or inf)
       Player[color].broadcast("Clues cannot be for more than 9 words.", redColor)
       return
@@ -830,7 +509,9 @@ function clueEntered(player, value)
     end
 
     -- Track remaining clues
-    if number == "inf" or number == "0" then
+    if number == "inf" then
+      guessesLeft = -1
+    elseif number == "0" then
       guessesLeft = -1
     else
       guessesLeft = tostring(number) + 1
@@ -839,25 +520,109 @@ function clueEntered(player, value)
     -- Encode the finished clue
     encodeClue(color, clue .. " - " .. number:gsub("inf", "∞"))
 
+    -- Enable voting for the current team
+    canVote = true
+
     -- Send analytics data for the a new clue
-    local payload =
-    {
-      gameID = tostring(analytics.gameID),
-      code = tostring(clue),
-      number = tostring(number == "inf" and -1 or number),
-      codemaster = tostring(Player[color].steam_id),
-      team = tostring(turnTracker == 0 and "RED" or "BLUE")
+    analytics_clueNew(clue, number == "inf" and -1 or number, Player[color].steam_id)
+  end
+end
+
+function getClueDetails(processedClue)
+  -- How many hyphens are there?
+  local clue, number
+  local _, hyphenCount = string.gsub(processedClue, "%-", "")
+  local _, spaceCount = string.gsub(processedClue, "%s", "")
+
+  if hyphenCount == 0 then
+    -- Single word with space (or no space) as delimiter
+    if spaceCount > 1 then
+      return nil, nil, true
+    end
+
+    local checks = {
+      "^(%a+)(%s*)(%d+)$",
+      "^(%a+)(%s+)(inf)$"
     }
-    sendAnalytics("Clues/New", payload, function(request) if request.is_done then analytics.clueID = request.text end end)
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number, false
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil, true
+
+  elseif hyphenCount == 1 then
+    -- Either a hypenated word with a space (or no space) as delimiter
+    -- or a single word with a hyphen (and possibly spaces) as delimiter
+    if spaceCount > 2 then
+      return nil, nil, true
+    end
+
+    local checks = {
+      "^(%a+%-%a+)(%s*)(%d+)$",
+      "^(%a+%-%a+)(%s+)(inf)$",
+      "^(%a+)(%s*%-%s*)(%d+)$",
+      "^(%a+)(%s*%-%s*)(inf)$"
+    }
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number, false
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil, true
+
+  elseif hyphenCount == 2 then
+
+    if spaceCount > 2 then
+      return nil, nil, true
+    end
+
+    local checks = {
+      "^(%a+%-%a+)(%s*%-%s*)(%d+)$",
+      "^(%a+%-%a+)(%s*%-%s*)(inf)$"
+    }
+
+    for _, check in ipairs(checks) do
+      local status, clue, _, number = pcall(function() return string.match(processedClue, check) end)
+      if status then
+        -- Parsing successful - check for nil values just in case
+        if clue != nil and number != nil then
+          -- Return the clue and number
+          return clue, number, false
+        end
+      end
+    end
+
+    -- No valid clues detected
+    return nil, nil, true
+
+  else
+    -- Clue has too many hyphens
+    return nil, nil, true
   end
 end
 
 function rotateclues()
-  local objectsInZone = clueZone.getObjects()
-  for i, object in ipairs(objectsInZone) do
-    local tag = object.tag
-    if tag =="Card" then
-      object.setRotation({0, 180, 0})
+  for cardIndex, cardData in ipairs(cards) do
+    local card = getObjectFromGUID(cardData.guid)
+    if card.interactable then
+      card.setRotation({0, 180, 0})
     end
   end
 end
@@ -965,31 +730,10 @@ function encodeClue(color, clue)
         .. "position={0,0.2,0}, height=0, width=0, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}, font_color={1,1,1}\n"
       .. "})\n"
     .. "end\n"
-
-    .. "function nullFunction()\n"
-    .. "end\n"
   )
   printToAll(color .. " team's clue is: " .. clue, clueColor)
   for _, playerColor in ipairs(broadcastTo) do
     Player[playerColor].broadcast("Your clue is: " .. clue, clueColor)
-  end
-end
-
-function toggleTimer(o, color)
-  if color=="Red" or color=="Blue" or Player[color].promoted==true or Player[color].host==true then
-    settings.timer.enabled = not settings.timer.enabled
-    if settings.timer.enabled then
-      UI.setAttribute("timer", "active", true)
-      startTime()
-      printToAll("Timer Enabled", {1,1,1})
-    else
-      UI.setAttribute("timer", "active", false)
-      Wait.stop(timerID)
-      timerID = nil
-      time = 0
-      printToAll("Timer Disabled", {1,1,1})
-    end
-    drawSettingsCP()
   end
 end
 
@@ -1014,48 +758,38 @@ function deleteclues()
 end
 
 function onPlayerConnect(player)
-  if not analytics.optOut then
-    Wait.time(function()
-      if player ~= nil then
-        player.print(chatDisclaimer, {1, 1, 1})
+  -- Send analytics disclaimer
+  player.print(chatDisclaimer, {1, 1, 1})
+
+  -- Check the blacklist for the player
+  WebRequest.get(analytics.url .. "player/blacklisted/" .. player.steam_id, function(responseRaw)
+    if responseRaw.is_done then
+      local response = JSON.decode(responseRaw.text)
+
+      if response.dateAdded ~= nil then
+        if settings.automod.autokick then
+          player.kick()
+        end
+        printToAll("\n", {1, 1, 1})
+        printToAll(player.steam_name .. " was found in the global Codenames blacklist!", redColor)
+        printToAll("SteamID     : " .. player.steam_id, redColor)
+        printToAll("Date Added  : " .. response.dateAdded, redColor)
+        printToAll("Reason      : " .. response.reason, redColor)
+        printToAll("\n", {1, 1, 1})
       end
-    end, 5)
-  end
+    end
+  end)
 end
 
-
 function onPlayerDisconnect(player)
+  -- Destroy the timer for the disclaimer, if one exists
+  Timer.destroy(player.steam_id)
+
   -- End session with player if one exists
-  if gameStarted then
-    -- Do we need to close the session
-    local closeSession = false
-
-    -- SessionID
-    local sessionID = ""
-
-    -- Remove player from team
-    if analytics.teams.red[player.steam_id] ~= nil then
-      sessionID = analytics.teams.red[player.steam_id]
-      analytics.teams.red[player.steam_id] = nil
-      closeSession = true
-    elseif analytics.teams.blue[player.steam_id] ~= nil then
-      sessionID = analytics.teams.blue[player.steam_id]
-      analytics.teams.blue[player.steam_id] = nil
-      closeSession = true
+  if gameState.status == 1 then
+    if analytics.players[player.steam_id] ~= nil then
+      analytics_sessionEnd({player.steam_id})
     end
-
-    if not closeSession then
-      -- Session doesn't need to be closed
-      return
-    end
-
-    -- Send analytics data for the start of a game
-    local payload =
-    {
-      sessions = tostring(sessionID)
-    }
-    -- Send analytics data for the start of a game
-    sendAnalytics("Players/EndSession", payload, function(request) nullFunction() end)
   end
 end
 
@@ -1070,6 +804,17 @@ function onPlayerChangeColor(color)
     })
   end
 
+  -- Reset the player's vote (if necessary)
+  if gameState.status == 1 then
+    for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+      if not Player[playerColor].seated and voteData.card ~= 0 then
+        local card = voteData.card
+        voteData.card = 0
+        updateVoteUI(card)
+      end
+    end
+  end
+
   local endSession = {}
 
   -- Resolve team changes, if necessary
@@ -1078,8 +823,8 @@ function onPlayerChangeColor(color)
   elseif color == "Grey" then
     local spectators = Player.getSpectators()
     for _,spec in ipairs(spectators) do
-      if analytics.teams.red[spec.steam_id] ~= nil or analytics.teams.blue[spec.steam_id] ~= nil then
-        table.insert(endSession, #endSession + 1, spec.steam_id)
+      if analytics.players[spec.steam_id] ~= nil then
+        table.insert(endSession, spec.steam_id)
       end
       if spec.team != "None" then
         spec.team = "None"
@@ -1091,147 +836,45 @@ function onPlayerChangeColor(color)
     end
   end
 
-  -- Tell players which team they are on
-  if color == "Red" or color == "Orange" or color == "Yellow" or color == "Pink" or color == "Brown" then
+  if color ~= "Grey" and color ~= "Black" then
     announceTeam(color)
 
-    -- Check if the player should be ignored
-    if not shouldUpdateAnalytics(Player[color].steam_id, color) then
-      return
+    if gameState.status == 1 and analytics.players[Player[color].steam_id] == nil then
+      analytics_sessionStart({Player[color].steam_id})
     end
-
-    if gameStarted then
-      local payload =
-      {
-        players = tostring(Player[color].steam_id),
-        gameID = tostring(analytics.gameID)
-      }
-      sendAnalytics("Players/StartSession", payload,
-        function(request)
-          if request.is_done then
-            local response = JSON.decode(request.text)
-
-            for steamID, token in pairs(response) do
-              -- Add this player to the red team
-              analytics.teams.red[steamID] = token
-            end
-          end
-        end)
-    end
-  elseif color == "Blue" or color == "Teal" or color == "Purple" or color == "Green" or color == "White" then
-    announceTeam(color)
-
-    -- Check if the player should be ignored
-    if not shouldUpdateAnalytics(Player[color].steam_id, color) then
-      return
-    end
-
-    if gameStarted then
-      local payload =
-      {
-        players = tostring(Player[color].steam_id),
-        gameID = tostring(analytics.gameID)
-      }
-      sendAnalytics("Players/StartSession", payload,
-        function(request)
-          if request.is_done then
-            local response = JSON.decode(request.text)
-
-            for steamID, token in pairs(response) do
-              -- Add this player to the blue team
-              analytics.teams.blue[steamID] = token
-            end
-          end
-        end)
-    end
-  elseif color == "Grey" and gameStarted then
-    -- Keep track of the sessions to closes
-    local sessionPayload = ""
-
-    -- Remove players from their teams
-    for i, steamID in ipairs(endSession) do
-      local ignore = false
-
-      -- Check if the player should be ignored
-      if not shouldUpdateAnalytics(steamID, color) then
-        ignore = true
-      end
-
-      if analytics.teams.red[steamID] ~= nil and not ignore then
-        sessionPayload = sessionPayload .. ((i == 1) and analytics.teams.red[steamID] or (',' .. analytics.teams.red[steamID]))
-        analytics.teams.red[steamID] = nil
-      elseif analytics.teams.blue[steamID] ~= nil and not ignore then
-        sessionPayload = sessionPayload .. ((i == 1) and analytics.teams.blue[steamID] or (',' .. analytics.teams.blue[steamID]))
-        analytics.teams.blue[steamID] = nil
-      end
-    end
-
-    if sessionPayload == "" then
-      -- Nothing to send
-      return
-    end
-
-    local payload =
-    {
-      sessions = tostring(sessionPayload)
-    }
-    sendAnalytics("Players/EndSession", payload, function(request) nullFunction() end)
+  elseif gameState.status == 1 and (color == "Grey" or color == "Black") and #endSession ~= 0 then
+    analytics_sessionEnd(endSession)
   end
 end
 
 function announceTeam(color)
-  Wait.time(
+  Wait.frames(
     function()
       if Player[color].seated == false then
         return
       end
       UI.show(color .. 'Announce')
-      Wait.time(
+      Wait.frames(
         function()
           if Player[color].seated == false then
             UI.setAttribute(color .. 'Announce', 'active', 'false')
             return
           end
           UI.hide(color .. 'Announce')
-        end, 5
+        end, 100
       )
-    end, 2
+    end, 50
   )
 end
 
 function startTime()
-  if settings.timer.enabled and gameStarted then
-    if firstTurn then
-      time = settings.timer.initial * 60
+  if settings.timer.enabled then
+    if gameState.firstTurn then
+      clockTimer.setValue(settings.timer.initial * 60)
     else
-      time = settings.timer.subsequent * 60
+      clockTimer.setValue(settings.timer.subsequent * 60)
     end
-
-    if timerID != nil then
-      Wait.stop(timerID)
-    end
-
-    local minutes = math.floor(time / 60)
-    local seconds = time % 60
-    UI.setAttribute("timer", "active", true)
-    UI.setAttribute("timer", "color", "#ffffff")
-    UI.setAttribute("timer", "text", tostring(minutes) .. ":" .. (tostring(seconds):len() == 1 and ("0" .. tostring(seconds)) or tostring(seconds)))
-
-    timerID = Wait.time(function()
-      time = time - 1
-      local minutes = math.floor(time / 60)
-      local seconds = time % 60
-      UI.setAttribute("timer", "text", tostring(minutes) .. ":" .. (tostring(seconds):len() == 1 and ("0" .. tostring(seconds)) or tostring(seconds)))
-      if time == 0 then
-        -- Switch turns
-        broadcastToAll("Time's up!", redColor)
-        toggleTurns()
-      elseif time == 60 then
-        UI.setAttribute("timer", "color", "#e7e52c")
-      elseif time == 10 then
-        UI.setAttribute("timer", "color", "#da1918")
-      end
-    end, 1, -1)
+    clockTimer.Clock.pauseStart()
   end
 end
 
@@ -1252,7 +895,7 @@ function fetchDeck(deck)
                             spawnedDeck.setLock(true)
                             spawnedDeck.interactable = false
                             -- Delete the infinite bag as we no longer need it
-                            chosenDeck.destruct()
+                            --chosenDeck.destruct()
                             chosenDeck = spawnedDeck
                             decks[deck] = spawnedDeck
 
@@ -1261,9 +904,6 @@ function fetchDeck(deck)
                               snap_to_grid = true,
                               callback_function = function(deck) deck.setLock(false) end
                             })
-
-                            -- Set the deck name for the analytics
-                            analytics.deck = chosenDeck.getName()
                           end
     })
   else
@@ -1272,9 +912,6 @@ function fetchDeck(deck)
       snap_to_grid = true
     })
     deck.setLock(false)
-
-    -- Set the deck name for the analytics
-    analytics.deck = deck.getName()
   end
 end
 
@@ -1287,97 +924,41 @@ function clearDeckZone(deckZone)
   end
 end
 
--- Call functions get deck + clear deckZone
-function resetVanilla(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(1)
-  end
-end
-
-function resetHanii(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(2)
-  end
-end
-
-function resetCHRY(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(3)
-  end
-end
-
-function resetUndercover(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(4)
-  end
-end
-
-function resetSaydi(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(5)
-  end
-end
-
-function resetMayor(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    fetchDeck(6)
-  end
-end
-
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
-function newGame(o, color)
-  if color=="Red" or color=="Blue" or Player[color].admin then
-    -- Check to see whether a new game is currently being set up
-    if newGameStarting then
-      Player[color].broadcast("A new game is already starting. Please wait.", redColor)
-      return
-    end
-
-    -- A new game is currently starting - block any other new game requests
-    newGameStarting = true
-    gameStarted = false
-
-    -- 1) Make sure a deck can be found
-    -- 2) Clear and reset the board
-    -- 3) Shuffle players/swap codemasters if necessary
-    -- 4) Reset the keymap
-    -- 5) Deal new cards
-    -- 6) Fetch the first card for the team who goes first
-
-    -- Find the deck currently in use
-    currentDeck = findDeck()
-
-    if currentDeck == nil then
-      -- Deck was not able to be found
-      newGameStarting = false
-      Player[color].broadcast("You need to choose a deck before starting.", redColor)
-      return
-    end
-
-    -- Reset the game to its original state
-    resetGame()
-
-    --
-    if settings.playerShuffle then
-      startLuaCoroutine(queueCP, "startShuffle")
-    elseif settings.codemasterQueue then
-      startLuaCoroutine(queueCP, "swapCodemasters")
-    else
-      startGame()
-    end
-
-    if not analyticsLocked then
-      analyticsLocked = true
-      -- Destroy the analytics CP - we no longer need it
-      analyticsCP.destruct()
-    end
+function newGame(player)
+  -- Check to see whether a new game is currently being set up
+  if gameState.status == 0 then
+    player.broadcast("A new game is already starting. Please wait.", redColor)
+    return
   end
-end
 
-function sendAnalytics(api, payload, callback)
-  if not analytics.optOut then
-    WebRequest.post(analytics.url .. api .. "/index.php", payload, callback)
+  -- A new game is currently starting - block any other new game requests
+  gameState.status = 0
+
+  -- Find the deck currently in use
+  currentDeck = findDeck()
+
+  if currentDeck == nil then
+    -- Deck was not able to be found
+    if gameState.status == 0 then
+      gameState.status = -1
+    end
+    player.broadcast("You need to choose a deck before starting.", redColor)
+    return
   end
+
+  -- Reset the game to its original state
+  resetGame()
+
+  if settings.playerShuffle then
+    tableObject.call("shufflePlayers")
+  elseif settings.codemasterQueue then
+    tableObject.call("swapCodemasters")
+  end
+
+  Wait.frames(function()
+    startGame()
+  end, 120)
 end
 
 function resetGame()
@@ -1400,19 +981,21 @@ function resetGame()
   local doubleRed = getObjectFromGUID("3ef1ca")
 
   -- resets the agent cards to their start positions
-  for guid, pos in pairs(agentLocations) do
+  for guid, agentData in pairs(agents) do
     local card = getObjectFromGUID(guid)
     if card then
       if card.guid == doubleRed.guid then
         doubleRed.interactable = false
         doubleRed.setLock(true)
-        doubleRed.setPosition({0, -2, -14})
+        doubleRed.setPositionSmooth({0, -2, -14})
+        agents[card.guid].enabled = false
       elseif card.guid == doubleBlue.guid then
         doubleBlue.interactable = false
         doubleBlue.setLock(true)
-        doubleBlue.setPosition({0, -2, -14})
+        doubleBlue.setPositionSmooth({0, -2, -14})
+        agents[card.guid].enabled = false
       else
-        card.setPosition(pos)
+        card.setPosition(agentData.position)
         card.setRotation({0,180,180})
         card.unlock()
         card.interactable = true
@@ -1440,10 +1023,6 @@ function resetGame()
 
   -- Reset game variables
   guessesLeft = -1
-  agentTracker = {}
-  for guid, loc in pairs(agentLocations) do
-    agentTracker[guid] = loc
-  end
 end
 
 -- Find deck on top of deck dealer
@@ -1458,6 +1037,7 @@ function findDeck()
             local dZ = toolPos.z - vPos.z
             if dX<1 and dX>-1 and dZ<1 and dZ>-1 then
               -- Suitable deck found
+              analytics.deck = v.getName()
               return v
             end
         end
@@ -1467,22 +1047,18 @@ function findDeck()
     return nil
 end
 
-function isQueueEnabled()
-  return codemasterQueue
-end
-
 function startGame()
   -- Determine which team should go first (0 = RED; 1 = BLUE)
-  turnTracker = math.random(2) - 1
+  gameState.turnTracker = math.random(2) - 1
 
-  -- Shuffle the keymap (R = RED; B = BLUE; W = WHITE; X = BLACK)
-  local bank = {"R", "R", "R" ,"R", "R", "R", "R", "R", "B", "B", "B", "B", "B", "B", "B", "B", "W", "W", "W", "W", "W", "W", "W", "X"}
-  if turnTracker == 0 then
+  -- Shuffle the keymap
+  local bank = {"Red", "Red", "Red" ,"Red", "Red", "Red", "Red", "Red", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "White", "White", "White", "White", "White", "White", "White", "Black"}
+  if gameState.turnTracker == 0 then
     -- Add another red
-    bank = table.insert(bank, "R")
+    bank = table.insert(bank, "Red")
   else
     -- Add another blue
-    bank = table.insert(bank, "B")
+    bank = table.insert(bank, "Blue")
   end
 
   for i = 1, 25, 1 do
@@ -1493,174 +1069,87 @@ function startGame()
   local doubleBlue = getObjectFromGUID('1e9282')
   local doubleRed = getObjectFromGUID("3ef1ca")
 
-  if turnTracker == 0 then
+  if gameState.turnTracker == 0 then
     -- Set the correct double card to red
     doubleRed.setLock(false)
-    doubleRed.setPosition(agentLocations[doubleRed.guid])
+    doubleRed.setPositionSmooth(agents[doubleRed.guid].position)
     doubleRed.interactable = true
+    agents[doubleRed.guid].enabled = true
 
     -- Change the location of the turn marker
     buttonTeams.setRotation(redRot)
-    buttonTeams.setPosition(redPos)
-    UI.setAttribute("blueClues", "active", false)
-    UI.setAttribute("redClues", "active", true)
+    buttonTeams.setPositionSmooth(redPos)
     printToAll("Red team's turn.", redColor)
-  elseif turnTracker == 1 then
+  elseif gameState.turnTracker == 1 then
     -- Set the correct double card to blue
     doubleBlue.setLock(false)
-    doubleBlue.setPosition(agentLocations[doubleBlue.guid])
+    doubleBlue.setPositionSmooth(agents[doubleBlue.guid].position)
     doubleBlue.interactable = true
+    agents[doubleBlue.guid].enabled = true
 
     -- Change the location of the turn marker
     buttonTeams.setRotation(blueRot)
     buttonTeams.setPositionSmooth(bluePos)
-    UI.setAttribute("redClues", "active", false)
-    UI.setAttribute("blueClues", "active", true)
     printToAll("Blue team's turn.", blueColor)
   end
 
   dealCards(currentDeck)
 
-  -- Change the gameStarted to 1
-  gameStarted = true
-
   -- Start the timer
-  firstTurn = true
-  startTime()
+  gameState.firstTurn = true
 
   -- Send analytics data for the start of a game
-  local payload =
-  {
-    host = tostring(analytics.host),
-    deck = tostring(analytics.deck),
-    first = tostring(turnTracker == 0 and "RED" or "BLUE")
-  }
-  sendAnalytics("Games/Start", payload,
-    function(request)
-      if request.is_done then
-        -- Remember the returned token
-        analytics.gameID = request.text
-
-        -- Reset the teams variable and clueID(just to clean things up)
-        analytics.teams = {}
-        analytics.teams.red = {}
-        analytics.teams.blue = {}
-        analytics.clueID = nil
-
-        -- Keep track of who is on what team
-        local teamTracker = {}
-
-        -- Payload string for players
-        local playerPayload = ""
-
-        -- Repopulate the teams
-        local i = 1
-        for _, player in ipairs(Player.getPlayers()) do
-          local color = player.color
-          -- Start session for all players currently seated
-          if color == "Red" or color == "Orange" or color == "Yellow" or color == "Pink" or color == "Brown" then
-            -- Add this player to the red team
-            teamTracker[player.steam_id] = "RED"
-            playerPayload = playerPayload .. ((i == 1) and player.steam_id or (',' .. player.steam_id))
-            i = i + 1
-          elseif color == "Blue" or color == "Teal" or color == "Purple" or color == "Green" or color == "White" then
-            -- Add this player to the blue team
-            teamTracker[player.steam_id] = "BLUE"
-            playerPayload = playerPayload .. ((i == 1) and player.steam_id or (',' .. player.steam_id))
-            i = i + 1
-          end
-        end
-
-        local payload =
-        {
-          gameID = tostring(analytics.gameID),
-          players = tostring(playerPayload)
-        }
-        sendAnalytics("Players/StartSession", payload,
-          function(request)
-            if request.is_done then
-              local response = JSON.decode(request.text)
-
-              for steamID, token in pairs(response) do
-                if teamTracker[steamID] == "RED" then
-                  -- Add this player to the red team
-                  analytics.teams.red[steamID] = token
-                elseif teamTracker[steamID] == "BLUE" then
-                  -- Add this player to the blue team
-                  analytics.teams.blue[steamID] = token
-                end
-              end
-            end
-          end)
-    end
-  end)
+  analytics_gameStart()
 end
 
 -- Deals out cards from deck dealer
 function dealCards(deck)
-      deck.shuffle()
-      local draw_parameters =
-      {
-        rotation = {0, 180, 0},
-        flip = true,
-        top = true
-      }
-
-      for i = 1, 25, 1 do
-        local color
-        if cards[i].color == "R" then
-          -- Card is RED
-          color = "#da1918"
-        elseif cards[i].color == "B" then
-          -- Card is BLUE
-          color = "#1f87ff"
-        elseif cards[i].color == "W" then
-          -- Card is WHITE
-          color = "#ffffff"
-        elseif cards[i].color == "X" then
-          -- Card is BLACK
-          color = "#191919"
-        end
-        draw_parameters.position = {cards[i].position.x, 1.03, cards[i].position.z}
-        draw_parameters.callback_function = function(card) attachCardUI(card, i, color) end
-        local c = deck.takeObject(draw_parameters)
-
-    end
+  deck.shuffle()
+  for i = 1, 25, 1 do
+    local c = deck.takeObject({
+      rotation            = {0, 180, 0},
+      flip                = true,
+      top                 = true,
+      position            = {cards[i].position.x, 1.03, cards[i].position.z},
+      callback_function   = function(card) attachCardUI(card, i, cards[i].color) end
+    })
+  end
 end
 
 function attachCardUI(card, i, color)
-  cards[i].guid = card.guid
-
   local bounds = card.getBounds()
   local sizeX = math.floor(bounds.size.x * 75)
   local sizeZ = math.floor(bounds.size.z * 75)
-  local size = {X = sizeX, Z = sizeZ}
-  cards[i].size = size
   cards[i].value = card.getName()
-  card.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
-         rectAlignment="MiddleCenter"
-         color="%s"
-         width="%s"
-         height="%s"
-         ></Panel>"]], color, sizeZ, sizeX))
-  if cards[i].color == "X" then
+  if cards[i].color == "Black" then
     card.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
-           rectAlignment="MiddleCenter"
-           color="%s"
-           width="%s"
-           height="%s"
-           outline="#e7e52c"
-           outlineSize="4 -5"
-           ></Panel>"]], color, sizeZ, sizeX, sizeZ, sizeX))
+      rectAlignment="MiddleCenter"
+      color="%s"
+      width="%s"
+      height="%s"
+      outline="#e7e52c"
+      outlineSize="4 -5"
+      ></Panel>
+      <Panel id="vote-1" active="false" scale="0.5 1" position="69 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-2" active="false" scale="0.5 1" position="23 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-3" active="false" scale="0.5 1" position="-23 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], color, sizeZ, sizeX))
+  else
+    card.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
+      rectAlignment="MiddleCenter"
+      color="%s"
+      width="%s"
+      height="%s"
+      ></Panel>
+      <Panel id="vote-1" active="false" scale="0.5 1" position="69 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-2" active="false" scale="0.5 1" position="23 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-3" active="false" scale="0.5 1" position="-23 -75 -100" width="75" height="75" color="Black"></Panel>
+      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], color, sizeZ, sizeX))
   end
 
   card.setLuaScript(string.format([[
-    function onLoad()
-      position = {%s, 1.03, %s}
-      rotation = {0, 180, 0}
-      self.setPosition(position)
-      self.setRotation(rotation)
-    end
+    position = {%s, 1.03, %s}
+    rotation = {0, 180, 0}
 
     function onCollisionEnter(collision_info)
       if collision_info == nil or collision_info.collision_object.tag != 'Surface' then
@@ -1670,160 +1159,216 @@ function attachCardUI(card, i, color)
         Wait.frames(function()
           self.setPosition(position)
           self.setRotation(rotation)
-          self.setLock(false)
+          if self.interactable then
+            self.setLock(false)
+          end
         end, 10)
       end
     end
     ]], cards[i].position.x, cards[i].position.z))
 
+  cards[i].guid = card.guid
+
   -- Once the last card has loaded in, allow a new game to be started
   if i == 25 then
-    newGameStarting = false
+    startTime()
+    gameState.status = 1
   end
 end
 
--- Zone clearing
-function clearZone(zoneToClear)
-  for _, object in ipairs(zoneToClear.getObjects()) do
-    if object.tag =="Card" then
-      object.destruct()
-    end
-  end
-end
-
-function onObjectDrop(color, agent)
-  -- Ensure that the dropped object is an agent card
-  if not gameStarted or agent.tag ~= "Tile" or agentLocations[agent.guid] == nil then
-    return
-  end
-
-  -- Only RED and BLUE can drop agent cards
-  if color ~= "Red" and color ~= "Blue" then
-    -- Move the placed card back to its original position
-    agent.setPositionSmooth(agentTracker[agent.guid])
-    Player[color].broadcast("Only codemasters are able to place agent cards.", redColor)
-  end
-
-  -- Find the closest card position to the dropped agent
-  local searchThreshold = 1.5
+function findClosestCard(threshold, position)
   local closestCard =
   {
     index = nil,
-    object = nil,
     distance = nil
   }
-  for i = 1, 25, 1 do
-    local dX = agent.getPosition().x - cards[i].position.x
-    local dZ = agent.getPosition().z - cards[i].position.z
+
+  for cardIndex,_ in ipairs(cards) do
+    local dX = position.x - cards[cardIndex].position.x
+    local dZ = position.z - cards[cardIndex].position.z
 
     local d = math.sqrt((dX^2) + (dZ^2))
 
-    if d < searchThreshold then
-      if closestCard.object ~= nil then
-        -- Compare to the current card
-        if d < closestCard.distance then
-          closestCard.index = i
-          closestCard.object = getObjectFromGUID(cards[i].guid)
-          closestCard.distance = d
-        end
-      else
-        -- No card is currently close, use this one
-        closestCard.index = i
-        closestCard.object = getObjectFromGUID(cards[i].guid)
+    if d < threshold then
+      if closestCard.index == nil or d < closestCard.distance then
+        closestCard.index = cardIndex
         closestCard.distance = d
       end
     end
   end
 
-  if closestCard.index == nil then
-    -- No close card found
+  return closestCard.index
+end
+
+function onObjectDrop(color, agent)
+  -- Ensure that the dropped object is an agent card
+  if gameState.status ~= 1 or agent.tag ~= "Tile" or agents[agent.guid] == nil then
     return
   end
 
-  -- Set the correct card rotations
-  getObjectFromGUID(cards[closestCard.index].guid).setRotationSmooth({0, 180, 0})
-  agent.setRotationSmooth({0, 180, 180})
+  -- Find the closest card position to the dropped agent
+  local cardIndex = findClosestCard(1.65, agent.getPosition())
+  if cardIndex == nil or cards[cardIndex].covered then
+    -- Either no close card found, or card is already covered
+    return
+  end
 
-  local agentColor = agentColors[agent.guid]
-  local cardColor = cards[closestCard.index].color
-  local answerKey =
-  {
-    ["R"] = "red",
-    ["B"] = "blue",
-    ["W"] = "white",
-    ["X"] = "black"
-  }
+  -- Check to see if the agent and the card are the same color
+  local agentColor = agents[agent.guid].color
+  local cardColor = cards[cardIndex].color
+  if cardColor ~= agentColor then
+    agent.setPositionSmooth(agents[agent.guid].position)
+    Player[color].broadcast("An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. cardColor .. " card.", redColor)
+    return
+  end
 
-  if answerKey[cardColor] == agentColor then
-    -- Make sure this card hasn't already been covered
-    if cards[closestCard.index].covered then
-      agent.setPositionSmooth(agentTracker[agent.guid])
-      Player[color].broadcast("This code has already been marked correctly.", redColor)
+  -- Card has been marked correctly
+  guessesLeft = guessesLeft - 1
+  cards[cardIndex].covered = true
+
+  coverCard(cardIndex, agent.guid)
+
+  -- Send analytics data for the guess
+  local players = ""
+  local correct = ((gameState.turnTracker == 0 and cardColor == "Red") or (gameState.turnTracker == 1 and cardColor == "Blue")) and "TRUE" or "FALSE"
+  for color,_ in pairs(votes[gameState.turnTracker]) do
+    if Player[color].seated then
+      players = players .. ((players == "") and Player[color].steam_id or (',' .. Player[color].steam_id))
+    end
+  end
+  analytics_clueGuess(players, tostring(cards[cardIndex].value), correct, cardColor:upper())
+
+  -- Check to see if either red or blue won
+  local redWon = true
+  local blueWon = true
+  for i = 1, 25, 1 do
+    if cards[i].color == "Red" and not cards[i].covered then
+      redWon = false
+    elseif cards[i].color == "Blue" and not cards[i].covered then
+      blueWon = false
+    end
+
+    if not redWon and not blueWon then
+      -- Skip unnecessary iterations
+      break
+    end
+  end
+
+  if agentColor == "Black" or blueWon or redWon then
+    -- End game scenario
+
+    -- Analytics data for end of game
+    if (agentColor == "Black" and gameState.turnTracker == 0) or blueWon then
+      -- Red placed black card, blue wins
+      -- or blue placed all of their cards
+      broadcastToAll("Blue team wins!", blueColor)
+      analytics_gameEnd("BLUE")
+    elseif (agentColor == "Black" and gameState.turnTracker == 1) or redWon then
+      -- Blue placed black card, red wins
+      -- or red placed all of their cards
+      broadcastToAll("Red team wins!", redColor)
+      analytics_gameEnd("RED")
+    end
+
+    -- Move the remaining agents to their codes
+    endGame()
+  elseif guessesLeft == 0 or agentColor == "White" or (agentColor == "Red" and gameState.turnTracker == 1) or (agentColor == "Blue" and gameState.turnTracker == 0) then
+    toggleTurns()
+  else
+    -- Show the pass turn button and change color
+    tableObject.UI.setAttributes("passTurn", {
+      color = gameState.turnTracker == 0 and "#da1918" or "#1f87ff",
+      active = true
+    })
+  end
+end
+
+function playerVote(color, card)
+  -- Update the player's vote
+  if color == "Grey" then
+    -- Ignore votes from spectators
+    return
+  end
+
+  if color == "Red" or color == "Blue" or color == "Black" then
+    Player[color].broadcast('You cannot vote!', redColor)
+    return
+  elseif votes[gameState.turnTracker][color] == nil then
+    Player[color].broadcast('It\'s not your turn to vote!', redColor)
+    return
+  elseif not canVote then
+    Player[color].broadcast('You can\'t vote until you\'ve been given a clue!', redColor)
+    return
+  end
+
+  if votes[gameState.turnTracker][color].card == 0 then
+    votes[gameState.turnTracker][color].card = card
+    updateVoteUI(card)
+  else
+    if votes[gameState.turnTracker][color].card == card then
+      -- Remove this player's vote
+      votes[gameState.turnTracker][color].card = 0
+      updateVoteUI(card)
+    else
+      -- Switch the player's current vote to this card
+      local previous = votes[gameState.turnTracker][color].card
+      votes[gameState.turnTracker][color].card = card
+      updateVoteUI(previous)
+      updateVoteUI(card)
+    end
+  end
+
+  -- Check to see if a vote has passed
+  local votePassed = false
+  local voteCard = nil
+  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+    if Player[playerColor].seated and not Player[playerColor].blindfolded then
+      if (voteCard == nil and voteData.card ~= 0) or voteData.card == voteCard then
+        votePassed = true
+        voteCard = voteData.card
+      else
+        votePassed = false
+        break
+      end
+    end
+  end
+
+  if votePassed then
+    -- Vote passed to pass turn
+    if card == 26 then
+      toggleTurns()
       return
     end
 
-    -- Card is placed correctly
-    cards[closestCard.index].covered = true
+    -- Clear the votes
+    for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+      votes[gameState.turnTracker][playerColor].card = 0
+    end
+
+    -- Card has been marked correctly
     guessesLeft = guessesLeft - 1
+    cards[card].covered = true
 
-    local index = closestCard.index
-    local card = getObjectFromGUID(cards[index].guid)
-    local position = {cards[index].position.x, 1.03, cards[index].position.z}
-
-    -- Card script and UI no longer needed
-    card.setLuaScript("")
-    card = card.reload()
-
-    -- Lock both cards and set them in place
-    card.interactable = false
-    agent.interactable = false
-
-    card.setLock(true)
-    agent.setLock(true)
-
-    -- Ensure the tile is on the code
-    card.setRotationSmooth({0, 180, 0})
-    agent.setRotationSmooth({0, 180, 180})
-
-    card.setPositionSmooth(position)
-    agent.setPositionSmooth(position)
+    -- Cover the card
+    coverCard(card, nil)
 
     -- Send analytics data for the guess
-    local payload =
-    {
-      clueID = tostring(analytics.clueID),
-      players = "",
-      guess = tostring(cards[index].value),
-      correct = tostring(((turnTracker == 0 and cardColor == "R") or (turnTracker == 1 and cardColor == "B")) and "TRUE" or "FALSE"),
-      color = tostring(answerKey[cardColor]:upper())
-    }
-    local i = 1
-    if turnTracker == 0 then
-      -- Red's turn
-      for steamID,_ in pairs(analytics.teams.red) do
-        if Player["Red"] ~= nil and Player["Red"].steam_id ~= steamID then
-          payload.players = payload.players .. ((i == 1) and steamID or (',' .. steamID))
-          i = i + 1
-        end
-      end
-    elseif turnTracker == 1 then
-      -- Blue's turn
-      for steamID,_ in pairs(analytics.teams.blue) do
-        if Player["Blue"] ~= nil and Player["Blue"].steam_id ~= steamID then
-          payload.players = payload.players .. ((i == 1) and steamID or (',' .. steamID))
-          i = i + 1
-        end
+    local players = ""
+    local correct = ((gameState.turnTracker == 0 and cards[card].color == "Red") or (gameState.turnTracker == 1 and cards[card].color == "Blue")) and "TRUE" or "FALSE"
+    for color,_ in pairs(votes[gameState.turnTracker]) do
+      if Player[color].seated then
+        players = players .. ((players == "") and Player[color].steam_id or (',' .. Player[color].steam_id))
       end
     end
-    sendAnalytics("Clues/Guess", payload, function(request) nullFunction() end)
+    analytics_clueGuess(players, tostring(cards[card].value), correct, cards[card].color:upper())
 
     -- Check to see if either red or blue won
     local redWon = true
     local blueWon = true
     for i = 1, 25, 1 do
-      if cards[i].color == "R" and not cards[i].covered then
+      if cards[i].color == "Red" and not cards[i].covered then
         redWon = false
-      elseif cards[i].color == "B" and not cards[i].covered then
+      elseif cards[i].color == "Blue" and not cards[i].covered then
         blueWon = false
       end
 
@@ -1833,194 +1378,194 @@ function onObjectDrop(color, agent)
       end
     end
 
-    if agentColor == "black" or blueWon or redWon then
+    if cards[card].color == "Black" or blueWon or redWon then
       -- End game scenario
 
-      -- Analytics data for end of game
-      local endPayload =
-      {
-        gameID = tostring(analytics.gameID)
-      }
-
-      if (agentColor == "black" and turnTracker == 0) or blueWon then
+      if (cards[card].color == "Black" and gameState.turnTracker == 0) or blueWon then
         -- Red placed black card, blue wins
         -- or blue placed all of their cards
         broadcastToAll("Blue team wins!", blueColor)
-        endPayload.winner = "BLUE"
-      elseif (agentColor == "black" and turnTracker == 1) or redWon then
+        analytics_gameEnd("BLUE")
+      elseif (cards[card].color == "Black" and gameState.turnTracker == 1) or redWon then
         -- Blue placed black card, red wins
         -- or red placed all of their cards
         broadcastToAll("Red team wins!", redColor)
-        endPayload.winner = "RED"
-      end
-
-      -- Set the game back to initial state
-      gameStarted = false
-
-      -- Hide Codemaster outlineSize
-      UI.setAttribute("redClues", "active", false)
-      UI.setAttribute("blueClues", "active", false)
-
-      -- Hide timer
-
-      -- Set the timer to 0 and disable
-      if settings.timer.enabled then
-        UI.setAttribute("timer", "active", false)
-        Wait.stop(timerID)
-        time = 0
+        analytics_gameEnd("RED")
       end
 
       -- Move the remaining agents to their codes
       endGame()
 
-      -- Close all player sessions
-      local sessionPayload = ""
-      local i= 1
-      for steamID, token in pairs(analytics.teams.red) do
-        sessionPayload = sessionPayload .. ((i == 1) and analytics.teams.red[steamID] or (',' .. analytics.teams.red[steamID]))
-        analytics.teams.red[steamID] = nil
-        i = i + 1
-      end
-      for steamID, token in pairs(analytics.teams.blue) do
-        sessionPayload = sessionPayload .. ((i == 1) and analytics.teams.blue[steamID] or (',' .. analytics.teams.blue[steamID]))
-        analytics.teams.blue[steamID] = nil
-        i = i + 1
-      end
-
-      -- Send analytics data for the start of a game
-      local payload =
-      {
-        sessions = tostring(sessionPayload)
-      }
-      -- Send analytics data to end player sessions
-      sendAnalytics("Players/EndSession", payload, function(request) nullFunction() end)
-
-      -- Send analytics data for the end of a game
-      sendAnalytics("Games/End", endPayload, function(response) nullFunction() end)
-    elseif guessesLeft == 0 or agentColor == "white" or (agentColor == "red" and turnTracker == 1) or (agentColor == "blue" and turnTracker == 0) then
+    elseif guessesLeft == 0 or cards[card].color == "White" or (cards[card].color == "Red" and gameState.turnTracker == 1) or (cards[card].color == "Blue" and gameState.turnTracker == 0) then
       toggleTurns()
+    else
+      -- Show the pass turn button and change color
+      tableObject.UI.setAttributes("passTurn", {
+        color = gameState.turnTracker == 0 and "#da1918" or "#1f87ff",
+        active = true
+      })
     end
-
-  else
-    -- Card was placed incorrectly
-    agent.setPositionSmooth(agentTracker[agent.guid])
-    Player[color].broadcast("An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. answerKey[cardColor] .. " card.", redColor)
   end
+end
+
+function coverCard(cardIndex, agentGUID)
+  local cardObject = getObjectFromGUID(cards[cardIndex].guid)
+  for guid, agentData in pairs(agents) do
+    local agentObject = getObjectFromGUID(guid)
+    if agents[guid].enabled and agentData.color == cards[cardIndex].color and agentObject.interactable and (agentGUID == nil or agentGUID == guid) then
+      local position = {cards[cardIndex].position.x, 1.03, cards[cardIndex].position.z}
+
+      -- Remove the UI from the card
+      cardObject.UI.setXml("")
+
+      -- Remove the script from the card
+      --cardObject.setLuaScript("")
+
+      -- Lock both cards and set them in place
+      cardObject.interactable = false
+      agentObject.interactable = false
+
+      cardObject.setLock(true)
+      agentObject.setLock(true)
+
+      -- Ensure the tile is on the code
+      cardObject.setRotationSmooth({0, 180, 0})
+      agentObject.setRotationSmooth({0, 180, 180})
+
+      cardObject.setPositionSmooth(position)
+      agentObject.setPositionSmooth(position)
+      break
+    end
+  end
+end
+
+function updateVoteUI(card)
+  local uiObject = nil
+  local uiID = nil
+
+  if card == 26 then
+    -- Vote to pass
+    uiObject = tableObject
+    uiID = "pass-"
+  else
+    -- Vote for a card
+    uiObject = getObjectFromGUID(cards[card].guid)
+    uiID = "vote-"
+  end
+
+  local votesToAdd = {}
+  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+    if voteData.card == card then
+      votesToAdd[playerColor] = true
+    end
+  end
+  local votesOnCard =
+  {
+    uiObject.UI.getAttribute(uiID .. "1", "color"),
+    uiObject.UI.getAttribute(uiID .. "2", "color"),
+    uiObject.UI.getAttribute(uiID .. "3", "color"),
+    uiObject.UI.getAttribute(uiID .. "4", "color")
+  }
+  local newVotes = {}
+
+  -- Keep the order of the current votes
+  for voteIndex, voteColor in ipairs(votesOnCard) do
+    if voteColor ~= "Black" then
+      if votes[gameState.turnTracker][voteColor].card == card then
+        table.insert(newVotes, voteColor)
+        votesToAdd[voteColor] = nil
+      end
+    else
+      -- Add the uncounted votes
+      for playerColor,_ in pairs(votesToAdd) do
+        table.insert(newVotes, playerColor)
+      end
+      break
+    end
+  end
+
+  for i = 1,4,1 do
+    if newVotes[i] ~= nil then
+      uiObject.UI.setAttributes(uiID .. i, {
+        color = newVotes[i],
+        active = true
+      })
+    else
+      uiObject.UI.setAttributes(uiID .. i, {
+        color = "Black",
+        active = false
+      })
+    end
+  end
+end
+
+function votePass(color)
+  playerVote(color, 26)
 end
 
 function onObjectPickUp(color, object)
   -- Clues
-  if object.tag == "Card" then
+  if object.tag == "Card" and not object.spawning then
     for i = 1, 25, 1 do
       if cards[i].guid == object.guid then
-        local color
-        if cards[i].color == "R" then
-          -- Card is RED
-          color = "#da1918"
-        elseif cards[i].color == "B" then
-          -- Card is BLUE
-          color = "#1f87ff"
-        elseif cards[i].color == "W" then
-          -- Card is WHITE
-          color = "#ffffff"
-        elseif cards[i].color == "X" then
-          -- Card is BLACK
-          color = "#191919"
+        object.setVelocity({0, 0, 0})
+        object.drop()
+        object.setPosition({cards[i].position.x, 1.03, cards[i].position.z})
+        if #Player[color].getSelectedObjects() <= 1 then
+          playerVote(color, i)
         end
-        local newObject = object.reload()
-        newObject.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
-               rectAlignment="MiddleCenter"
-               color="%s"
-               width="%s"
-               height="%s"
-               ></Panel>]], color, cards[i].size.Z, cards[i].size.X))
-         if cards[i].color == "X" then
-           newObject.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
-                  rectAlignment="MiddleCenter"
-                  color="%s"
-                  width="%s"
-                  height="%s"
-                  outline="#e7e52c"
-                  outlineSize="4 -5"
-                  ></Panel>]], color, cards[i].size.Z, cards[i].size.X))
-         end
         break
       end
     end
-  elseif object.tag == "Tile" and agentLocations[object.guid] != nil then
-    -- Track the original locations of the tiles
-    local tileZoneObj = tileZone.getObjects()
-    for _, obj in pairs(tileZoneObj) do
-      if obj.guid == object.guid then
-        agentTracker[object.guid] = object.getPosition()
-      end
-    end
-
+  elseif agents[object.guid] ~= nil then
     -- Prevent picking up of agent tiles from anyone but red or blue
-    if color != "Blue" and color != "Red" then
-      for guid,_ in pairs(agentLocations) do
-        if guid == object.guid then
-          object.reload()
-        end
-      end
+    if color ~= "Red" and color ~= "Blue" then
+      object.setVelocity({0, 0, 0})
+      object.drop()
+      object.setPosition({agents[object.guid].position.x, 1.01, agents[object.guid].position.z})
     end
   end
 end
 
 function endGame()
+  -- Disable voting for any teams
+  canVote = false
 
-  local redAgents = {}
-  local blueAgents = {}
-  local whiteAgents = {}
-  local blackAgents = {}
+  -- Set the game back to initial state
+  gameState.status = -1
 
-  -- Get the remaining agents
-  for guid, agtColor in pairs(agentColors) do
-    if getObjectFromGUID(guid).interactable then
-      if agtColor == "red" then
-        redAgents[#redAgents + 1] = guid
-      elseif agtColor == "blue" then
-        blueAgents[#blueAgents + 1] = guid
-      elseif agtColor == "white" then
-        whiteAgents[#whiteAgents + 1] = guid
-      elseif agtColor == "black" then
-        blackAgents[#blackAgents + 1] = guid
-      end
-    end
-  end
+  -- Set the timer to 0 and disable
+  clockTimer.setValue(0)
 
-  -- Agent mapping
-  local agentMap =
-  {
-    ["R"] = redAgents,
-    ["B"] = blueAgents,
-    ["W"] = whiteAgents,
-    ["X"] = blackAgents
-  }
+  -- Hide the pass turn button and change color
+  tableObject.UI.setAttributes("passTurn", {
+    color = "#aaaaaa",
+    active = false
+  })
 
   -- Assign remaining agents to uncovered clues
   for i = 1, 25, 1 do
     if not cards[i].covered then
-      local agent = getObjectFromGUID(table.remove(agentMap[cards[i].color], 1))
-      local card = getObjectFromGUID(cards[i].guid)
-      local position = {cards[i].position.x, 1.03, cards[i].position.z}
+      coverCard(i, nil)
+    end
+  end
+end
 
-      -- Lock both cards and set them in place
-      card.interactable = false
-      agent.interactable = false
-
-      card.setLock(true)
-      agent.setLock(true)
-
-      -- Ensure the tile is on the code
-      card.setRotationSmooth({0, 180, 0})
-      agent.setRotationSmooth({0, 180, 180})
-
-      card.setPositionSmooth(position)
-      agent.setPositionSmooth(position)
-
-      -- Clear any UI on the cards
-      card.UI.setXml("")
+function onUpdate()
+  -- Check for clock rundown if timer is enabled
+  if settings.timer.enabled and gameState.status == 1 then
+    local timerVal = clockTimer.getValue()
+    if timerVal == 0 then
+      -- Switch turns
+      timerWarning = timerVal
+      broadcastToAll("Time's up!", redColor)
+      toggleTurns()
+    elseif timerVal == 60 and timerWarning != timerVal then
+      timerWarning = timerVal
+      broadcastToAll("1 minute remaining!", redColor)
+    elseif timerVal <= 10 and timerWarning != timerVal then
+      timerWarning = timerVal
+      broadcastToAll(timerVal .. " seconds remaining!", redColor)
     end
   end
 end
@@ -2030,8 +1575,36 @@ function round(exact, precision)
 end
 
 function toggleTurns()
+  -- Diable voting for the current team
+  canVote = false
+
+  local cardsToClear = {}
+  -- Remove all vote indicators and reset votes
+  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+    -- Update the vote UI first
+    if voteData.card ~= 0 and (voteData.card == 26 or not cards[voteData.card].covered) then
+      table.insert(cardsToClear, voteData.card)
+    end
+
+    -- Reset that player's vote
+    votes[gameState.turnTracker][playerColor].card = 0
+  end
+
+  for _, card in ipairs(cardsToClear) do
+    updateVoteUI(card)
+  end
+
+  -- Hide the pass turn button
+  tableObject.UI.setAttributes("passTurn", {
+    color = "#aaaaaa",
+    active = false
+  })
+
+  -- Reset the timer warning
+  timerWarning = -1
+
   -- Make sure it isn't the first turn
-  firstTurn = false
+  gameState.firstTurn = false
 
   -- Reset the guesses each team has left
   guessesLeft = -1
@@ -2039,23 +1612,19 @@ function toggleTurns()
   -- Reset the clueID
   analytics.clueID = nil
 
-  if turnTracker == 0 then
+  if gameState.turnTracker == 0 then
     -- Red team's turn ends, switch to blue team
-    turnTracker = 1
+    gameState.turnTracker = 1
     buttonRed.AssetBundle.playTriggerEffect(0)
     buttonTeams.setRotation(blueRot)
     buttonTeams.setPositionSmooth(bluePos)
-    UI.setAttribute("redClues", "active", false)
-    UI.setAttribute("blueClues", "active", true)
     printToAll("Blue team's turn.", blueColor)
   else
     -- Blue team's turn ends, switch to red team
-    turnTracker = 0
+    gameState.turnTracker = 0
     buttonBlu.AssetBundle.playTriggerEffect(0)
     buttonTeams.setRotation(redRot)
     buttonTeams.setPositionSmooth(redPos)
-    UI.setAttribute("blueClues", "active", false)
-    UI.setAttribute("redClues", "active", true)
     printToAll("Red team's turn.", redColor)
   end
 
@@ -2067,11 +1636,12 @@ end
 function endTurn(button, color)
   if color == "Red" or color == "Blue" then
     -- Is it the current side's turn?
-    if turnTracker == 0 and button.guid == buttonBlu.guid or turnTracker == 1 and button.guid == buttonRed.guid then
+    if gameState.turnTracker == 0 and button.guid == buttonBlu.guid or gameState.turnTracker == 1 and button.guid == buttonRed.guid then
       return
     end
 
     toggleTurns()
+
   end
 end
 
@@ -2091,4 +1661,204 @@ function shouldUpdateAnalytics(steamID, color)
   end
   -- Player doesn't have a change request - allow by default
   return true
+end
+
+-------------------------------------------------------------------------------
+--------------------------------[[ ANALYTICS ]]--------------------------------
+-------------------------------------------------------------------------------
+
+function sendAnalytics(api, payload, callback)
+  WebRequest.post(analytics.url .. api, payload, callback)
+end
+
+function analytics_gameStart()
+  local request =
+  {
+    host    = analytics.host,
+    deck    = analytics.deck,
+    first   = gameState.turnTracker == 0 and "RED" or "BLUE"
+  }
+
+  sendAnalytics("games/start", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+        -- Set the current game ID
+        analytics.gameID = response.gameID
+
+        -- Reset the player sessions
+        analytics.players = {}
+
+        -- Reset the previous clue ID
+        analytics.clueID = nil
+
+        -- Payload string for players
+        local players = {}
+
+        -- Repopulate the teams
+        for _, player in ipairs(Player.getPlayers()) do
+          local color = player.color
+          if color ~= "Grey" and color ~= "Black" then
+            table.insert(players, player.steam_id)
+          end
+        end
+
+        -- Start sessions for seated players
+        analytics_sessionStart(players)
+      end
+    end)
+end
+
+function analytics_clueNew(clue, number, codemaster)
+  local request =
+  {
+    gameID = analytics.gameID,
+    code = tostring(clue),
+    number = tostring(number),
+    codemaster = tostring(codemaster),
+    team = tostring(gameState.turnTracker == 0 and "RED" or "BLUE")
+  }
+
+  sendAnalytics("clues/new", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+        analytics.clueID = response.clueID
+      end
+    end)
+end
+
+function analytics_clueGuess(players, guess, correct, color)
+  local request =
+  {
+    clueID = analytics.clueID,
+    players = players,
+    guess = guess,
+    correct = correct,
+    color = color
+  }
+
+  sendAnalytics("clues/guess", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+      end
+    end)
+end
+
+function analytics_sessionStart(players)
+  local request =
+  {
+    gameID = analytics.gameID,
+    players = ""
+  }
+
+  for _, player in ipairs(players) do
+    request.players = request.players .. ((request.players == "") and player or (',' .. player))
+  end
+
+  sendAnalytics("players/sessions/start", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+        for _, session in ipairs(response.sessions) do
+          analytics.players[session.steamID] = session.sessionID
+        end
+      end
+    end)
+end
+
+function analytics_sessionEnd(players)
+  local request =
+  {
+    sessions = ""
+  }
+
+  for _, player in ipairs(players) do
+    request.sessions = request.sessions .. ((request.sessions == "") and analytics.players[player] or (',' .. analytics.players[player]))
+  end
+
+  sendAnalytics("players/sessions/end", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+        for _, player in ipairs(players) do
+          analytics.players[player] = nil
+        end
+
+      end
+    end)
+end
+
+function analytics_gameEnd(winner)
+  local request =
+  {
+    gameID  = analytics.gameID,
+    winner  = winner
+  }
+
+  sendAnalytics("games/end", request,
+    function(responseRaw)
+      if responseRaw.is_done then
+        local response = JSON.decode(responseRaw.text)
+
+        if response.status == "error" then
+          print("Error received from analytics:")
+          print(response.message)
+          return
+        end
+
+        -- Set the current game ID
+        analytics.gameID = nil
+
+        -- Reset the clue ID
+        analytics.clueID = nil
+
+        -- Payload string for sessions
+        local players = {}
+
+        -- Repopulate the teams
+        for steamID, sessionID in pairs(analytics.players) do
+          table.insert(players, steamID)
+        end
+
+        -- End all sessions for seated players
+        analytics_sessionEnd(players)
+      end
+    end)
 end

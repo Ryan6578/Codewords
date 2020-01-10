@@ -1,0 +1,608 @@
+<Defaults>
+  <!-- GENERIC PANELS -->
+  <Panel
+    class="settingsPanel"
+    width="750"
+    height="1100"
+    padding="10 10 10 10"
+    color="Black">
+  </Panel>
+
+  <Text
+    class="panelHeader"
+    color="#ffffff"
+    alignment="UpperMiddle"
+    fontSize="75">
+  </Text>
+
+
+  <!-- DECK SELECTOR PANEL -->
+  <Row
+    class="deckEntry"
+    preferredHeight="150">
+  </Row>
+
+  <Button
+    class="deckButton"
+    color="#ffffff">
+  </Button>
+
+  <TableLayout
+    class="deckTable"
+    columnWidths="150 0"
+    cellBackgroundColor="rgba(0,0,0,0)">
+  </TableLayout>
+
+  <VerticalLayout
+    class="deckOfficial"
+    active="false"
+    childForceExpandHeight="false"
+    childForceExpandWidth="false"
+    childAlignment="MiddleCenter"
+    flexibleHeight="1">
+  </VerticalLayout>
+
+  <Text
+    class="officialStar"
+    fontSize="100"
+    color="Yellow">
+  </Text>
+
+  <Text
+    class="officialText"
+    fontSize="20"
+    color="Black">
+  </Text>
+
+  <Text
+    class="deckName"
+    alignment="MiddleLeft"
+    fontSize="40">
+  </Text>
+
+
+  <!-- GAME SETTINGS PANEL -->
+  <Row
+    class="subcategoryRow"
+    preferredHeight="55">
+  </Row>
+
+  <Text
+    class="subcategoryText"
+    color="#99aab5"
+    alignment="UpperMiddle"
+    fontSize="45">
+  </Text>
+
+  <Row
+    class="settingRow"
+    preferredHeight="75">
+  </Row>
+
+  <Text
+    class="settingText"
+    color="#ffffff"
+    fontSize="30">
+  </Text>
+
+  <Toggle
+    class="settingToggle"
+    scale="2 2">
+  </Toggle>
+
+  <TableLayout
+    class="sliderTable"
+    columnWidths="275 0"
+    cellBackgroundColor="rgba(1,1,1,0)">
+  </TableLayout>
+
+  <Slider
+    class="settingSlider"
+    minValue="1"
+    maxValue="10"
+    wholeNumbers="true"
+    interactable="true"
+    scale="0.9 0.4">
+  </Slider>
+
+  <Text
+    class="sliderNumber"
+    fontSize="30"
+    color="#ffffff">
+  </Text>
+
+
+  <!-- CODEMASTER QUEUE PANEL -->
+  <Button
+    class="queueButton"
+    active="false"
+    color="#ffffff">
+  </Button>
+
+  <Text
+    class="queueText"
+    fontSize="50">
+  </Text>
+
+
+  <!-- PASS TURN INDICATORS -->
+  <Panel
+    class="passIndicator"
+    active="false"
+    width="350"
+    height="350"
+    color="Black">
+  </Panel>
+
+
+  <!-- SWITCH COLOR BUTTONS -->
+  <Button
+    class="switchButton"
+    active="false"
+    visibility="Red|Orange|Yellow|Pink|Brown|Blue|Teal|Purple|Green|White"
+    width="900"
+    height="400">
+  </Button>
+
+  <Text
+    class="switchText"
+    fontSize="150"
+    color="#ffffff"
+    outline="#191919"
+    outlineSize="5 -5">
+  </Text>
+
+</Defaults>
+
+<!-- position="0 -825 -100" -->
+<Button
+  id="startGame"
+  active="true"
+  onClick="startGame()"
+  width="1750"
+  height="500"
+  position="0 -4250 -100"
+  color="#31b32b">
+  <Text
+    fontSize="250"
+    color="#ffffff">
+    Start Game
+  </Text>
+</Button>
+
+<Button
+  id="passTurn"
+  active="false"
+  onClick="votePass()"
+  width="2500"
+  height="400"
+  position="0 -825 -100"
+  color="#aaaaaa">
+  <Text fontSize="150" color="White">PASS TURN</Text>
+  <Panel id="pass-1" class="passIndicator" offsetXY="-1025 0"></Panel>
+  <Panel id="pass-2" class="passIndicator" offsetXY="-650 0"></Panel>
+  <Panel id="pass-3" class="passIndicator" offsetXY="650 0"></Panel>
+  <Panel id="pass-4" class="passIndicator" offsetXY="1025 0"></Panel>
+</Button>
+
+<Button
+  id="sitRed"
+  class="switchButton"
+  onClick="changeSeat(Red)"
+  position="-2500 -2850 -100"
+  rotation="0 0 180"
+  color="Red">
+  <Text class="switchText">Switch to RED</Text>
+</Button>
+
+<Button
+  id="sitOrange"
+  class="switchButton"
+  onClick="changeSeat(Orange)"
+  position="-4625 -1800 -100"
+  rotation="0 0 90"
+  color="Orange">
+  <Text class="switchText">Switch to ORANGE</Text>
+</Button>
+
+<Button
+  id="sitYellow"
+  class="switchButton"
+  onClick="changeSeat(Yellow)"
+  position="-4625 0 -100"
+  rotation="0 0 90"
+  color="Yellow">
+  <Text class="switchText">Switch to YELLOW</Text>
+</Button>
+
+<Button
+  id="sitPink"
+  class="switchButton"
+  onClick="changeSeat(Pink)"
+  position="-4625 1800 -100"
+  rotation="0 0 90"
+  color="Pink">
+  <Text class="switchText">Switch to PINK</Text>
+</Button>
+
+<Button
+  id="sitBrown"
+  class="switchButton"
+  onClick="changeSeat(Brown)"
+  position="-2500 2850 -100"
+  rotation="0 0 0"
+  color="Brown">
+  <Text class="switchText">Switch to BROWN</Text>
+</Button>
+
+<Button
+  id="sitBlue"
+  class="switchButton"
+  onClick="changeSeat(Blue)"
+  position="2500 -2850 -100"
+  rotation="0 0 180"
+  color="Blue">
+  <Text class="switchText">Switch to BLUE</Text>
+</Button>
+
+<Button
+  id="sitTeal"
+  class="switchButton"
+  onClick="changeSeat(Teal)"
+  position="4625 -1800 -100"
+  rotation="0 0 -90"
+  color="Teal">
+  <Text class="switchText">Switch to TEAL</Text>
+</Button>
+
+<Button
+  id="sitPurple"
+  class="switchButton"
+  onClick="changeSeat(Purple)"
+  position="4625 0 -100"
+  rotation="0 0 -90"
+  color="Purple">
+  <Text class="switchText">Switch to PURPLE</Text>
+</Button>
+
+<Button
+  id="sitGreen"
+  class="switchButton"
+  onClick="changeSeat(Green)"
+  position="4625 1800 -100"
+  rotation="0 0 -90"
+  color="Green">
+  <Text class="switchText">Switch to GREEN</Text>
+</Button>
+
+<Button
+  id="sitWhite"
+  class="switchButton"
+  onClick="changeSeat(White)"
+  position="2500 2850 -100"
+  rotation="0 0 0"
+  color="White">
+  <Text class="switchText">Switch to WHITE</Text>
+</Button>
+
+
+<!-- DECK SELECTOR -->
+<Panel
+  class="settingsPanel"
+  position="0 -3182 -100">
+
+  <VerticalLayout spacing="10" childForceExpandHeight="false">
+
+    <Text class="panelHeader">Deck Selector</Text>
+    <InputField fontSize="30" placeholder="Search for a deck..." preferredHeight="50"></InputField>
+
+    <VerticalScrollView flexibleHeight="1">
+      <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true" color="#23272a">
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(1)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial" active="true">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">Vanilla Codenames</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(2)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">Hanii's Codenames</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(4)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial" active="true">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">Codenames: Undercover</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(6)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">Mayor's Codenames</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(3)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">CHRY's Codenames</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+        <Row class="deckEntry">
+          <Button class="deckButton" onClick="fetch(5)">
+            <TableLayout class="deckTable">
+              <Row>
+                <Cell>
+                  <VerticalLayout class="deckOfficial">
+                    <Text class="officialStar">★</Text>
+                    <Text class="officialText">Official Deck</Text>
+                  </VerticalLayout>
+                </Cell>
+                <Cell>
+                  <Text class="deckName">Saydi's Codenames</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Button>
+        </Row>
+
+      </TableLayout>
+    </VerticalScrollView>
+  </VerticalLayout>
+</Panel>
+
+
+<!-- GAME SETTINGS -->
+<Panel
+  class="settingsPanel"
+  position="800 -3182 -100">
+
+  <VerticalLayout spacing="10" childForceExpandHeight="false">
+
+    <Text class="panelHeader">Game Settings</Text>
+
+    <VerticalLayout flexibleHeight="1">
+      <TableLayout padding="15 15 10 10" autoCalculateHeight="true" cellBackgroundColor="#23272a" rowBackgroundColor="#23272a">
+
+        <Row class="subcategoryRow">
+          <Text color="#99aab5" alignment="UpperMiddle" fontSize="45">General Settings</Text>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Shuffle Players at Start</Text></Cell>
+          <Cell><Toggle id="shuffle" class="settingToggle" isOn="true" onValueChanged="shuffle()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Enable Codemaster Queue</Text></Cell>
+          <Cell><Toggle id="queues" class="settingToggle" isOn="true" onValueChanged="queues()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Enable Quick Color Switching</Text></Cell>
+          <Cell><Toggle id="switcher" class="settingToggle" isOn="true" onValueChanged="switcher()"></Toggle></Cell>
+        </Row>
+
+        <Row class="subcategoryRow">
+          <Text class="subcategoryText">AFK Settings</Text>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">AFK Detection</Text></Cell>
+          <Cell><Toggle id="afk" class="settingToggle" isOn="false" interactable="false" onValueChanged="afk()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">AFK Minutes</Text></Cell>
+          <Cell>
+            <TableLayout class="sliderTable">
+              <Row>
+                <Cell>
+                  <Slider id="afkTime" class="settingSlider" interactable="false" onValueChanged="afkTime()" />
+                </Cell>
+                <Cell>
+                  <Text class="sliderNumber">0</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Cell>
+        </Row>
+
+        <Row class="subcategoryRow">
+          <Text class="subcategoryText">Time Settings</Text>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Timer Enabled</Text></Cell>
+          <Cell><Toggle id="timer" class="settingToggle" isOn="true" onValueChanged="timer()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Timer (round 1)</Text></Cell>
+          <Cell>
+            <TableLayout class="sliderTable">
+              <Row>
+                <Cell>
+                  <Slider id="timer1Time" class="settingSlider" value="8" onValueChanged="timer1Time()" />
+                </Cell>
+                <Cell>
+                  <Text id="timer1TimeValue" class="sliderNumber">8</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Timer (round 2+)</Text></Cell>
+          <Cell>
+            <TableLayout class="sliderTable">
+              <Row>
+                <Cell>
+                  <Slider id="timer2Time" class="settingSlider" value="4" onValueChanged="timer2Time()" />
+                </Cell>
+                <Cell>
+                  <Text id="timer2TimeValue" class="sliderNumber">4</Text>
+                </Cell>
+              </Row>
+            </TableLayout>
+          </Cell>
+        </Row>
+
+        <Row class="subcategoryRow">
+          <Text class="subcategoryText">Automod Settings</Text>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Autokick Players on Blacklist</Text></Cell>
+          <Cell><Toggle id="autokick" class="settingToggle" isOn="true" onValueChanged="autokick()"></Toggle></Cell>
+        </Row>
+
+      </TableLayout>
+    </VerticalLayout>
+  </VerticalLayout>
+</Panel>
+
+
+<!-- CODEMASTER QUEUE -->
+<Panel
+  class="settingsPanel"
+  position="-800 -3182 -100">
+
+  <VerticalLayout spacing="10" childForceExpandHeight="false">
+
+    <Text class="panelHeader">Codemaster Queue</Text>
+
+    <VerticalLayout flexibleHeight="1">
+      <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true">
+
+        <Row preferredHeight="75">
+          <Button id="queueButton1" class="queueButton" color="#ffffff">
+            <Text id="queueText1" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton2" class="queueButton" color="#ffffff">
+            <Text id="queueText2" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton3" class="queueButton" color="#ffffff">
+            <Text id="queueText3" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton4" class="queueButton" color="#ffffff">
+            <Text id="queueText4" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton5" class="queueButton" color="#ffffff">
+            <Text id="queueText5" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton6" class="queueButton" color="#ffffff">
+            <Text id="queueText6" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton7" class="queueButton" color="#ffffff">
+            <Text id="queueText7" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton8" class="queueButton" color="#ffffff">
+            <Text id="queueText8" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton9" class="queueButton" color="#ffffff">
+            <Text id="queueText9" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+        <Row preferredHeight="75">
+          <Button id="queueButton10" class="queueButton" color="#ffffff">
+            <Text id="queueText10" class="queueText" fontSize="50"></Text>
+          </Button>
+        </Row>
+
+      </TableLayout>
+      <HorizontalLayout>
+        <Button fontSize="60" onClick="join()">Join</Button>
+        <Button fontSize="60" onClick="stay()">Stay</Button>
+        <Button fontSize="60" onClick="leave()">Leave</Button>
+      </HorizontalLayout>
+    </VerticalLayout>
+  </VerticalLayout>
+</Panel>
