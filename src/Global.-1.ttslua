@@ -235,6 +235,9 @@ analytics =
 
 function onload(saveState)
 
+  -- Codenames script version
+  version = "2.0.1"
+
   ----------[ Script object initialization ]----------
   -- Control panels and table objects
   tableObject     = getObjectFromGUID("246b85")
@@ -338,7 +341,7 @@ function onload(saveState)
   if saveState != "" then
     local decodedSaveState = JSON.decode(saveState)
 
-    if decodedSaveState.gameState.status == 1 then
+    if decodedSaveState.version == version and decodedSaveState.gameState.status == 1 then
       -- Load the previous gameState
       gameState = decodedSaveState.gameState
 
@@ -362,8 +365,6 @@ function onload(saveState)
         end
       end
     end
-
-    return
   end
 
   for _, player in ipairs(Player.getPlayers()) do
@@ -388,6 +389,7 @@ end
 function onSave()
   local saveData = {}
 
+  saveData.version    = version
   saveData.gameState  = gameState
   saveData.settings   = settings
   saveData.analytics  = analytics
@@ -746,7 +748,10 @@ function deleteClues()
   -- Delete red clues
   for _, redClue in pairs(gameState.redClues) do
     if redClue != nil then
-      getObjectFromGUID(redClue).destruct()
+      local clue = getObjectFromGUID(redClue)
+      if clue ~= nil then
+        clue.destruct()
+      end
     end
   end
   redClues = {}
@@ -754,7 +759,10 @@ function deleteClues()
   -- Delete blue clues
   for _, blueClue in pairs(gameState.blueClues) do
     if blueClue != nil then
-      getObjectFromGUID(blueClue).destruct()
+      local clue = getObjectFromGUID(blueClue)
+      if clue ~= nil then
+        clue.destruct()
+      end
     end
   end
   blueClues = {}

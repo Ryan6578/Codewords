@@ -27,7 +27,6 @@ function onLoad(saveState)
 
     queue = decodedSaveState.queue
     updateQueue()
-    return
   end
 
   -- Update the tracker with vacant seats and show buttons for available seats
