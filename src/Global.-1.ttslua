@@ -157,98 +157,83 @@ votes =
   }
 }
 
-function onload(saveState)
+----------[ Game state ]----------
+gameState =
+{
+  -- Tracks whether the current game has started (-1 = not started, 0 = starting, 1 = started)
+  status = -1,
 
-  -- Global variables --
-  -- Timer warning variable
-  timerWarning = -1
+  -- Current game is on the first turn or not
+  firstTurn = false,
 
-  ---------------------------------------------------------------------------------------------
+  -- Tracks whose turn it currently is
+  turnTracker = 1,
 
-  ----------[ Game state ]----------
-  gameState =
-  {
-    -- Tracks whether the current game has started (-1 = not started, 0 = starting, 1 = started)
-    status = -1,
-
-    -- Current game is on the first turn or not
-    firstTurn = false,
-
-    -- Tracks whose turn it currently is
-    turnTracker = 1
-  }
-
-  ----------[ Game settings ]----------
-  settings =
-  {
-    -- Shuffle players at start
-    playerShuffle = true,
-
-    -- Enable codemaster queue
-    codemasterQueue = true,
-
-    -- Quick color switcher buttons
-    colorSwitcher = true,
-
-    -- AFK detection
-    afkDetection =
-    {
-      enabled   = false,
-      threshold = 10
-    },
-
-    -- Timer enabled
-    timer =
-    {
-      enabled     = true,
-      initial     = 8,
-      subsequent  = 4
-    },
-
-    -- Automod functions
-    automod =
-    {
-      autokick = true
-    }
-  }
-
-  ----------[ Game analytics ]----------
-  analytics =
-  {
-    url = "https://ryan6578.com:8080/api/",
-    gameID = "",
-    host = "",
-    deck = "",
-    clueID = nil,
-    players = {}
-  }
-  for _, player in ipairs(Player.getPlayers()) do
-    if player.host then
-      analytics.host = player.steam_id
-      break
-    end
-  end
-
-  -- Configuration panel settings
-  codemasterQueue = {}
-  afkTracker = {}
-
-  -- Tracks the amount of guesses the current team has left
-  guessesLeft = -1
+  -- Tracks how many guesses the team has left
+  guessesLeft = -1,
 
   -- Tracks if the current team is able to vote
-  canVote = false
+  canVote = false,
 
   -- Red clue tracker
-  redClues = {}
-  redCluesTracker = 0
+  redClues = {},
 
   -- Blue clue tracker
-  blueClues = {}
-  blueCluesTracker = 0
+  blueClues = {},
 
-  -- Keeps track of the players to ignore for color switching
+  -- Tracks the players to ignore for color switching
   playersToIgnore = {}
+}
+
+----------[ Game settings ]----------
+settings =
+{
+  -- Shuffle players at start
+  playerShuffle = true,
+
+  -- Enable codemaster queue
+  codemasterQueue = true,
+
+  -- Quick color switcher buttons
+  colorSwitcher = true,
+
+  -- Disable/Enable "inf meta"
+  cardTilting = false,
+
+  -- AFK detection
+  afkDetection =
+  {
+    enabled   = false,
+    threshold = 10
+  },
+
+  -- Timer enabled
+  timer =
+  {
+    enabled     = true,
+    initial     = 8,
+    subsequent  = 4
+  },
+
+  -- Automod functions
+  automod =
+  {
+    autokick = true
+  }
+}
+
+----------[ Game analytics ]----------
+analytics =
+{
+  url = "https://ryan6578.com:8080/api/",
+  gameID = "",
+  host = "",
+  deck = "",
+  clueID = nil,
+  players = {}
+}
+
+function onload(saveState)
 
   ----------[ Script object initialization ]----------
   -- Control panels and table objects
@@ -339,18 +324,53 @@ function onload(saveState)
   -- Change seated players views
   seatedPlayers = Player.getPlayers()
   for _, player in ipairs(seatedPlayers) do
-    player.lookAt({
-      position = {0, 0, 0},
-      pitch    = 60,
-      yaw      = 0,
-      distance = 45
-    })
+    Wait.frames(function()
+      player.lookAt({
+        position = {0, 0, 0},
+        pitch    = 60,
+        yaw      = 0,
+        distance = 45
+      })
+    end, 1)
   end
 
   -- Load save state - if one exists
   if saveState != "" then
     local decodedSaveState = JSON.decode(saveState)
 
+    if decodedSaveState.gameState.status == 1 then
+      -- Load the previous gameState
+      gameState = decodedSaveState.gameState
+
+      -- Load the previous settings and update the view
+      settings = decodedSaveState.settings
+      tableObject.call("updateSettings")
+
+      -- Load the analytics data
+      analytics = decodedSaveState.analytics
+
+      -- Load the card data and update their UI
+      cards = decodedSaveState.cards
+      for cardNum, cardData in ipairs(cards) do
+        attachCardUI(getObjectFromGUID(cardData.guid), cardNum)
+      end
+
+      -- Update the enabled property for agents
+      for agentGUID, agentData in pairs(decodedSaveState.agents) do
+        if agents[agentGUID] ~= nil then
+          agents[agentGUID].enabled = agentData.enabled
+        end
+      end
+    end
+
+    return
+  end
+
+  for _, player in ipairs(Player.getPlayers()) do
+    if player.host then
+      analytics.host = player.steam_id
+      break
+    end
   end
 
   -- Start the AFK loop checker
@@ -365,12 +385,17 @@ function onload(saveState)
   end
 end
 
---[[ FIX LATER
 function onSave()
   local saveData = {}
 
+  saveData.gameState  = gameState
+  saveData.settings   = settings
+  saveData.analytics  = analytics
+  saveData.cards      = cards
+  saveData.agents     = agents
+
   return JSON.encode(saveData)
-end]]
+end
 
 ------------------------------------------------------------------------
 --------------------[ SETTERS/GETTERS FOR SETTINGS ]--------------------
@@ -384,6 +409,23 @@ function getQueue() return settings.codemasterQueue end
 
 function setSwitcher(enabled) settings.colorSwitcher = enabled end
 function getSwitcher() return settings.colorSwitcher end
+
+function setTilting(enabled)
+  settings.cardTilting = enabled
+  -- Disable card tilting
+  if gameState.status == 1 and not gameState.canVote then
+    for _, card in ipairs(cards) do
+      if not card.covered then
+        local cardObject = getObjectFromGUID(card.guid)
+        if cardObject ~= nil then
+          cardObject.setLock(enabled)
+          cardObject.setRotationSmooth({0, 180, 0})
+        end
+      end
+    end
+  end
+end
+function getTilting() return settings.cardTilting end
 
 function setAfk(enabled)
   settings.afkDetection.enabled = enabled
@@ -409,6 +451,7 @@ function setTimer(enabled)
     end
   end
 end
+function getTimer() return settings.timer.enabled end
 
 function setTimer1Time(value) settings.timer.initial = value end
 function getTimer1Time() return settings.timer.initial end
@@ -510,18 +553,29 @@ function clueEntered(player, value)
 
     -- Track remaining clues
     if number == "inf" then
-      guessesLeft = -1
+      gameState.guessesLeft = -1
     elseif number == "0" then
-      guessesLeft = -1
+      gameState.guessesLeft = -1
     else
-      guessesLeft = tostring(number) + 1
+      gameState.guessesLeft = tostring(number) + 1
     end
 
     -- Encode the finished clue
     encodeClue(color, clue .. " - " .. number:gsub("inf", "∞"))
 
     -- Enable voting for the current team
-    canVote = true
+    gameState.canVote = true
+
+    -- Disable card tilting
+    if settings.cardTilting then
+      for _, card in ipairs(cards) do
+        if not card.covered then
+          local cardObject = getObjectFromGUID(card.guid)
+          cardObject.setLock(false)
+          cardObject.setRotationSmooth({0, 180, 0})
+        end
+      end
+    end
 
     -- Send analytics data for the a new clue
     analytics_clueNew(clue, number == "inf" and -1 or number, Player[color].steam_id)
@@ -630,97 +684,48 @@ end
 function encodeClue(color, clue)
   local finishedClue
   local cluePosition
-  local clueColor
-  local broadcastTo
-  if color == "Red" then
-    clueColor = redColor
-    finishedClue = redToken.clone({
-      position     = redToken.getPosition(),
-      snap_to_grid = true
-    })
+  local token = color == "Red" and redToken or blueToken
+  local broadcastTo = color == "Red" and {"Orange", "Yellow", "Pink", "Brown"} or {"Teal", "Purple", "Green", "White"}
 
-    -- Check for deleted clues and reset clue positions if need be
-    if redCluesTracker > 0 then
-      local deletedClues = false
-      local newClueOrder = {}
-      local newClueOrderIndex = 0
-      for i = 0, (redCluesTracker - 1) do
-        if redClues[i] == nil then
-          deletedClues = true
-        else
-          newClueOrder[newClueOrderIndex] = redClues[i]
-          newClueOrderIndex = newClueOrderIndex + 1
-        end
-      end
+  local clues = color == "Red" and gameState.redClues or gameState.blueClues
+  local xPos = color == "Red" and -21.05 or 20.85
+  local deletedClues = false
+  local validClues = {}
 
-      if deletedClues then
-        redCluesTracker = 0
-        redClues = newClueOrder
-        for i = 0, (newClueOrderIndex - 1) do
-          if newClueOrder[i] != nil then
-            newClueOrder[i].setPosition({-21.05, 1.5, (12 - ((redCluesTracker % 8) * 2.05))})
-            newClueOrder[i].setRotation({0, 180, 0})
-            redCluesTracker = redCluesTracker + 1
-          end
-        end
+  -- Check for deleted clues and shift the remaining if need be
+  if #clues > 0 then
+    -- Check for deleted clues
+    for _,clue in ipairs(color == "Red" and gameState.redClues or gameState.blueClues) do
+      if getObjectFromGUID(clue) ~= nil then
+        table.insert(validClues, clue)
+      else
+        deletedClues = true
       end
     end
-
-    -- Set the red clue position
-    redClues[redCluesTracker] = finishedClue
-    cluePosition = {-21.05, 1.5, (12 - ((redCluesTracker % 8) * 2.05))}
-    redCluesTracker = redCluesTracker + 1
-
-    -- Set which colors to broadcast to
-    broadcastTo = {"Orange", "Yellow", "Pink", "Brown"}
-  elseif color == "Blue" then
-    clueColor = blueColor
-    finishedClue = blueToken.clone({
-      position     = blueToken.getPosition(),
-      snap_to_grid = true
-    })
-
-    -- Check for deleted clues and reset clue positions if need be
-    if blueCluesTracker > 0 then
-      local deletedClues = false
-      local newClueOrder = {}
-      local newClueOrderIndex = 0
-      for i = 0, (blueCluesTracker - 1) do
-        if blueClues[i] == nil then
-          deletedClues = true
-        else
-          newClueOrder[newClueOrderIndex] = blueClues[i]
-          newClueOrderIndex = newClueOrderIndex + 1
-        end
-      end
-
-      if deletedClues then
-        blueCluesTracker = 0
-        blueClues = newClueOrder
-        for i = 0, (newClueOrderIndex - 1) do
-          if newClueOrder[i] != nil then
-            newClueOrder[i].setPosition({20.85, 1.5, (12 - ((blueCluesTracker % 8) * 2.05))})
-            newClueOrder[i].setRotation({0, 180, 0})
-            blueCluesTracker = blueCluesTracker + 1
-          end
-        end
-      end
-    end
-
-    -- Set the blue clue position
-    blueClues[blueCluesTracker] = finishedClue
-    cluePosition = {20.85, 1.5, (12 - ((blueCluesTracker % 8) * 2.05))}
-    blueCluesTracker = blueCluesTracker + 1
-
-    -- Set which colors to broadcast to
-    broadcastTo = {"Teal", "Purple", "Green", "White"}
   end
 
+  if deletedClues then
+    if color == "Red" then
+      gameState.redClues = validClues
+    else
+      gameState.blueClues = validClues
+    end
+    for i, clue in ipairs(validClues) do
+      local clueObject = getObjectFromGUID(clue)
+      clueObject.setPosition({xPos, 1.5, (12 - (((i - 1) % 8) * 2.05))})
+      clueObject.setRotation({0, 180, 0})
+    end
+  end
+  local finishedClue = token.clone({
+    position     = token.getPosition(),
+    snap_to_grid = true,
+    callback_function = function(clue) table.insert(color == "Red" and gameState.redClues or gameState.blueClues, clue.guid) end
+  })
   finishedClue.createButton({
       label=clue, function_owner=finishedClue, click_function="clue",
       position={0,0.2,0}, height=0, width=0, font_size=500, rotation={0,0,0}, scale={2, 2, 4/3}, font_color={1,1,1}
   })
-  finishedClue.setPosition(cluePosition)
+  finishedClue.setPosition({xPos, 1.5, (12 - ((#(color == "Red" and gameState.redClues or gameState.blueClues) % 8) * 2.05))})
   finishedClue.setRotation({0, 180, 0})
   finishedClue.setLock(false)
   finishedClue.setLuaScript(
@@ -731,30 +736,28 @@ function encodeClue(color, clue)
       .. "})\n"
     .. "end\n"
   )
-  printToAll(color .. " team's clue is: " .. clue, clueColor)
+  printToAll(color .. " team's clue is: " .. clue, color)
   for _, playerColor in ipairs(broadcastTo) do
-    Player[playerColor].broadcast("Your clue is: " .. clue, clueColor)
+    Player[playerColor].broadcast("Your clue is: " .. clue, color)
   end
 end
 
-function deleteclues()
+function deleteClues()
   -- Delete red clues
-  for _, redClue in pairs(redClues) do
+  for _, redClue in pairs(gameState.redClues) do
     if redClue != nil then
-      redClue.destruct()
+      getObjectFromGUID(redClue).destruct()
     end
   end
   redClues = {}
-  redCluesTracker = 0
 
   -- Delete blue clues
-  for _, blueClue in pairs(blueClues) do
+  for _, blueClue in pairs(gameState.blueClues) do
     if blueClue != nil then
-      blueClue.destruct()
+      getObjectFromGUID(blueClue).destruct()
     end
   end
   blueClues = {}
-  blueCluesTracker = 0
 end
 
 function onPlayerConnect(player)
@@ -927,6 +930,7 @@ end
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function newGame(player)
   -- Check to see whether a new game is currently being set up
+  local oldStatus = gameState.status
   if gameState.status == 0 then
     player.broadcast("A new game is already starting. Please wait.", redColor)
     return
@@ -940,9 +944,7 @@ function newGame(player)
 
   if currentDeck == nil then
     -- Deck was not able to be found
-    if gameState.status == 0 then
-      gameState.status = -1
-    end
+    gameState.status = oldStatus
     player.broadcast("You need to choose a deck before starting.", redColor)
     return
   end
@@ -951,14 +953,18 @@ function newGame(player)
   resetGame()
 
   if settings.playerShuffle then
-    tableObject.call("shufflePlayers")
+    --tableObject.call("shufflePlayers")
+    startLuaCoroutine(tableObject, "shufflePlayers")
   elseif settings.codemasterQueue then
-    tableObject.call("swapCodemasters")
+    --tableObject.call("swapCodemasters")
+    startLuaCoroutine(tableObject, "swapCodemasters")
+  else
+    startGame()
   end
 
-  Wait.frames(function()
+  --[[Wait.frames(function()
     startGame()
-  end, 120)
+  end, 120)]]
 end
 
 function resetGame()
@@ -1003,26 +1009,10 @@ function resetGame()
     end
   end
 
-  -- Delete red clues
-  for _, redClue in pairs(redClues) do
-    if redClue != nil then
-      redClue.destruct()
-    end
-  end
-  redClues = {}
-  redCluesTracker = 0
-
-  -- Delete blue clues
-  for _, blueClue in pairs(blueClues) do
-    if blueClue != nil then
-      blueClue.destruct()
-    end
-  end
-  blueClues = {}
-  blueCluesTracker = 0
+  deleteClues()
 
   -- Reset game variables
-  guessesLeft = -1
+  gameState.guessesLeft = -1
 end
 
 -- Find deck on top of deck dealer
@@ -1111,12 +1101,12 @@ function dealCards(deck)
       flip                = true,
       top                 = true,
       position            = {cards[i].position.x, 1.03, cards[i].position.z},
-      callback_function   = function(card) attachCardUI(card, i, cards[i].color) end
+      callback_function   = function(card) attachCardUI(card, i) end
     })
   end
 end
 
-function attachCardUI(card, i, color)
+function attachCardUI(card, i)
   local bounds = card.getBounds()
   local sizeX = math.floor(bounds.size.x * 75)
   local sizeZ = math.floor(bounds.size.z * 75)
@@ -1133,7 +1123,7 @@ function attachCardUI(card, i, color)
       <Panel id="vote-1" active="false" scale="0.5 1" position="69 -75 -100" width="75" height="75" color="Black"></Panel>
       <Panel id="vote-2" active="false" scale="0.5 1" position="23 -75 -100" width="75" height="75" color="Black"></Panel>
       <Panel id="vote-3" active="false" scale="0.5 1" position="-23 -75 -100" width="75" height="75" color="Black"></Panel>
-      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], color, sizeZ, sizeX))
+      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], cards[i].color, sizeZ, sizeX))
   else
     card.UI.setXml(string.format([[<Panel visibility="Blue|Red|Black"
       rectAlignment="MiddleCenter"
@@ -1144,7 +1134,7 @@ function attachCardUI(card, i, color)
       <Panel id="vote-1" active="false" scale="0.5 1" position="69 -75 -100" width="75" height="75" color="Black"></Panel>
       <Panel id="vote-2" active="false" scale="0.5 1" position="23 -75 -100" width="75" height="75" color="Black"></Panel>
       <Panel id="vote-3" active="false" scale="0.5 1" position="-23 -75 -100" width="75" height="75" color="Black"></Panel>
-      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], color, sizeZ, sizeX))
+      <Panel id="vote-4" active="false" scale="0.5 1" position="-69 -75 -100" width="75" height="75" color="Black"></Panel>]], cards[i].color, sizeZ, sizeX))
   end
 
   card.setLuaScript(string.format([[
@@ -1171,6 +1161,16 @@ function attachCardUI(card, i, color)
 
   -- Once the last card has loaded in, allow a new game to be started
   if i == 25 then
+    -- Disable card tilting
+    if settings.cardTilting then
+      for _, card in ipairs(cards) do
+        if not card.covered then
+          local cardObject = getObjectFromGUID(card.guid)
+          cardObject.setLock(true)
+          cardObject.setRotationSmooth({0, 180, 0})
+        end
+      end
+    end
     startTime()
     gameState.status = 1
   end
@@ -1223,7 +1223,7 @@ function onObjectDrop(color, agent)
   end
 
   -- Card has been marked correctly
-  guessesLeft = guessesLeft - 1
+  gameState.guessesLeft = gameState.guessesLeft - 1
   cards[cardIndex].covered = true
 
   coverCard(cardIndex, agent.guid)
@@ -1272,7 +1272,7 @@ function onObjectDrop(color, agent)
 
     -- Move the remaining agents to their codes
     endGame()
-  elseif guessesLeft == 0 or agentColor == "White" or (agentColor == "Red" and gameState.turnTracker == 1) or (agentColor == "Blue" and gameState.turnTracker == 0) then
+  elseif gameState.guessesLeft == 0 or agentColor == "White" or (agentColor == "Red" and gameState.turnTracker == 1) or (agentColor == "Blue" and gameState.turnTracker == 0) then
     toggleTurns()
   else
     -- Show the pass turn button and change color
@@ -1296,7 +1296,7 @@ function playerVote(color, card)
   elseif votes[gameState.turnTracker][color] == nil then
     Player[color].broadcast('It\'s not your turn to vote!', redColor)
     return
-  elseif not canVote then
+  elseif not gameState.canVote then
     Player[color].broadcast('You can\'t vote until you\'ve been given a clue!', redColor)
     return
   end
@@ -1346,7 +1346,7 @@ function playerVote(color, card)
     end
 
     -- Card has been marked correctly
-    guessesLeft = guessesLeft - 1
+    gameState.guessesLeft = gameState.guessesLeft - 1
     cards[card].covered = true
 
     -- Cover the card
@@ -1396,7 +1396,7 @@ function playerVote(color, card)
       -- Move the remaining agents to their codes
       endGame()
 
-    elseif guessesLeft == 0 or cards[card].color == "White" or (cards[card].color == "Red" and gameState.turnTracker == 1) or (cards[card].color == "Blue" and gameState.turnTracker == 0) then
+    elseif gameState.guessesLeft == 0 or cards[card].color == "White" or (cards[card].color == "Red" and gameState.turnTracker == 1) or (cards[card].color == "Blue" and gameState.turnTracker == 0) then
       toggleTurns()
     else
       -- Show the pass turn button and change color
@@ -1529,7 +1529,7 @@ end
 
 function endGame()
   -- Disable voting for any teams
-  canVote = false
+  gameState.canVote = false
 
   -- Set the game back to initial state
   gameState.status = -1
@@ -1576,7 +1576,18 @@ end
 
 function toggleTurns()
   -- Diable voting for the current team
-  canVote = false
+  gameState.canVote = false
+
+  -- Disable card tilting
+  for _, card in ipairs(cards) do
+    if not card.covered then
+      local cardObject = getObjectFromGUID(card.guid)
+      if settings.cardTilting then
+        cardObject.setLock(true)
+      end
+      cardObject.setRotationSmooth({0, 180, 0})
+    end
+  end
 
   local cardsToClear = {}
   -- Remove all vote indicators and reset votes
@@ -1607,7 +1618,7 @@ function toggleTurns()
   gameState.firstTurn = false
 
   -- Reset the guesses each team has left
-  guessesLeft = -1
+  gameState.guessesLeft = -1
 
   -- Reset the clueID
   analytics.clueID = nil
@@ -1628,8 +1639,6 @@ function toggleTurns()
     printToAll("Red team's turn.", redColor)
   end
 
-  rotateclues()
-
   startTime()
 end
 
@@ -1646,15 +1655,15 @@ function endTurn(button, color)
 end
 
 function ignoreChanges(request)
-  table.insert(playersToIgnore, request)
+  table.insert(gameState.playersToIgnore, request)
 end
 
 function shouldUpdateAnalytics(steamID, color)
-  for i, request in ipairs(playersToIgnore) do
+  for i, request in ipairs(gameState.playersToIgnore) do
     if request.steamID == steamID then
       if request.color == color then
         -- Allow going forward
-        table.remove(playersToIgnore, i)
+        table.remove(gameState.playersToIgnore, i)
       end
       return false
     end

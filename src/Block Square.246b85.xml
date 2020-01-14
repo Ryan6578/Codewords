@@ -154,22 +154,6 @@
 
 </Defaults>
 
-<!-- position="0 -825 -100" -->
-<Button
-  id="startGame"
-  active="true"
-  onClick="startGame()"
-  width="1750"
-  height="500"
-  position="0 -4250 -100"
-  color="#31b32b">
-  <Text
-    fontSize="250"
-    color="#ffffff">
-    Start Game
-  </Text>
-</Button>
-
 <Button
   id="passTurn"
   active="false"
@@ -296,7 +280,7 @@
     <Text class="panelHeader">Deck Selector</Text>
     <InputField fontSize="30" placeholder="Search for a deck..." preferredHeight="50"></InputField>
 
-    <VerticalScrollView flexibleHeight="1">
+    <VerticalScrollView flexibleHeight="1" scrollSensitivity="100">
       <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true" color="#23272a">
 
         <Row class="deckEntry">
@@ -409,6 +393,7 @@
 
       </TableLayout>
     </VerticalScrollView>
+    <Button preferredHeight="175" color="#31b32b" onClick="startGame()"><Text color="#ffffff" fontSize="65">Start Game</Text></Button>
   </VerticalLayout>
 </Panel>
 
@@ -442,6 +427,11 @@
         <Row class="settingRow">
           <Cell><Text class="settingText">Enable Quick Color Switching</Text></Cell>
           <Cell><Toggle id="switcher" class="settingToggle" isOn="true" onValueChanged="switcher()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Disable Tilting Before Clue Given</Text></Cell>
+          <Cell><Toggle id="tilting" class="settingToggle" isOn="false" onValueChanged="tilting()"></Toggle></Cell>
         </Row>
 
         <Row class="subcategoryRow">
@@ -527,6 +517,7 @@
 
 <!-- CODEMASTER QUEUE -->
 <Panel
+  id="codemasterQueue"
   class="settingsPanel"
   position="-800 -3182 -100">
 

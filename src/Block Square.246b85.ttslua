@@ -1,19 +1,35 @@
 -- UI elements for the table
-function onLoad()
-  seatTracker =
-  {
-    ["Blue"]    = false,
-    ["Teal"]    = false,
-    ["Purple"]  = false,
-    ["Green"]   = false,
-    ["White"]   = false,
 
-    ["Red"]     = false,
-    ["Orange"]  = false,
-    ["Yellow"]  = false,
-    ["Pink"]    = false,
-    ["Brown"]   = false
-  }
+-- Tracks the players currently in queue
+queue = {}
+
+-- Tracks color switching
+seatTracker =
+{
+  ["Blue"]    = false,
+  ["Teal"]    = false,
+  ["Purple"]  = false,
+  ["Green"]   = false,
+  ["White"]   = false,
+
+  ["Red"]     = false,
+  ["Orange"]  = false,
+  ["Yellow"]  = false,
+  ["Pink"]    = false,
+  ["Brown"]   = false
+}
+
+redColor = {0.856, 0.1, 0.094}
+
+function onLoad(saveState)
+  if saveState != "" then
+    local decodedSaveState = JSON.decode(saveState)
+
+    queue = decodedSaveState.queue
+    updateQueue()
+    return
+  end
+
   -- Update the tracker with vacant seats and show buttons for available seats
   for seatColor,_ in pairs(seatTracker) do
     if Player[seatColor].seated then
@@ -25,6 +41,14 @@ function onLoad()
       self.UI.setAttribute("sit" .. seatColor, "active", true)
     end
   end
+end
+
+function onSave()
+  local saveData = {}
+
+  saveData.queue  = queue
+
+  return JSON.encode(saveData)
 end
 
 function votePass(player)
@@ -46,20 +70,21 @@ function onPlayerChangeColor(color)
   end
 end
 
-function ignoreChanges(request)
-  Global.call("ignoreChanges", request)
+function updateSettings()
+  shuffle(nil,     Global.call("getShuffle") == true and "True" or "False")
+  queues(nil,      Global.call("getQueue") == true and "True" or "False")
+  switcher(nil,    Global.call("getSwitcher") == true and "True" or "False")
+  tilting(nil,     Global.call("getTilting") == true and "True" or "False")
+  --afk(player)
+  --afkTime(player)
+  timer(nil,       Global.call("getTimer") == true and "True" or "False")
+  timer1Time(nil,  Global.call("getTimer1Time"))
+  timer2Time(nil,  Global.call("getTimer2Time"))
+  autokick(nil,    Global.call("getAutokick") == true and "True" or "False")
 end
 
-function startGame(player)
-  if player.color == "Grey" then
-    return
-  end
-
-  if player.color == "Red" or player.color == "Blue" or player.admin then
-    Global.call("newGame", player)
-  else
-    player.broadcast('Only Codemasters or promoted players may start the game!', {0.856, 0.1, 0.094})
-  end
+function ignoreChanges(request)
+  Global.call("ignoreChanges", request)
 end
 
 
@@ -67,9 +92,9 @@ end
 --------------------[ GAME SETTINGS PANEL ]--------------------
 ---------------------------------------------------------------
 function shuffle(player, enabled)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("shuffle", "isOn", self.UI.getAttribute("shuffle", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -81,23 +106,30 @@ function shuffle(player, enabled)
 end
 
 function queues(player, enabled)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("queues", "isOn", self.UI.getAttribute("queues", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
   -- Handle in the Global script
   Global.call("setQueue", toboolean(enabled))
 
+  -- Hide/show the queue
+  self.UI.setAttribute("codemasterQueue", "active", toboolean(enabled))
+  if not enabled then
+    queue = {}
+  end
+  updateQueue()
+
   -- Update the view for everyone
   self.UI.setAttribute("queues", "isOn", toboolean(enabled))
 end
 
 function switcher(player, enabled)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("switcher", "isOn", self.UI.getAttribute("switcher", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -133,10 +165,24 @@ function switcher(player, enabled)
   self.UI.setAttribute("switcher", "isOn", toboolean(enabled))
 end
 
+function tilting(player, enabled)
+  if player ~= nil and not player.admin then
+    self.UI.setAttribute("tilting", "isOn", self.UI.getAttribute("tilting", "isOn"))
+    player.broadcast("Only promoted players may change game settings!", redColor)
+    return
+  end
+
+  -- Handle in the Global script
+  Global.call("setTilting", toboolean(enabled))
+
+  -- Update the view for everyone
+  self.UI.setAttribute("tilting", "isOn", toboolean(enabled))
+end
+
 function afk(player)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("afk", "isOn", self.UI.getAttribute("afk", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -148,15 +194,15 @@ function afk(player)
 end
 
 function afkTime(player)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     return
   end
 end
 
 function timer(player, enabled)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("timer", "isOn", self.UI.getAttribute("timer", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -168,9 +214,9 @@ function timer(player, enabled)
 end
 
 function timer1Time(player, value)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("timer1Time", "value", self.UI.getAttribute("timer1Time", "value"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -183,9 +229,9 @@ function timer1Time(player, value)
 end
 
 function timer2Time(player, value)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("timer2Time", "value", self.UI.getAttribute("timer2Time", "value"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -198,9 +244,9 @@ function timer2Time(player, value)
 end
 
 function autokick(player, enabled)
-  if not player.admin then
+  if player ~= nil and not player.admin then
     self.UI.setAttribute("autokick", "isOn", self.UI.getAttribute("autokick", "isOn"))
-    player.broadcast("Only promoted players may change game settings!")
+    player.broadcast("Only promoted players may change game settings!", redColor)
     return
   end
 
@@ -223,7 +269,19 @@ function fetch(player, deck)
   if player.color == "Red" or player.color == "Blue" or player.admin then
     Global.call("fetchDeck", tonumber(deck))
   else
-    player.broadcast('Only Codemasters or promoted players may select a deck!', {0.856, 0.1, 0.094})
+    player.broadcast("Only Codemasters or promoted players may select a deck!", redColor)
+  end
+end
+
+function startGame(player, button)
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  if player.color == "Red" or player.color == "Blue" or player.admin then
+    Global.call("newGame", player)
+  else
+    player.broadcast("Only Codemasters or promoted players may start the game!", redColor)
   end
 end
 
@@ -231,9 +289,13 @@ end
 ------------------------------------------------------------------
 --------------------[ CODEMASTER QUEUE PANEL ]--------------------
 ------------------------------------------------------------------
-function join(player)
+function join(player, button)
+  if button ~= "-1" then
+    return
+  end
+
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may join the queue!")
+    player.broadcast("Only seated players may join the queue!", redColor)
     return
   end
 
@@ -248,6 +310,11 @@ function join(player)
     end
   end
 
+  if #queue >= 10 then
+    player.broadcast("Codemaster queue is full. Please wait until someone leaves or is removed!", redColor)
+    return
+  end
+
   -- Join the player to the queue and make them stay
   table.insert(queue, {
     steam_id   = player.steam_id,
@@ -257,9 +324,13 @@ function join(player)
   updateQueue()
 end
 
-function stay(player)
+function stay(player, button)
+  if button ~= "-1" then
+    return
+  end
+
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may join the queue!")
+    player.broadcast("Only seated players may join the queue!", redColor)
     return
   end
 
@@ -274,6 +345,11 @@ function stay(player)
     end
   end
 
+  if #queue >= 10 then
+    player.broadcast("Codemaster queue is full. Please wait until someone leaves or is removed!", redColor)
+    return
+  end
+
   -- Join the player to the queue and make them stay
   table.insert(queue, {
     steam_id   = player.steam_id,
@@ -283,9 +359,13 @@ function stay(player)
   updateQueue()
 end
 
-function leave(player)
+function leave(player, button)
+  if button ~= "-1" then
+    return
+  end
+
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may leave the queue!")
+    player.broadcast("Only seated players may leave the queue!", redColor)
     return
   end
 
@@ -310,7 +390,7 @@ function changeSeat(player, to)
 
   -- Ensure the seat is empty
   if Player[to].seated then
-    player.broadcast(to .. " seat is not empty!", {0.856, 0.1, 0.094})
+    player.broadcast(to .. " seat is not empty!", redColor)
     return
   end
 
@@ -340,7 +420,7 @@ function updateQueue()
       self.UI.setAttribute("queueText" .. i, "text", queue[i].steam_name)
       self.UI.setAttributes("queueButton" .. i, {
         active  = true,
-        color   = queue[i].stay and "Green" or "White"
+        color   = queue[i].stay and "#96e592" or "White"
       })
     else
       self.UI.setAttributes("queueButton" .. i, {
@@ -351,14 +431,6 @@ function updateQueue()
     end
   end
 end
-
-queue = {}
-
-shuffleCodemasters =
-{
-  "Blue",
-  "Red"
-}
 
 function shufflePlayers()
 
@@ -416,7 +488,7 @@ function shufflePlayers()
             end
           end
 
-          if seated then
+          if seated and not nextPlayer.blindfolded then
             if nextInQueue.stay then
               table.insert(requeue, nextPlayer)
             end
@@ -424,7 +496,7 @@ function shufflePlayers()
             numCodemasters = numCodemasters + 1
             break
           else
-            nextPlayer.broadcast("You have been removed from the codemaster queue because you were not sitting when the game was started!")
+            nextPlayer.broadcast("You were removed from the codemaster queue because you were either not sitting for your turn or were AFK!", redColor)
           end
         end
       end
@@ -437,6 +509,7 @@ function shufflePlayers()
 
     -- Seat the next player
     nextPlayer.changeColor(table.remove(colors, 1))
+    coroutine.yield(0)
   end
 
   -- Requeue players if unnecessary
@@ -448,38 +521,60 @@ function shufflePlayers()
     })
   end
   updateQueue()
+  Global.call("startGame")
+  return 1
 end
 
 function swapCodemasters()
 
+  local colorPool =
+  {
+    "Blue",
+    "Red"
+  }
+
+  local requeue = {}
+
   local nextInQueue
-  while #queue > 0 do
+  while #queue > 0 and #colorPool > 0 do
     nextInQueue = table.remove(queue, 1)
     nextPlayer = findPlayerBySteamID(nextInQueue.steam_id)
 
     if nextPlayer ~= nil then
       -- Check to see they were seated
-      local seated = false
-      for i, player in ipairs(seatedPlayers) do
-        if player.steam_id == nextPlayer.steam_id then
-          seated = true
-          table.remove(seatedPlayers, i)
-          break
-        end
-      end
-
-      if seated then
+      if nextPlayer.seated and not nextPlayer.blindfolded then
         if nextInQueue.stay then
-          table.insert(requeue, nextInQueue)
+          table.insert(requeue, nextPlayer)
         end
         -- We found a valid player - break
-        break
+        local codemasterSeat = table.remove(colorPool, math.random(1, #colorPool))
+        local oldCodemaster = Player[codemasterSeat]
+        if oldCodemaster.seated then
+          local switchColor = nextPlayer.color
+          nextPlayer.changeColor("Grey")
+          coroutine.yield(0)
+          oldCodemaster.changeColor(switchColor)
+          coroutine.yield(0)
+        end
+        nextPlayer.changeColor(codemasterSeat)
+        coroutine.yield(0)
       else
-        player.broadcast("You have been removed from the codemaster queue because you were not sitting when the game was started!")
+        nextPlayer.broadcast("You were removed from the codemaster queue because you were either not sitting for your turn or were AFK!", redColor)
       end
     end
   end
 
+  -- Requeue players if unnecessary
+  for _, requeuePlayer in ipairs(requeue) do
+    table.insert(queue, {
+      steam_id   = requeuePlayer.steam_id,
+      steam_name = requeuePlayer.steam_name,
+      stay       = true
+    })
+  end
+  updateQueue()
+  Global.call("startGame")
+  return 1
 end
 
 function findPlayerBySteamID(steam_id)
