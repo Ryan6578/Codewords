@@ -69,6 +69,16 @@ function onPlayerChangeColor(color)
   end
 end
 
+function onPlayerConnect(player)
+  for _,queuePlayer in ipairs(queue) do
+    if queuePlayer.steam_id == player.steam_id then
+      queuePlayer.steam_name = player.steam_name
+      updateQueue()
+      break
+    end
+  end
+end
+
 function updateSettings()
   shuffle(nil,     Global.call("getShuffle") == true and "True" or "False")
   queues(nil,      Global.call("getQueue") == true and "True" or "False")
@@ -176,6 +186,34 @@ function tilting(player, enabled)
 
   -- Update the view for everyone
   self.UI.setAttribute("tilting", "isOn", toboolean(enabled))
+end
+
+function stars(player, enabled)
+  if player ~= nil and not player.admin then
+    self.UI.setAttribute("stars", "isOn", self.UI.getAttribute("stars", "isOn"))
+    player.broadcast("Only promoted players may change game settings!", redColor)
+    return
+  end
+
+  -- Handle in the Global script
+  Global.call("setStars", toboolean(enabled))
+
+  -- Update the view for everyone
+  self.UI.setAttribute("stars", "isOn", toboolean(enabled))
+end
+
+function lighting(player, enabled)
+  if player ~= nil and not player.admin then
+    self.UI.setAttribute("lighting", "isOn", self.UI.getAttribute("lighting", "isOn"))
+    player.broadcast("Only promoted players may change game settings!", redColor)
+    return
+  end
+
+  -- Handle in the Global script
+  Global.call("setLighting", toboolean(enabled))
+
+  -- Update the view for everyone
+  self.UI.setAttribute("lighting", "isOn", toboolean(enabled))
 end
 
 function afk(player)
@@ -378,6 +416,22 @@ function leave(player, button)
   end
 end
 
+function remove(player, queuePosition)
+  if player ~= nil and not player.admin then
+    player.broadcast("Only promoted players may remove player from the queue!", redColor)
+    return
+  end
+
+  -- Remove this player from the queue
+  local removedPlayer = findPlayerBySteamID(table.remove(queue, queuePosition).steam_id)
+  updateQueue()
+
+  if removedPlayer ~= nil then
+    -- Notify the player they've been removed
+    removedPlayer.broadcast(player.steam_name .. " has removed you from the codemaster queue!", redColor)
+  end
+end
+
 
 ----------------------------------------------------------
 --------------------[ COLOR SWITCHER ]--------------------
@@ -458,6 +512,7 @@ function shufflePlayers()
     if player.color ~= "Grey" and player.color ~= "Black" then
       table.insert(seatedPlayers, player)
       player.changeColor("Grey")
+      coroutine.yield(0)
 
       -- Add a color to the list of colors
       table.insert(colors, (#seatedPlayers % 2 == 0) and table.remove(colorPool, 1) or table.remove(colorPool, math.random(1, 2)))

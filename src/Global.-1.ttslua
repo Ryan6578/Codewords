@@ -200,6 +200,12 @@ settings =
   -- Disable/Enable "inf meta"
   cardTilting = false,
 
+  -- Show shooting star background
+  starBackground = true,
+
+  -- Show table lighting
+  tableLighting = true,
+
   -- AFK detection
   afkDetection =
   {
@@ -236,7 +242,7 @@ analytics =
 function onload(saveState)
 
   -- Codenames script version
-  version = "2.0.1"
+  version = "2.1.0"
 
   ----------[ Script object initialization ]----------
   -- Control panels and table objects
@@ -429,6 +435,23 @@ function setTilting(enabled)
 end
 function getTilting() return settings.cardTilting end
 
+function setStars(enabled)
+  settings.starBackground = enabled
+  -- Enable/Disable star background
+  spaceParticles.AssetBundle.playLoopingEffect(enabled and 0 or 1)
+end
+function getStars() return settings.starBackground end
+
+function setLighting(enabled)
+  settings.tableLighting = enabled
+  -- Enable/Disable table lighting
+  ambient_bot.setPositionSmooth({x = 0, y = enabled and 4.35 or 0, z = -26}, false, false)
+  ambient_top.setPositionSmooth({x = 0, y = enabled and 4.35 or 0, z = 26}, false, false)
+  teams_red.setPositionSmooth({x = -44, y = enabled and 4.35 or 0, z = 0}, false, false)
+  teams_blue.setPositionSmooth({x = 44, y = enabled and 4.35 or 0, z = 0}, false, false)
+end
+function getLighting() return settings.tableLighting end
+
 function setAfk(enabled)
   settings.afkDetection.enabled = enabled
   Timer.destroy("afkLoop")
@@ -551,6 +574,14 @@ function clueEntered(player, value)
       -- Clue was larger than 20 characters
       Player[color].broadcast("Clues cannot be longer than 20 characters.", redColor)
       return
+    end
+
+    -- Don't allow a clue that isn't covered
+    for cardIndex, cardData in ipairs(cards) do
+      if not cardData.covered and cardData.value:lower() == clue:lower() then
+        Player[color].broadcast("Invalid clue. That word has not been covered yet, so it may not be used!", redColor)
+        return
+      end
     end
 
     -- Track remaining clues

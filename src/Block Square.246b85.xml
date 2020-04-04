@@ -57,7 +57,8 @@
   <Text
     class="deckName"
     alignment="MiddleLeft"
-    fontSize="40">
+    fontSize="40"
+    fontStyle="Bold">
   </Text>
 
 
@@ -278,7 +279,7 @@
   <VerticalLayout spacing="10" childForceExpandHeight="false">
 
     <Text class="panelHeader">Deck Selector</Text>
-    <InputField fontSize="30" placeholder="Search for a deck..." preferredHeight="50"></InputField>
+    <InputField active="false" fontSize="30" placeholder="Search for a deck..." preferredHeight="50"></InputField>
 
     <VerticalScrollView flexibleHeight="1" scrollSensitivity="100">
       <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true" color="#23272a">
@@ -407,8 +408,8 @@
 
     <Text class="panelHeader">Game Settings</Text>
 
-    <VerticalLayout flexibleHeight="1">
-      <TableLayout padding="15 15 10 10" autoCalculateHeight="true" cellBackgroundColor="#23272a" rowBackgroundColor="#23272a">
+    <VerticalScrollView flexibleHeight="1" scrollSensitivity="100">
+      <TableLayout padding="0 0 0 0" autoCalculateHeight="true" cellBackgroundColor="#23272a" rowBackgroundColor="#23272a">
 
         <Row class="subcategoryRow">
           <Text color="#99aab5" alignment="UpperMiddle" fontSize="45">General Settings</Text>
@@ -501,6 +502,20 @@
         </Row>
 
         <Row class="subcategoryRow">
+          <Text class="subcategoryText">Appearance Settings</Text>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Enable Shooting Star Background</Text></Cell>
+          <Cell><Toggle id="stars" class="settingToggle" isOn="true" onValueChanged="stars()"></Toggle></Cell>
+        </Row>
+
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Enable Table Lighting</Text></Cell>
+          <Cell><Toggle id="lighting" class="settingToggle" isOn="true" onValueChanged="lighting()"></Toggle></Cell>
+        </Row>
+
+        <Row class="subcategoryRow">
           <Text class="subcategoryText">Automod Settings</Text>
         </Row>
 
@@ -510,7 +525,7 @@
         </Row>
 
       </TableLayout>
-    </VerticalLayout>
+    </VerticalScrollView>
   </VerticalLayout>
 </Panel>
 
@@ -528,62 +543,62 @@
     <VerticalLayout flexibleHeight="1">
       <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true">
 
-        <Row preferredHeight="75">
-          <Button id="queueButton1" class="queueButton" color="#ffffff">
+        <Row id="reorder1" preferredHeight="75">
+          <Button id="queueButton1" class="queueButton" color="#ffffff" onclick="remove(1)">
             <Text id="queueText1" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton2" class="queueButton" color="#ffffff">
+          <Button id="queueButton2" class="queueButton" color="#ffffff" onclick="remove(2)">
             <Text id="queueText2" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton3" class="queueButton" color="#ffffff">
+          <Button id="queueButton3" class="queueButton" color="#ffffff" onclick="remove(3)">
             <Text id="queueText3" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton4" class="queueButton" color="#ffffff">
+          <Button id="queueButton4" class="queueButton" color="#ffffff" onclick="remove(4)">
             <Text id="queueText4" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton5" class="queueButton" color="#ffffff">
+          <Button id="queueButton5" class="queueButton" color="#ffffff" onclick="remove(5)">
             <Text id="queueText5" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton6" class="queueButton" color="#ffffff">
+          <Button id="queueButton6" class="queueButton" color="#ffffff" onclick="remove(6)">
             <Text id="queueText6" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton7" class="queueButton" color="#ffffff">
+          <Button id="queueButton7" class="queueButton" color="#ffffff" onclick="remove(7)">
             <Text id="queueText7" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton8" class="queueButton" color="#ffffff">
+          <Button id="queueButton8" class="queueButton" color="#ffffff" onclick="remove(8)">
             <Text id="queueText8" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton9" class="queueButton" color="#ffffff">
+          <Button id="queueButton9" class="queueButton" color="#ffffff" onclick="remove(9)">
             <Text id="queueText9" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
 
         <Row preferredHeight="75">
-          <Button id="queueButton10" class="queueButton" color="#ffffff">
+          <Button id="queueButton10" class="queueButton" color="#ffffff" onclick="remove(10)">
             <Text id="queueText10" class="queueText" fontSize="50"></Text>
           </Button>
         </Row>
