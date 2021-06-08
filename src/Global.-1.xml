@@ -268,3 +268,29 @@
        </InputField>
 
 </Panel>
+
+<!--<Panel id="redTeamStatus"
+       visibility="Orange|Yellow|Pink|Brown"
+       rectAlignment="LowerCenter"
+       color="Red"
+       height="75"
+       width="650"
+       outline="#ffffff"
+       outlineSize="2 -2">
+
+       <Text id="redClueWaiting" active="false" color="#ffffff" fontStyle="Bold" fontSize="25">Waiting for clue...</Text>
+
+        <TableLayout cellBackgroundColor="rgba(1,1,1,0)">
+          <Row>
+            <Cell><Text color="#ffffff" fontStyle="Italic">─── Clue ───</Text></Cell>
+            <Cell><Text color="#ffffff" fontStyle="Italic">── Guesses Left ──</Text></Cell>
+            <Cell><Text color="#ffffff" fontStyle="Italic">── Time Left ──</Text></Cell>
+          </Row>
+          <Row>
+            <Cell><Text alignment="UpperCenter" color="#ffffff" fontStyle="Bold" fontSize="27">Animalstetingweofqiweof</Text></Cell>
+            <Cell><Text alignment="UpperCenter" color="#ffffff" fontStyle="Bold" fontSize="27">6</Text></Cell>
+            <Cell><Text alignment="UpperCenter" color="#ffffff" fontStyle="Bold" fontSize="27">1:34</Text></Cell>
+          </Row>
+        </TableLayout>
+
+</Panel>-->
