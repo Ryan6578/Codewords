@@ -724,7 +724,11 @@
 
       </TableLayout>
     </VerticalScrollView>
-    <Button preferredHeight="175" color="#31b32b" onClick="startGame()"><Text color="#ffffff" fontSize="65">Start Game</Text></Button>
+    <HorizontalLayout childForceExpandHeight="false">
+      <Button preferredHeight="150" fontSize="65" fontStyle="Bold" id="deckModeSwitch" onClick="deckMode()">+</Button>
+      <Button preferredHeight="150" preferredWidth="500" color="#31b32b" onClick="startGame()"><Text color="#ffffff" fontSize="65">Start Game</Text></Button>
+      <Button preferredHeight="150" fontSize="65" fontStyle="Bold" onClick="refreshDecks()">↻</Button>
+    </HorizontalLayout>
   </VerticalLayout>
 </Panel>
 
@@ -969,10 +973,11 @@
 </Panel>
 
 <!-- Credits / Versioning -->
-<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.0.0-beta (git-BETA)</Text>
+<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.1.0-BETA (git-BETA)</Text>
 <Text position="3500 -3050 -100" fontSize="75" color="#3d3a39">Made with <textcolor color="#4c2936"><textsize size="85">♥</textsize></textcolor> by Rob Ford</Text>
 <Text position="0 2800 -100" fontSize="100" color="#ffffff">TTS-CODENAMES.COM</Text>
-<Button position="0 2500 -100" color="Black" width="1000" height="350" onClick="reloadUI">
+<Text position="0 2600 -100" width="3000" fontSize="90" color="Yellow">TTS-Codenames is hosting a Codenames tournament! Each winner receives a $15 Steam gift card. Find out more or register here: <textcolor color="#f4641d">https://tts-codenames.com/tournament</textcolor></Text>
+<Button position="0 2250 -100" color="Black" width="1000" height="350" onClick="reloadUI">
   <VerticalLayout>
     <Text color="Red" width="100%" alignment="LowerCenter" fontSize="75">TEMPORARY FIX</Text>
     <Text color="White" width="100%" alignment="UpperCenter" fontSize="75">Click here to fix visual issues</Text>

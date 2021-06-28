@@ -115,7 +115,7 @@ function startTimer(time)
   local timerColor = "White"
   if timeLeft <= 10 then
     timerColor = "Red"
-    broadcastToAll(timeLeft == 0 and "Time's up!" or (tostring(timeLeft) .. " seconds remaining!"), redColor)
+    broadcastToAll("[a020f0]» [ffffff]" .. (timeLeft == 0 and "Time's up!" or (tostring(timeLeft) .. " seconds remaining!")) .. " [a020f0]«")
   elseif timeLeft <= 30 then
     timerColor = "Yellow"
   end
@@ -150,7 +150,7 @@ function tickTimer()
     -- Play the ticking sound
     self.AssetBundle.playTriggerEffect(3)
 
-    broadcastToAll(timeLeft == 0 and "Time's up!" or (tostring(timeLeft) .. " seconds remaining!"), redColor)
+    broadcastToAll("[a020f0]» [ffffff]" .. (timeLeft == 0 and "Time's up!" or (tostring(timeLeft) .. " seconds remaining!")) .. " [a020f0]«")
   elseif timeLeft <= 30 then
     timerColor = "Yellow"
   end
@@ -174,7 +174,7 @@ function toggleTimer(player, button)
   end
 
   if player.color ~= "Red" and player.color ~= "Blue" and not player.admin then
-    player.broadcast("Only Codemasters or promoted players may control the timer!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only Codemasters or promoted players may control the timer! [a020f0]«")
     return
   end
 
@@ -232,7 +232,7 @@ end
 function shuffle(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("shuffle", "isOn", self.UI.getAttribute("shuffle", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -246,7 +246,7 @@ end
 function queues(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("queues", "isOn", self.UI.getAttribute("queues", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -267,7 +267,7 @@ end
 function switcher(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("switcher", "isOn", self.UI.getAttribute("switcher", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -306,7 +306,7 @@ end
 function tilting(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("tilting", "isOn", self.UI.getAttribute("tilting", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -320,7 +320,7 @@ end
 function afk(player)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("afk", "isOn", self.UI.getAttribute("afk", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -340,7 +340,7 @@ end
 function timer(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("timer", "isOn", self.UI.getAttribute("timer", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -354,7 +354,7 @@ end
 function timer1Time(player, value)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("timer1Time", "value", self.UI.getAttribute("timer1Time", "value"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -369,7 +369,7 @@ end
 function timer2Time(player, value)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("timer2Time", "value", self.UI.getAttribute("timer2Time", "value"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -384,7 +384,7 @@ end
 function autokick(player, enabled)
   if player ~= nil and not player.admin then
     self.UI.setAttribute("autokick", "isOn", self.UI.getAttribute("autokick", "isOn"))
-    player.broadcast("Only promoted players may change game settings!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
     return
   end
 
@@ -406,16 +406,25 @@ function setDeck(player, deck, button)
 
   if player.color == "Red" or player.color == "Blue" or player.admin then
     Global.call("setDeck", deck)
+
+    local multipleDeckMode = Global.call("getMultipleDeckMode")
     for i = 1, 20, 1 do
       local buttonName = "deck" .. i .. "Button"
       if buttonName == button then
-        self.UI.setAttribute(buttonName, "color", "#aaeaa7")
+        local currentColor = self.UI.getAttribute(buttonName, "color")
+        if multipleDeckMode and currentColor == "#aaeaa7" then
+          self.UI.setAttribute(buttonName, "color", "#ffffff")
+        else
+          self.UI.setAttribute(buttonName, "color", "#aaeaa7")
+        end
       else
-        self.UI.setAttribute(buttonName, "color", "#ffffff")
+        if not multipleDeckMode then
+          self.UI.setAttribute(buttonName, "color", "#ffffff")
+        end
       end
     end
   else
-    player.broadcast("Only Codemasters or promoted players may select a deck!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only Codemasters or promoted players may select a deck! [a020f0]«")
   end
 end
 
@@ -427,7 +436,46 @@ function startGame(player, button)
   if player.color == "Red" or player.color == "Blue" or player.admin then
     Global.call("startGame", player)
   else
-    player.broadcast("Only Codemasters or promoted players may start the game!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only Codemasters or promoted players may start the game! [a020f0]«")
+  end
+end
+
+function refreshDecks(player, button)
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  Global.call("api_getDecks", player)
+  player.broadcast("[a020f0]» [ffffff]Deck list refreshed! [a020f0]«", redColor)
+end
+
+function deckMode(player, button)
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  if player.color == "Red" or player.color == "Blue" or player.admin then
+    Global.call("toggleDeckMode", player)
+  else
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only Codemasters or promoted players may change the deck mode! [a020f0]«")
+  end
+
+  local multipleDeckMode = Global.call("getMultipleDeckMode")
+
+  if not multipleDeckMode then
+    Global.call("setDeck", nil)
+    for i = 1, 20, 1 do
+      local buttonName = "deck" .. i .. "Button"
+      self.UI.setAttribute(buttonName, "color", "#ffffff")
+    end
+  end
+
+  if multipleDeckMode then
+    self.UI.setAttribute("deckModeSwitch", "color", "#96e592")
+    player.broadcast("[a020f0]» [ffffff]Multiple deck mode: [31b32b]ENABLED [a020f0]«")
+  else
+    self.UI.setAttribute("deckModeSwitch", "color", "#ffffff")
+    player.broadcast("[a020f0]» [ffffff]Multiple deck mode: [da1918]DISABLED [a020f0]«")
   end
 end
 
@@ -441,7 +489,7 @@ function join(player, button)
   end
 
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may join the queue!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only seated players may join the queue! [a020f0]«")
     return
   end
 
@@ -457,7 +505,7 @@ function join(player, button)
   end
 
   if #queue >= 10 then
-    player.broadcast("Codemaster queue is full. Please wait until someone leaves or is removed!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Codemaster queue is full. Please wait until someone leaves or is removed! [a020f0]«")
     return
   end
 
@@ -476,7 +524,7 @@ function stay(player, button)
   end
 
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may join the queue!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only seated players may join the queue! [a020f0]«")
     return
   end
 
@@ -492,7 +540,7 @@ function stay(player, button)
   end
 
   if #queue >= 10 then
-    player.broadcast("Codemaster queue is full. Please wait until someone leaves or is removed!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Codemaster queue is full. Please wait until someone leaves or is removed! [a020f0]«")
     return
   end
 
@@ -511,7 +559,7 @@ function leave(player, button)
   end
 
   if player.color == "Grey" or player.color == "Black" then
-    player.broadcast("Only seated players may leave the queue!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only seated players may leave the queue! [a020f0]«")
     return
   end
 
@@ -527,7 +575,7 @@ end
 
 function remove(player, queuePosition)
   if player ~= nil and not player.admin then
-    player.broadcast("Only promoted players may remove player from the queue!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may remove player from the queue! [a020f0]«")
     return
   end
 
@@ -537,7 +585,7 @@ function remove(player, queuePosition)
 
   if removedPlayer ~= nil then
     -- Notify the player they've been removed
-    removedPlayer.broadcast(player.steam_name .. " has removed you from the codemaster queue!", redColor)
+    removedPlayer.broadcast("[a020f0]» [ffffff]" .. player.steam_name .. " has removed you from the codemaster queue! [a020f0]«")
   end
 end
 
@@ -552,7 +600,7 @@ function changeSeat(player, to)
 
   -- Ensure the seat is empty
   if Player[to].seated then
-    player.broadcast(to .. " seat is not empty!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]" .. to .. " seat is not empty! [a020f0]«")
     return
   end
 
@@ -657,7 +705,7 @@ function shufflePlayers()
             numCodemasters = numCodemasters + 1
             break
           else
-            nextPlayer.broadcast("You were removed from the codemaster queue because you were either not sitting for your turn or were AFK!", redColor)
+            nextPlayer.broadcast("[a020f0]» [ffffff]You were removed from the codemaster queue because you were either not sitting for your turn or were AFK! [a020f0]«")
           end
         end
       end
@@ -720,7 +768,7 @@ function swapCodemasters()
         nextPlayer.changeColor(codemasterSeat)
         coroutine.yield(0)
       else
-        nextPlayer.broadcast("You were removed from the codemaster queue because you were either not sitting for your turn or were AFK!", redColor)
+        nextPlayer.broadcast("[a020f0]» [ffffff]You were removed from the codemaster queue because you were either not sitting for your turn or were AFK! [a020f0]«")
       end
     end
   end

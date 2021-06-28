@@ -194,8 +194,11 @@ settings =
 ----------[ Decks ]----------
 deck =
 {
-  -- The currently selected deck
-  selected = nil,
+  -- The currently selected deck(s)
+  selected = {},
+
+  -- Whether or not multiple deck mode is enabled
+  multiple = false,
 
   -- The current words for the selected deck
   words = nil
@@ -255,9 +258,18 @@ function onload(saveState)
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
   })
 
+  -- Make agents non-selectable
+  for agentGUID, agentData in pairs(agents) do
+    local agentObject = getObjectFromGUID(agentGUID)
+    if agentObject then
+      agentObject.drag_selectable = false
+    end
+  end
+
   -- Change seated players views
   seatedPlayers = Player.getPlayers()
   for _, player in ipairs(seatedPlayers) do
+    player.print(chatDisclaimer, {1, 1, 1})
     Wait.frames(function()
       player.lookAt({
         position = {0, 0, 0},
@@ -267,6 +279,12 @@ function onload(saveState)
       })
     end, 1)
   end
+
+  -- TEMP: Reload the UI to fix TTS UI bugs
+  Wait.frames(function()
+    tableObject.UI.setXml(tableObject.UI.getXml())
+    reloadCardUI()
+  end, 180)
 
   -- Load save state - if one exists
   if saveState != "" then
@@ -352,23 +370,6 @@ function setTilting(enabled)
 end
 function getTilting() return settings.cardTilting end
 
-function setStars(enabled)
-  settings.starBackground = enabled
-  -- Enable/Disable star background
-  spaceParticles.AssetBundle.playLoopingEffect(enabled and 0 or 1)
-end
-function getStars() return settings.starBackground end
-
-function setLighting(enabled)
-  settings.tableLighting = enabled
-  -- Enable/Disable table lighting
-  ambient_bot.setPositionSmooth({x = 0, y = enabled and 4.35 or 0, z = -26}, false, false)
-  ambient_top.setPositionSmooth({x = 0, y = enabled and 4.35 or 0, z = 26}, false, false)
-  teams_red.setPositionSmooth({x = -44, y = enabled and 4.35 or 0, z = 0}, false, false)
-  teams_blue.setPositionSmooth({x = 44, y = enabled and 4.35 or 0, z = 0}, false, false)
-end
-function getLighting() return settings.tableLighting end
-
 function setAfk(enabled)
   settings.afkDetection.enabled = enabled
   Timer.destroy("afkLoop")
@@ -401,6 +402,9 @@ function getTimer2Time() return settings.timer.subsequent end
 
 function setAutokick(enabled) settings.automod.autokick = enabled end
 function getAutokick() return settings.automod.autokick end
+
+function toggleDeckMode() deck.multiple = not deck.multiple end
+function getMultipleDeckMode() return deck.multiple end
 
 function afkCheckLoop()
   -- Temporarily removed
@@ -470,13 +474,13 @@ function clueEntered(player, value)
 
     -- if the game hasn't been started, a clue cannot be entered
     if gameState.status ~= 1 then
-      Player[color].broadcast("You must start a game to enter a clue.", redColor)
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]You must start a game to enter a clue! [a020f0]«")
       return
     end
 
     -- Make sure that it's the current codemaster's turn
     if (color == "Blue" and gameState.turnTracker == 0) or (color == "Red" and gameState.turnTracker == 1) then
-      Player[color].broadcast("It's not your turn to enter a clue.", redColor)
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to enter a clue! [a020f0]«")
       return
     end
 
@@ -489,22 +493,22 @@ function clueEntered(player, value)
     -- Handle clue parsing errors
     if error then
       -- Clue wasn't able to be parsed - general error
-      Player[color].broadcast("Invalid clue. Please enter a valid clue and push ENTER!", redColor)
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Invalid clue. Please enter a valid clue and push ENTER! [a020f0]«")
       return
     elseif number != "inf" and tonumber(number) > 9 then
       -- Clue was larger than 9 words (not 0 or inf)
-      Player[color].broadcast("Clues cannot be for more than 9 words.", redColor)
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Clues cannot be for more than 9 words. [a020f0]«")
       return
     elseif string.len(clue) > 20 then
       -- Clue was larger than 20 characters
-      Player[color].broadcast("Clues cannot be longer than 20 characters.", redColor)
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Clues cannot be longer than 20 characters. [a020f0]«")
       return
     end
 
     -- Don't allow a clue that isn't covered
     for cardIndex, cardData in ipairs(cards) do
       if not cardData.covered and cardData.value:lower() == clue:lower() then
-        Player[color].broadcast("Invalid clue. That word has not been covered yet, so it may not be used!", redColor)
+        Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Invalid clue. That word has not been covered yet, so it may not be used! [a020f0]«")
         return
       end
     end
@@ -683,9 +687,9 @@ function encodeClue(color, clue)
       .. "})\n"
     .. "end\n"
   )
-  printToAll(color .. " team's clue is: " .. clue, color)
+  printToAll("[a020f0]» " .. (color == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's clue is: " .. (color == "Red" and "[da1918]" or "[1f87ff]") .. clue .. " [a020f0]«")
   for _, playerColor in ipairs(broadcastTo) do
-    Player[playerColor].broadcast("Your clue is: " .. clue, color)
+    Player[playerColor].broadcast("[a020f0]» [ffffff]Your clue is: " .. (color == "Red" and "[da1918]" or "[1f87ff]") .. clue .. " [a020f0]«")
   end
 end
 
@@ -706,19 +710,25 @@ function onPlayerConnect(player)
     if responseRaw.is_done then
       local response = JSON.decode(responseRaw.text)
 
-      if response.dateAdded ~= nil then
+      if response.record and response.record.dateAdded ~= nil then
         if settings.automod.autokick then
           player.kick()
         end
         printToAll("\n", {1, 1, 1})
         printToAll(player.steam_name .. " was found in the global Codenames blacklist!", redColor)
         printToAll("SteamID     : " .. player.steam_id, redColor)
-        printToAll("Date Added  : " .. response.dateAdded, redColor)
-        printToAll("Reason      : " .. response.reason, redColor)
+        printToAll("Date Added  : " .. response.record.dateAdded, redColor)
+        printToAll("Reason      : " .. response.record.reason, redColor)
         printToAll("\n", {1, 1, 1})
       end
     end
   end)
+
+  -- TEMP: Reload the UI to fix TTS UI bugs
+  Wait.frames(function()
+    tableObject.UI.setXml(tableObject.UI.getXml())
+    reloadCardUI()
+  end, 180)
 end
 
 function onPlayerDisconnect(player)
@@ -777,8 +787,6 @@ function onPlayerChangeColor(color)
   end
 
   if color ~= "Grey" and color ~= "Black" then
-    announceTeam(color)
-
     if gameState.status == 1 and analytics.sessions[Player[color].steam_id] == nil then
       api_playerSessionStart(Player[color].steam_id)
     end
@@ -787,26 +795,6 @@ function onPlayerChangeColor(color)
       api_playerSessionEnd(sessionID)
     end
   end
-end
-
-function announceTeam(color)
-  Wait.frames(
-    function()
-      if Player[color].seated == false then
-        return
-      end
-      UI.show(color .. 'Announce')
-      Wait.frames(
-        function()
-          if Player[color].seated == false then
-            UI.setAttribute(color .. 'Announce', 'active', 'false')
-            return
-          end
-          UI.hide(color .. 'Announce')
-        end, 100
-      )
-    end, 50
-  )
 end
 
 function startTime()
@@ -821,21 +809,42 @@ end
 
 -- Deck fetching
 function setDeck(deckID)
-  -- See if the current deck exists in the cache first
-  deck.selected = deckID
+  if deckID == nil then
+    deck.selected = {}
+    return
+  end
+
+  if not deck.multiple then
+    deck.selected = { deckID }
+  else
+    local exists = 0
+    for deckIndex, deckGUID in ipairs(deck.selected) do
+      if deckGUID == deckID then
+        exists = deckIndex
+      end
+    end
+
+    if exists == 0 then
+      -- Insert the deck into the selected list
+      table.insert(deck.selected, deckID)
+    else
+      -- Remove the deck from the list
+      table.remove(deck.selected, exists)
+    end
+  end
 end
 
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function startGame(player)
   -- Check to see whether a new game is currently being set up
   if gameState.status == 0 then
-    player.broadcast("A new game is already starting. Please wait.", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]A new game is already starting. Please wait. [a020f0]«")
     return
   end
 
   -- Check to see if a deck has been chosen
-  if deck.selected == nil then
-    player.broadcast("You must select a deck before starting.", redColor)
+  if #deck.selected == 0 then
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]You must select a deck before starting. [a020f0]«")
     return
   end
 
@@ -949,7 +958,7 @@ function setupGame()
   tableObject.UI.setAttribute(previousTurn .. "BG", "active", false)
   tableObject.UI.setAttribute(currentTurn .. "BG", "active", true)
   tableObject.UI.setAttribute("timer", "outline", teamColorTurn)
-  printToAll(teamColorTurn .. " team's turn.", agents[extraCard.guid].color)
+  printToAll("[a020f0]» " .. (teamColorTurn == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's turn! [a020f0]«")
 
   dealCards()
 
@@ -1040,7 +1049,7 @@ function onObjectDrop(color, agent)
   local cardColor = cards[cardIndex].color
   if cardColor ~= agentColor then
     agent.setPositionSmooth(agents[agent.guid].position)
-    Player[color].broadcast("An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. cardColor .. " card.", redColor)
+    Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. cardColor .. " card. [a020f0]«")
     return
   end
 
@@ -1060,12 +1069,22 @@ function onObjectDrop(color, agent)
   end
   api_clueGuess(players, cards[cardIndex].id, correct, cardColor:upper())
 
+  local messageColor = {
+    ["Red"] = "da1918",
+    ["Blue"] = "1f87ff",
+    ["White"] = "ffffff",
+    ["Black"] = "191919"
+  }
+
   if correct == "TRUE" then
     -- Play the correct sound effect
     tableObject.AssetBundle.playTriggerEffect(0)
+    printToAll("[a020f0]» [31b32b][✓] [" .. messageColor[cardColor] .. "]" .. cardColor:upper() .. " [ffffff]team has correctly guessed: [" .. messageColor[cardColor]  .."]" .. cards[cardIndex].value:upper() .. " [a020f0]«")
   else
     -- Play the wrong sound effect
     tableObject.AssetBundle.playTriggerEffect(1)
+    local guessingTeam = gameState.turnTracker == 0 and "Red" or "Blue"
+    printToAll("[a020f0]» [da1918][✗] [" .. messageColor[guessingTeam] .. "]" .. guessingTeam:upper() .. " [ffffff]team has incorrectly guessed: [" .. messageColor[cardColor]  .."]" .. cards[cardIndex].value:upper() .. " [a020f0]«")
   end
 
   -- Check to see if either red or blue won
@@ -1091,12 +1110,12 @@ function onObjectDrop(color, agent)
     if (agentColor == "Black" and gameState.turnTracker == 0) or blueWon then
       -- Red placed black card, blue wins
       -- or blue placed all of their cards
-      broadcastToAll("Blue team wins!", blueColor)
+      broadcastToAll("[a020f0]» [1f87ff]BLUE [ffffff]team wins! [a020f0]«")
       api_gameEnd("BLUE")
     elseif (agentColor == "Black" and gameState.turnTracker == 1) or redWon then
       -- Blue placed black card, red wins
       -- or red placed all of their cards
-      broadcastToAll("Red team wins!", redColor)
+      broadcastToAll("[a020f0]» [da1918]RED [ffffff]team wins! [a020f0]«")
       api_gameEnd("RED")
     end
 
@@ -1121,13 +1140,13 @@ function playerVote(color, card)
   end
 
   if color == "Red" or color == "Blue" or color == "Black" then
-    Player[color].broadcast('You cannot vote!', redColor)
+    Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]You cannot vote! [a020f0]«")
     return
   elseif votes[gameState.turnTracker][color] == nil then
-    Player[color].broadcast('It\'s not your turn to vote!', redColor)
+    Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to vote! [a020f0]«")
     return
   elseif not gameState.canVote then
-    Player[color].broadcast('You can\'t vote until you\'ve been given a clue!', redColor)
+    Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]You can't vote until you've been given a clue! [a020f0]«")
     return
   end
 
@@ -1201,12 +1220,22 @@ function playerVote(color, card)
     end
     api_clueGuess(players, cards[card].id, correct, cards[card].color:upper())
 
+    local messageColor = {
+      ["Red"] = "da1918",
+      ["Blue"] = "1f87ff",
+      ["White"] = "ffffff",
+      ["Black"] = "191919"
+    }
+
     if correct == "TRUE" then
       -- Play the correct sound effect
       tableObject.AssetBundle.playTriggerEffect(0)
+      printToAll("[a020f0]» [31b32b][✓] [" .. messageColor[cards[card].color] .. "]" .. cards[card].color:upper() .. " [ffffff]team has correctly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
     else
       -- Play the wrong sound effect
       tableObject.AssetBundle.playTriggerEffect(1)
+      local guessingTeam = gameState.turnTracker == 0 and "Red" or "Blue"
+      printToAll("[a020f0]» [da1918][✗] [" .. messageColor[guessingTeam] .. "]" .. guessingTeam:upper() .. " [ffffff]team has incorrectly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
     end
 
     -- Check to see if either red or blue won
@@ -1231,12 +1260,12 @@ function playerVote(color, card)
       if (cards[card].color == "Black" and gameState.turnTracker == 0) or blueWon then
         -- Red placed black card, blue wins
         -- or blue placed all of their cards
-        broadcastToAll("Blue team wins!", blueColor)
+        broadcastToAll("[a020f0]» [1f87ff]BLUE [ffffff]team wins! [a020f0]«")
         api_gameEnd("BLUE")
       elseif (cards[card].color == "Black" and gameState.turnTracker == 1) or redWon then
         -- Blue placed black card, red wins
         -- or red placed all of their cards
-        broadcastToAll("Red team wins!", redColor)
+        broadcastToAll("[a020f0]» [da1918]RED [ffffff]team wins! [a020f0]«")
         api_gameEnd("RED")
       end
 
@@ -1385,17 +1414,25 @@ function onPlayerAction(player, action, objects)
   end
 
   local objectIncludesCard = false
+  local objectIncludesAgent = false
 
   -- See if there is a card included in the table of objects
   for _, object in ipairs(objects) do
     if isCard(object.guid) then
       objectIncludesCard = true
-      break
+    elseif agents[object.guid] ~= nil then
+      objectIncludesAgent = true
     end
   end
 
   if objectIncludesCard and (player.color == "Blue" or player.color == "Red" or player.color == "Black") then
-    player.broadcast("You're not allowed to do that!", redColor)
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]You're not allowed to do that! [a020f0]«")
+    return false
+  end
+
+  -- Disable interacting with agents if player isn't a codemaster
+  if objectIncludesAgent and player.color ~= "Blue" and player.color ~= "Red" then
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]You're not allowed to do that! [a020f0]«")
     return false
   end
 
@@ -1404,21 +1441,21 @@ function onPlayerAction(player, action, objects)
 
   if action == Player.Action.PickUp then
     if objectIncludesCard and not isPlayerTurn then
-      errorMessage = "It's not your turn to vote!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to vote! [a020f0]«"
     elseif settings.cardTilting and gameState.status == 1 and not gameState.canVote then
-      errorMessage = "You can't vote until you've been given a clue!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't vote until you've been given a clue! [a020f0]«"
     end
   elseif action == Player.Action.RotateIncrementalLeft or action == Player.Action.RotateIncrementalRight or action == Player.Action.RotateOver then
     if objectIncludesCard and not isPlayerTurn then
-      errorMessage = "You can't tilt cards when it's not your turn!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't tilt cards when it's not your turn! [a020f0]«"
     elseif settings.cardTilting and gameState.status == 1 and not gameState.canVote then
-      errorMessage = "You can't tilt cards until you've been given a clue!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't tilt cards until you've been given a clue! [a020f0]«"
     end
   elseif action == Player.Action.FlipIncrementalLeft or action == Player.Action.FlipIncrementalRight or action == Player.Action.FlipOver then
     if objectIncludesCard and not isPlayerTurn then
-      errorMessage = "You can't flip cards when it's not your turn!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't flip cards when it's not your turn! [a020f0]«"
     elseif settings.cardTilting and gameState.status == 1 and not gameState.canVote then
-      errorMessage = "You can't flip cards until you've been given a clue!"
+      errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't flip cards until you've been given a clue! [a020f0]«"
     end
   end
 
@@ -1525,6 +1562,14 @@ function onChat(message, player)
     reloadCardUI()
     printToAll(player.steam_name .. " has reloaded the UI!", redColor)
     ranCommand = true
+  elseif command == "!cinematic" then
+    player.lookAt({
+      position = {0, 0, 0},
+      pitch    = 90,
+      yaw      = 0,
+      distance = 55
+    })
+    ranCommand = true
   end
 
   if ranCommand then
@@ -1625,7 +1670,7 @@ function toggleTurns()
   tableObject.UI.setAttribute(previousTurn .. "BG", "active", false)
   tableObject.UI.setAttribute(currentTurn .. "BG", "active", true)
   tableObject.UI.setAttribute("timer", "outline", teamColorTurn)
-  printToAll(teamColorTurn .. " team's turn.", teamColorTurn)
+  printToAll("[a020f0]» " .. (teamColorTurn == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's turn! [a020f0]«")
 
   startTime()
 end
@@ -1732,10 +1777,18 @@ function api_gameStart()
   local request =
   {
     host    = analytics.host,
-    deck    = deck.selected,
+    decks   = "",
     first   = gameState.turnTracker == 0 and "RED" or "BLUE",
     players = ""
   }
+
+  for deckIndex, deck in ipairs(deck.selected) do
+    if deckIndex == 1 then
+      request.decks = request.decks .. deck
+    else
+      request.decks = request.decks .. "," .. deck
+    end
+  end
 
   for _, player in ipairs(Player.getPlayers()) do
     local color = player.color
