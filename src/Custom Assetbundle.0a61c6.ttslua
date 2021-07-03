@@ -93,9 +93,12 @@ function updateSettings()
 end
 
 function reloadUI(player)
-  self.UI.setXml(self.UI.getXml())
-  Global.call("reloadCardUI")
-  printToAll(player.steam_name .. " has reloaded the UI!", redColor)
+  if lastReloadUI == nil or Time.time - lastReloadUI > 5 then
+	  self.UI.setXml(self.UI.getXml())
+	  Global.call("reloadCardUI")
+	  printToAll(player.steam_name .. " has reloaded the UI!", redColor)
+  end
+  lastReloadUI = Time.time
 end
 
 ---------------------------------------------------------------
