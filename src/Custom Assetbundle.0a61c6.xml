@@ -962,7 +962,56 @@
 <Text id="blueTurn" active="false" position="750 1800 -100" color="Blue" fontSize="1000">➔</Text>
 
 <!-- Table background -->
-<Image position="0 -457 -100" scale="0.655 0.655 1" preserveAspect="true" raycastTarget="false" image="bg"></Image>
+<!-- Blue team box -->
+<Panel position="1565 479 -100" width="20" height="1696" color="rgba(0.122 0.529 1 1)"/>
+<Panel position="2643 479 -100" width="20" height="1696" color="rgba(0.122 0.529 1 1)"/>
+<Panel position="2104 1317 -100" width="1098" height="20" color="rgba(0.122 0.529 1 1)"/>
+<Panel position="2104 -359 -100" width="1098" height="20" color="rgba(0.122 0.529 1 1)"/>
+
+<!-- Red team box -->
+<Panel position="-1565 479 -100" width="20" height="1696" color="rgba(0.855 0.098 0.094 1)"/>
+<Panel position="-2643 479 -100" width="20" height="1696" color="rgba(0.855 0.098 0.094 1)"/>
+<Panel position="-2104 1317 -100" width="1098" height="20" color="rgba(0.855 0.098 0.094 1)"/>
+<Panel position="-2104 -359 -100" width="1098" height="20" color="rgba(0.855 0.098 0.094 1)"/>
+
+<!-- Card boxes -->
+<!-- Topleft white corner -->
+<Panel position="-1440 1268 -100" width="10" height="393" color="White"/>
+<Panel position="-1154 1460 -100" width="582" height="10" color="White"/>
+<!-- Topright white corner -->
+<Panel position="1440 1268 -100" width="10" height="393" color="White"/>
+<Panel position="1154 1460 -100" width="582" height="10" color="White"/>
+<!-- Bottomleft white corner -->
+<Panel position="-1440 -291 -100" width="11" height="393" color="White"/>
+<Panel position="-1154 -482 -100" width="582" height="11" color="White"/>
+<!-- Bottomright white corner -->
+<Panel position="1440 -291 -100" width="11" height="393" color="White"/>
+<Panel position="1154 -482 -100" width="582" height="11" color="White"/>
+
+<!-- Top red cards -->
+<Panel position="-3236 -1300 -100" width="11" height="235" color="White"/>
+<Panel position="-2073 -1187 -100" width="2335" height="11" color="White"/>
+<Panel position="-910 -1300 -100" width="11" height="235" color="White"/>
+<!-- Bottom red cards -->
+<Panel position="-3236 -1883 -100" width="11" height="235" color="White"/>
+<Panel position="-2073 -1996 -100" width="2335" height="11" color="White"/>
+<Panel position="-910 -1883 -100" width="11" height="235" color="White"/>
+<!-- Top white cards -->
+<Panel position="-871 -1300 -100" width="11" height="235" color="White"/>
+<Panel position="1 -1187 -100" width="1752" height="11" color="White"/>
+<Panel position="872 -1300 -100" width="11" height="235" color="White"/>
+<!-- Bottom white cards -->
+<Panel position="-871 -2072 -100" width="11" height="613" color="White"/>
+<Panel position="1 -2374 -100" width="1752" height="11" color="White"/>
+<Panel position="872 -2072 -100" width="11" height="613" color="White"/>
+<!-- Top blue cards -->
+<Panel position="911 -1300 -100" width="11" height="235" color="White"/>
+<Panel position="2074 -1187 -100" width="2335" height="11" color="White"/>
+<Panel position="3237 -1300 -100" width="11" height="235" color="White"/>
+<!-- Bottom blue cards -->
+<Panel position="911 -1883 -100" width="11" height="235" color="White"/>
+<Panel position="2074 -1996 -100" width="2335" height="11" color="White"/>
+<Panel position="3237 -1883 -100" width="11" height="235" color="White"/>
 
 <!-- Blue team turn -->
 <Panel id="blueTurnBG" active="false" position="2104 479 -100" width="1060" height="1656" color="rgba(0.118, 0.53, 1, 0.05)">
