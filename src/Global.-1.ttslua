@@ -473,7 +473,7 @@ function clueEntered(player, value)
     -- has the current clue selected, and thus accidentally replaces it with just '\n' when pressing 'Enter'
     if currentEnteredClue[color] then
       value = currentEnteredClue[color]
-      currentEnteredClue[player.color] = nil
+      currentEnteredClue[color] = nil
     end
 
     -- Reset the text box
