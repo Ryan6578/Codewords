@@ -337,6 +337,9 @@ function onload(saveState)
       repetitions    = 0
     })
   end
+
+  -- Create variable for storing typed clues
+  currentEnteredClue = {}
 end
 
 function onSave()
@@ -462,8 +465,16 @@ function reloadCardUI()
 end
 
 function clueEntered(player, value)
-  if value:match("\n") then
-    local color = player.color
+  local color = player.color
+  if not value:match("\n") then
+    currentEnteredClue[color] = value
+  else
+    -- Using the clue entered before 'Enter' was pressed prevents the mistake where a player
+    -- has the current clue selected, and thus accidentally replaces it with just '\n' when pressing 'Enter'
+    if currentEnteredClue[color] then
+      value = currentEnteredClue[color]
+      currentEnteredClue[color] = nil
+    end
 
     -- Reset the text box
     local resetInput = {
