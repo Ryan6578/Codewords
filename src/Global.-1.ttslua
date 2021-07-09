@@ -235,7 +235,7 @@ analytics =
 function onload(saveState)
 
   -- Codenames script version
-  version = "3.2.0"
+  version = "3.2.1"
 
   ----------[ Script object initialization ]----------
   -- Control panels and table objects

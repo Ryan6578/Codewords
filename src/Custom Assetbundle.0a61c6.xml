@@ -1130,7 +1130,7 @@
 <Panel id="redTurnBG" active="false" position="-2104 479 -100" width="1060" height="1656" color="rgba(0.856, 0.1, 0.094, 0.05)"></Panel>
 
 <!-- Credits / Versioning -->
-<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.2.0-beta (git-BETA)</Text>
+<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.2.1-beta (git-BETA)</Text>
 <Text position="3500 -3050 -100" fontSize="75" color="#3d3a39">Made with <textcolor color="#4c2936"><textsize size="85">♥</textsize></textcolor> by Rob Ford</Text>
 <Text position="0 2800 -100" fontSize="100" color="#ffffff">TTS-CODENAMES.COM</Text>
 <Text position="0 2600 -100" width="3000" fontSize="90" color="Yellow">Check out the brand new website above to browse through and create/edit your own custom TTS-Codenames decks!</Text>
