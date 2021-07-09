@@ -30,7 +30,8 @@
   <Row
     class="deckEntry"
     active="false"
-    preferredHeight="150">
+    color="#ffffff"
+    preferredHeight="175">
   </Row>
 
   <Button
@@ -53,6 +54,22 @@
     flexibleHeight="1">
   </VerticalLayout>
 
+  <VerticalLayout
+    class="deckImageLayout"
+    childForceExpandHeight="false"
+    childForceExpandWidth="false"
+    childAlignment="MiddleCenter"
+    flexibleHeight="1">
+  </VerticalLayout>
+
+  <Image
+    class="deckImage"
+    active="false"
+    preferredHeight="125"
+    preserveAspect="true"
+    raycastTarget="false">
+  </Image>
+
   <Text
     class="officialStar"
     fontSize="100"
@@ -67,9 +84,16 @@
 
   <Text
     class="deckName"
-    alignment="MiddleLeft"
+    alignment="LowerLeft"
     fontSize="40"
     fontStyle="Bold">
+  </Text>
+
+  <Text
+    class="deckAuthor"
+    alignment="UpperLeft"
+    fontSize="25"
+    color="Grey">
   </Text>
 
   <Text
@@ -292,12 +316,18 @@
 <!-- DECK SELECTOR -->
 <Panel
   class="settingsPanel"
+  width="850"
   position="0 -4400 -100">
 
   <VerticalLayout spacing="10" childForceExpandHeight="false">
 
     <Text class="panelHeader">Deck Selector</Text>
-    <InputField active="false" fontSize="30" placeholder="Search for a deck..." preferredHeight="50"></InputField>
+    <InputField id="deckSearch" fontSize="30" placeholder="Search for a deck..." preferredHeight="50" onValueChanged="searchDecks"></InputField>
+    <HorizontalLayout childForceExpandHeight="false" childForceExpandWidth="true" fontSize="30" preferredHeight="50">
+      <Button preferredHeight="50" fontSize="40" onClick="previousPage">«</Button>
+      <Text id="pageMarker" preferredHeight="50" fontSize="40" color="White">Page: 0 / 0</Text>
+      <Button preferredHeight="50" fontSize="40" onClick="nextPage">»</Button>
+    </HorizontalLayout>
 
     <VerticalScrollView flexibleHeight="1" scrollSensitivity="100">
       <TableLayout padding="15 15 10 10" cellSpacing="10" autoCalculateHeight="true" color="#23272a">
@@ -311,10 +341,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck1Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck1Name" class="deckName"></Text>
+                    <Text id="deck1Author" class="deckAuthor"></Text>
                     <Text id="deck1Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -332,10 +366,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck2Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck2Name" class="deckName"></Text>
+                    <Text id="deck2Author" class="deckAuthor"></Text>
                     <Text id="deck2Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -353,10 +391,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck3Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck3Name" class="deckName"></Text>
+                    <Text id="deck3Author" class="deckAuthor"></Text>
                     <Text id="deck3Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -374,10 +416,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck4Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck4Name" class="deckName"></Text>
+                    <Text id="deck4Author" class="deckAuthor"></Text>
                     <Text id="deck4Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -395,10 +441,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck5Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck5Name" class="deckName"></Text>
+                    <Text id="deck5Author" class="deckAuthor"></Text>
                     <Text id="deck5Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -416,10 +466,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck6Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck6Name" class="deckName"></Text>
+                    <Text id="deck6Author" class="deckAuthor"></Text>
                     <Text id="deck6Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -437,10 +491,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck7Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck7Name" class="deckName"></Text>
+                    <Text id="deck7Author" class="deckAuthor"></Text>
                     <Text id="deck7Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -458,10 +516,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck8Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck8Name" class="deckName"></Text>
+                    <Text id="deck8Author" class="deckAuthor"></Text>
                     <Text id="deck8Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -479,10 +541,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck9Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck9Name" class="deckName"></Text>
+                    <Text id="deck9Author" class="deckAuthor"></Text>
                     <Text id="deck9Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -500,10 +566,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck10Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck10Name" class="deckName"></Text>
+                    <Text id="deck10Author" class="deckAuthor"></Text>
                     <Text id="deck10Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -521,10 +591,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck11Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck11Name" class="deckName"></Text>
+                    <Text id="deck11Author" class="deckAuthor"></Text>
                     <Text id="deck11Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -542,10 +616,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck12Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck12Name" class="deckName"></Text>
+                    <Text id="deck12Author" class="deckAuthor"></Text>
                     <Text id="deck12Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -563,10 +641,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck13Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck13Name" class="deckName"></Text>
+                    <Text id="deck13Author" class="deckAuthor"></Text>
                     <Text id="deck13Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -584,10 +666,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck14Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck14Name" class="deckName"></Text>
+                    <Text id="deck14Author" class="deckAuthor"></Text>
                     <Text id="deck14Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -605,10 +691,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck15Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck15Name" class="deckName"></Text>
+                    <Text id="deck15Author" class="deckAuthor"></Text>
                     <Text id="deck15Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -626,10 +716,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck16Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck16Name" class="deckName"></Text>
+                    <Text id="deck16Author" class="deckAuthor"></Text>
                     <Text id="deck16Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -647,10 +741,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck17Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck17Name" class="deckName"></Text>
+                    <Text id="deck17Author" class="deckAuthor"></Text>
                     <Text id="deck17Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -668,10 +766,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck18Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck18Name" class="deckName"></Text>
+                    <Text id="deck18Author" class="deckAuthor"></Text>
                     <Text id="deck18Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -689,10 +791,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck19Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck19Name" class="deckName"></Text>
+                    <Text id="deck19Author" class="deckAuthor"></Text>
                     <Text id="deck19Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -710,10 +816,14 @@
                     <Text class="officialStar">★</Text>
                     <Text class="officialText">Official Deck</Text>
                   </VerticalLayout>
+                  <VerticalLayout class="deckImageLayout">
+                    <Image id="deck20Image" class="deckImage" />
+                  </VerticalLayout>
                 </Cell>
                 <Cell>
                   <VerticalLayout>
                     <Text id="deck20Name" class="deckName"></Text>
+                    <Text id="deck20Author" class="deckAuthor"></Text>
                     <Text id="deck20Description" class="deckDescription"></Text>
                   </VerticalLayout>
                 </Cell>
@@ -1014,21 +1124,13 @@
 <Panel position="3237 -1883 -100" width="11" height="235" color="White"/>
 
 <!-- Blue team turn -->
-<Panel id="blueTurnBG" active="false" position="2104 479 -100" width="1060" height="1656" color="rgba(0.118, 0.53, 1, 0.05)">
-</Panel>
+<Panel id="blueTurnBG" active="false" position="2104 479 -100" width="1060" height="1656" color="rgba(0.118, 0.53, 1, 0.05)"></Panel>
 
 <!-- Red team turn -->
-<Panel id="redTurnBG" active="false" position="-2104 479 -100" width="1060" height="1656" color="rgba(0.856, 0.1, 0.094, 0.05)">
-</Panel>
+<Panel id="redTurnBG" active="false" position="-2104 479 -100" width="1060" height="1656" color="rgba(0.856, 0.1, 0.094, 0.05)"></Panel>
 
 <!-- Credits / Versioning -->
-<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.1.0-BETA (git-BETA)</Text>
+<Text position="-3500 -3050 -100" fontSize="75" color="#3d3a39">Version 3.2.0-beta (git-BETA)</Text>
 <Text position="3500 -3050 -100" fontSize="75" color="#3d3a39">Made with <textcolor color="#4c2936"><textsize size="85">♥</textsize></textcolor> by Rob Ford</Text>
 <Text position="0 2800 -100" fontSize="100" color="#ffffff">TTS-CODENAMES.COM</Text>
-<Text position="0 2600 -100" width="3000" fontSize="90" color="Yellow">TTS-Codenames is hosting a Codenames tournament! Each winner receives a $15 Steam gift card. Find out more or register here: <textcolor color="#f4641d">https://tts-codenames.com/tournament</textcolor></Text>
-<Button position="0 2250 -100" color="Black" width="1000" height="350" onClick="reloadUI">
-  <VerticalLayout>
-    <Text color="Red" width="100%" alignment="LowerCenter" fontSize="75">TEMPORARY FIX</Text>
-    <Text color="White" width="100%" alignment="UpperCenter" fontSize="75">Click here to fix visual issues</Text>
-</VerticalLayout>
-</Button>
+<Text position="0 2600 -100" width="3000" fontSize="90" color="Yellow">Check out the brand new website above to browse through and create/edit your own custom TTS-Codenames decks!</Text>

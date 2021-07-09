@@ -50,6 +50,32 @@ function onSave()
   return JSON.encode(saveData)
 end
 
+function previousPage()
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  Global.call("previousPage")
+end
+
+function nextPage()
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  Global.call("nextPage")
+end
+
+function searchDecks(player, searchTerm)
+  if player.color == "Grey" or button ~= "-1" then
+    return
+  end
+
+  self.UI.setAttribute("deckSearch", "text", searchTerm)
+
+  Global.call("searchDecks", searchTerm)
+end
+
 function votePass(player)
   Global.call("votePass", player.color)
 end

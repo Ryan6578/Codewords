@@ -201,7 +201,25 @@ deck =
   multiple = false,
 
   -- The current words for the selected deck
-  words = nil
+  words = nil,
+
+  -- Total amount of decks available for query
+  totalDecks = 0,
+
+  -- Search term
+  searchTerm = nil,
+
+  -- Wait id of search delay
+  searchDelay = nil,
+
+  -- Current page size
+  pageSize = 10,
+
+  -- Current result page
+  pageNum = 0,
+
+  -- Tracks deck fetch requests
+  fetchingDecks = false
 }
 
 ----------[ Game analytics ]----------
@@ -217,7 +235,7 @@ analytics =
 function onload(saveState)
 
   -- Codenames script version
-  version = "3.0.0"
+  version = "3.2.0"
 
   ----------[ Script object initialization ]----------
   -- Control panels and table objects
@@ -279,12 +297,6 @@ function onload(saveState)
       })
     end, 1)
   end
-
-  -- TEMP: Reload the UI to fix TTS UI bugs
-  Wait.frames(function()
-    tableObject.UI.setXml(tableObject.UI.getXml())
-    reloadCardUI()
-  end, 180)
 
   -- Load save state - if one exists
   if saveState != "" then
@@ -450,6 +462,39 @@ function afkCheckLoop()
       end
     end
   end]]
+end
+
+function previousPage()
+  if (deck.pageNum - 1 < 0) or deck.fetchingDecks then
+    return
+  end
+
+  deck.pageNum = deck.pageNum - 1
+  api_getDecks()
+end
+
+function nextPage()
+  if (deck.pageNum + 1 > math.ceil(deck.totalDecks / deck.pageSize) - 1) or deck.fetchingDecks then
+    return
+  end
+
+  deck.pageNum = deck.pageNum + 1
+  api_getDecks()
+end
+
+function searchDecks(searchTerm)
+  deck.searchTerm = searchTerm
+
+  if deck.searchDelay then
+    Wait.stop(deck.searchDelay)
+    deck.searchDelay = nil
+  end
+
+  deck.searchDelay = Wait.time(function()
+    deck.pageNum = 0
+    api_getDecks()
+    deck.searchDelay = nil
+  end, 0.5)
 end
 
 function reloadCardUI()
@@ -679,6 +724,7 @@ function encodeClue(color, clue)
   finishedClue.setPosition({xPos, 1.5, (12 - ((#(color == "Red" and gameState.redClues or gameState.blueClues) % 8) * 2.05))})
   finishedClue.setRotation({0, 180, 0})
   finishedClue.setLock(false)
+  finishedClue.drag_selectable = false
   finishedClue.setLuaScript(
     "function onload()\n"
       .. "self.createButton({\n"
@@ -723,12 +769,6 @@ function onPlayerConnect(player)
       end
     end
   end)
-
-  -- TEMP: Reload the UI to fix TTS UI bugs
-  Wait.frames(function()
-    tableObject.UI.setXml(tableObject.UI.getXml())
-    reloadCardUI()
-  end, 180)
 end
 
 function onPlayerDisconnect(player)
@@ -1687,21 +1727,68 @@ function endTurn(button, color)
   end
 end
 
-function updateDecks(decks)
-  --gameStatus.deckList = decks
-  for deckNum, deckInfo in ipairs(decks) do
-    tableObject.UI.setAttribute("deck" .. deckNum .. "Button", "onClick", "setDeck(" .. deckInfo.id .. ")")
-    tableObject.UI.setAttribute("deck" .. deckNum .. "Official", "active", deckInfo.author == nil and true or false)
-    tableObject.UI.setAttributes("deck" .. deckNum .. "Name", {
-      text      = deckInfo.name,
-      alignment = (deckInfo.description == nil and "MiddleLeft" or "LowerLeft")
-    })
-    tableObject.UI.setAttributes("deck" .. deckNum .. "Description", {
-      text    = deckInfo.description,
-      active  = (deckInfo.description == nil and "false" or "true")
-    })
-    tableObject.UI.setAttribute("deck" .. deckNum, "active", true)
+function updateDecks(response)
+  local totalDecks  = response["decks"]["totalDecks"]
+  local deckList    = response["decks"]["deckList"]
+
+  deck.totalDecks = tonumber(totalDecks)
+
+  for i = 1, 20, 1 do
+    if deckList[i] then
+      tableObject.UI.setAttribute("deck" .. i .. "Button", "onClick", "setDeck(" .. deckList[i]["deckID"] .. ")")
+      -- Deck image
+      if deckList[i]["author"]["steamID"] == nil then
+        tableObject.UI.setAttribute("deck" .. i .. "Official", "active", true)
+        tableObject.UI.setAttribute("deck" .. i .. "Image", "active", false)
+      elseif deckList[i]["author"]["profilePicture"] then
+        tableObject.UI.setAttribute("deck" .. i .. "Official", "active", false)
+        local assets = UI.getCustomAssets()
+
+        local addCustomAsset = true
+        for _,asset in ipairs(assets) do
+          if asset["name"] == deckList[i]["author"]["steamID"] then
+            addCustomAsset = false
+            break
+          end
+        end
+        if addCustomAsset then
+          UI.setCustomAssets(table.insert(assets, {
+            name  = deckList[i]["author"]["steamID"],
+            url   = deckList[i]["author"]["profilePicture"]:gsub(".jpg", "_full.jpg")
+          }))
+        end
+        tableObject.UI.setAttributes("deck" .. i .. "Image", {
+          active  = true,
+          image   = deckList[i]["author"]["steamID"]
+        })
+      end
+
+      tableObject.UI.setAttributes("deck" .. i .. "Name", {
+        text      = deckList[i]["name"]
+      })
+      tableObject.UI.setAttributes("deck" .. i .. "Author", {
+        text    = (deckList[i]["author"]["displayName"] and ("by " .. deckList[i]["author"]["displayName"]) or "Official Deck")
+      })
+      tableObject.UI.setAttributes("deck" .. i .. "Description", {
+        text    = deckList[i]["description"],
+        active  = (deckList[i]["description"] == nil and "false" or "true")
+      })
+
+      tableObject.UI.setAttribute("deck" .. i .. "Button", "color", "#ffffff")
+      for deckIndex, deckGUID in ipairs(deck.selected) do
+        if deckGUID == deckList[i]["deckID"] then
+          tableObject.UI.setAttribute("deck" .. i .. "Button", "color", "#aaeaa7")
+          break
+        end
+      end
+
+      tableObject.UI.setAttribute("deck" .. i, "active", true)
+    else
+      tableObject.UI.setAttribute("deck" .. i, "active", false)
+    end
   end
+  tableObject.UI.setValue("pageMarker", "Page: " .. deck.pageNum + 1 .. " / " .. math.ceil(deck.totalDecks / deck.pageSize))
+  deck.fetchingDecks = false
 end
 
 -------------------------------------------------------------------------------
@@ -1734,7 +1821,8 @@ end
 
 -------------- /games/decks --------------
 function api_getDecks()
-  apiGet("/games/decks", api_getDecksCB)
+  deck.fetchingDecks = true
+  apiGet("/games/decks?pageSize=" .. deck.pageSize .. "&pageNum=" .. deck.pageNum .. (deck.searchTerm and ("&searchTerm=" .. deck.searchTerm) or ""), api_getDecksCB)
 end
 
 function api_getDecksCB(responseRaw)
@@ -1744,7 +1832,7 @@ function api_getDecksCB(responseRaw)
   end
 
   -- Update the deck selector
-  updateDecks(response.deckList)
+  updateDecks(response)
 end
 
 -------------- /games/player/blacklisted/:steamID --------------
