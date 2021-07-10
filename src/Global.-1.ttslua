@@ -235,7 +235,7 @@ analytics =
 function onload(saveState)
 
   -- Codenames script version
-  version = "3.2.1"
+  version = "3.2.3"
 
   ----------[ Script object initialization ]----------
   -- Control panels and table objects
@@ -495,15 +495,6 @@ function searchDecks(searchTerm)
     api_getDecks()
     deck.searchDelay = nil
   end, 0.5)
-end
-
-function reloadCardUI()
-  for cardIndex, cardData in ipairs(cards) do
-    local cardObject = getObjectFromGUID(cardData.guid)
-    if cardObject ~= nil then
-      cardObject.UI.setXml(cardObject.UI.getXml())
-    end
-  end
 end
 
 function clueEntered(player, value)
@@ -1430,7 +1421,6 @@ function onObjectPickUp(color, object)
 end
 
 function onPlayerAction(player, action, objects)
-
   local processAction     = false
   local actionsToProcess  = {
     Player.Action.PickUp,
@@ -1596,19 +1586,6 @@ function onChat(message, player)
     end
     printToAll(player.steam_name .. " has stood " .. Player[color].steam_name .. ".", redColor)
     Player[color].changeColor("Grey")
-    ranCommand = true
-  elseif command == "!reload" then
-    tableObject.UI.setXml(tableObject.UI.getXml())
-    reloadCardUI()
-    printToAll(player.steam_name .. " has reloaded the UI!", redColor)
-    ranCommand = true
-  elseif command == "!cinematic" then
-    player.lookAt({
-      position = {0, 0, 0},
-      pitch    = 90,
-      yaw      = 0,
-      distance = 55
-    })
     ranCommand = true
   end
 
