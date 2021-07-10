@@ -67,7 +67,7 @@ function nextPage(player, button)
 end
 
 function searchDecks(player, searchTerm)
-  if player.color == "Grey" or button ~= "-1" then
+  if player.color == "Grey" then
     return
   end
 
