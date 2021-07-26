@@ -279,7 +279,7 @@ for code = 448, 451 do
    illegalCharacters[code] = true
 end
 -- symbols
-for code = 688, 879 do
+for code = 688, 767 do
   illegalCharacters[code] = true
 end
 -- include hyphens
