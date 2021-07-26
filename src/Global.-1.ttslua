@@ -15,6 +15,7 @@
   You should have received a copy of the GNU General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
 ]]
+playerNeedsHelp = {}
 
 chatDisclaimer =
 [[
@@ -274,7 +275,7 @@ for _, code in pairs({215, 247}) do
   illegalCharacters[code] = true
 end
 -- symbols
-for code = 448, 435 do
+for code = 448, 451 do
    illegalCharacters[code] = true
 end
 -- symbols
@@ -847,7 +848,23 @@ function encodeClue(color, clue)
   printToAll("[a020f0]» " .. (color == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's clue is: " .. (color == "Red" and "[da1918]" or "[1f87ff]") .. clue .. " [a020f0]«")
   for _, playerColor in ipairs(broadcastTo) do
     Player[playerColor].broadcast("[a020f0]» [ffffff]Your clue is: " .. (color == "Red" and "[da1918]" or "[1f87ff]") .. clue .. " [a020f0]«")
+    if Player[playerColor].steam_id and playerNeedsHelp[Player[playerColor].steam_id] then
+      Player[playerColor].lookAt({position = {x=color == "Red" and -3 or 8,y=0,z=0}, pitch = 75, yaw = 0, distance = 40})
+    end
   end
+  tableObject.AssetBundle.playTriggerEffect(0)
+end
+
+function onBlindfold(player, blindfolded)
+	if blindfolded then
+		if playerNeedsHelp[player.steam_id] == nil then
+			playerNeedsHelp[player.steam_id] = Time.time
+			player.broadcast("Center camera on clue: ON")
+		else
+			playerNeedsHelp[player.steam_id] = nil
+			player.broadcast("Center camera on clue: OFF")
+		end
+	end
 end
 
 function onObjectEnterContainer(deck, card)
@@ -1108,6 +1125,8 @@ function setupGame()
   tableObject.UI.setAttribute(currentTurn, "active", true)
   tableObject.UI.setAttribute(previousTurn .. "BG", "active", false)
   tableObject.UI.setAttribute(currentTurn .. "BG", "active", true)
+  tableObject.UI.setAttribute(previousTurn .. "Square", "active", false)
+  tableObject.UI.setAttribute(currentTurn .. "Square", "active", true)
   tableObject.UI.setAttribute("timer", "outline", teamColorTurn)
   printToAll("[a020f0]» " .. (teamColorTurn == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's turn! [a020f0]«")
 
@@ -1741,7 +1760,7 @@ function processChat(message)
     end
   end
 
-  return command, args:gsub("^%s*(.-)%s*$", "%1")
+  return command, args:gsub("^%s*(.*)%s*$", "%1")
 end
 
 function toggleTurns()
@@ -1806,6 +1825,8 @@ function toggleTurns()
   tableObject.UI.setAttribute(currentTurn, "active", true)
   tableObject.UI.setAttribute(previousTurn .. "BG", "active", false)
   tableObject.UI.setAttribute(currentTurn .. "BG", "active", true)
+  tableObject.UI.setAttribute(previousTurn .. "Square", "active", false)
+  tableObject.UI.setAttribute(currentTurn .. "Square", "active", true)
   tableObject.UI.setAttribute("timer", "outline", teamColorTurn)
   printToAll("[a020f0]» " .. (teamColorTurn == "Red" and "[da1918]RED" or "[1f87ff]BLUE") .. " [ffffff]team's turn! [a020f0]«")
 
