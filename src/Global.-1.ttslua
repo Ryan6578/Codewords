@@ -234,6 +234,20 @@ analytics =
 }
 
 ----------[ Character sets ]----------
+
+digits_table = {
+[0]={48,1632,1776,1984,2406,2534,2662,2790,2918,3046,3174,3302,3430,3558,3664,3792,3872,4160,4240,6112,6160,6470,6608,6784,6800,6992,7088,7232,7248,42528,43216,43264,43472,43504,43600,44016,65296},
+[1]={49,1633,1777,1985,2407,2535,2663,2791,2919,3047,3175,3303,3431,3559,3665,3793,3873,4161,4241,6113,6161,6471,6609,6785,6801,6993,7089,7233,7249,42529,43217,43265,43473,43505,43601,44017,65297},
+[2]={50,1634,1778,1986,2408,2536,2664,2792,2920,3048,3176,3304,3432,3560,3666,3794,3874,4162,4242,6114,6162,6472,6610,6786,6802,6994,7090,7234,7250,42530,43218,43266,43474,43506,43602,44018,65298},
+[3]={51,1635,1779,1987,2409,2537,2665,2793,2921,3049,3177,3305,3433,3561,3667,3795,3875,4163,4243,6115,6163,6473,6611,6787,6803,6995,7091,7235,7251,42531,43219,43267,43475,43507,43603,44019,65299},
+[4]={52,1636,1780,1988,2410,2538,2666,2794,2922,3050,3178,3306,3434,3562,3668,3796,3876,4164,4244,6116,6164,6474,6612,6788,6804,6996,7092,7236,7252,42532,43220,43268,43476,43508,43604,44020,65300},
+[5]={53,1637,1781,1989,2411,2539,2667,2795,2923,3051,3179,3307,3435,3563,3669,3797,3877,4165,4245,6117,6165,6475,6613,6789,6805,6997,7093,7237,7253,42533,43221,43269,43477,43509,43605,44021,65301},
+[6]={54,1638,1782,1990,2412,2540,2668,2796,2924,3052,3180,3308,3436,3564,3670,3798,3878,4166,4246,6118,6166,6476,6614,6790,6806,6998,7094,7238,7254,42534,43222,43270,43478,43510,43606,44022,65302},
+[7]={55,1639,1783,1991,2413,2541,2669,2797,2925,3053,3181,3309,3437,3565,3671,3799,3879,4167,4247,6119,6167,6477,6615,6791,6807,6999,7095,7239,7255,42535,43223,43271,43479,43511,43607,44023,65303},
+[8]={56,1640,1784,1992,2414,2542,2670,2798,2926,3054,3182,3310,3438,3566,3672,3800,3880,4168,4248,6120,6168,6478,6616,6792,6808,7000,7096,7240,7256,42536,43224,43272,43480,43512,43608,44024,65304},
+[9]={57,1641,1785,1993,2415,2543,2671,2799,2927,3055,3183,3311,3439,3567,3673,3801,3881,4169,4249,6121,6169,6479,6617,6793,6809,7001,7097,7241,7257,42537,43225,43273,43481,43513,43609,44025,65305}
+}
+
 spaceCharacters = {}
 for _, code in pairs({32,160,5760,6158,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8203,8239,8287,12288,65279}) do
   spaceCharacters[code] = true
@@ -245,12 +259,14 @@ for _, code in pairs({45,8208,8209,8210,8211,8212,8213,11834,11835,65112,65123,6
 end
 
 digitCharacters = {}
-for code = 0x30, 0x39 do
-  digitCharacters[code] = true
+for digit, arr in pairs(digits_table) do
+  for _, code in pairs(arr) do
+    digitCharacters[code] = tostring(digit) -- strings are interpreted as 'true' for boolean expressions, even empty ones
+  end
 end
 
 whitespaceCharacters = {}
-for _, code in pairs({9,10,11,12,13}) do
+for _, code in pairs({9,10,11,12,13,28,29,30,31,133,8232,8233}) do
   whitespaceCharacters[code] = true
 end
 for code, _ in pairs(spaceCharacters) do
@@ -286,8 +302,12 @@ end
 for code, _ in pairs(hyphenCharacters) do
   illegalCharacters[code] = true
 end
--- include space characters
-for code, _ in pairs(spaceCharacters) do
+-- include whitespace characters
+for code, _ in pairs(whitespaceCharacters) do
+  illegalCharacters[code] = true
+end
+-- include digit characters
+for code, _ in pairs(digitCharacters) do
   illegalCharacters[code] = true
 end
 
@@ -592,12 +612,6 @@ function clueEntered(player, value)
       return
     end
 
-    -- if the clue is long, dont bother processing it
-    if #value > 50 then
-      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Invalid clue. Please enter a valid clue and push ENTER! [a020f0]«", redColor)
-      return
-    end
-
     -- if the game hasn't been started, a clue cannot be entered
     if gameState.status ~= 1 then
       Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]You must start a game to enter a clue! [a020f0]«")
@@ -607,6 +621,12 @@ function clueEntered(player, value)
     -- Make sure that it's the current codemaster's turn
     if (color == "Blue" and gameState.turnTracker == 0) or (color == "Red" and gameState.turnTracker == 1) then
       Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to enter a clue! [a020f0]«")
+      return
+    end
+
+    -- if the clue is long, dont bother processing it
+    if #value > 50 then
+      Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]Invalid clue. Please enter a valid clue and push ENTER! [a020f0]«")
       return
     end
 
@@ -665,7 +685,8 @@ function getClueDetails(processedClue)
   clueState.INF_WHITESPACE = 5 -- inf must have 1 space before clue
   clueState.PRE_CLUE_WHITESPACE = 6 -- this state allows for 1 hyphen
   clueState.CLUE = 7 -- the clue allows 1 hyphen
-  clueState.POST_WHITESPACE = 8
+  clueState.CLUE_ON_HYPHEN = 8
+  clueState.POST_WHITESPACE = 9
 
   local clue = ""
   local number = ""
@@ -685,7 +706,7 @@ function getClueDetails(processedClue)
         number = "inf"
       elseif digitCharacters[code] then
         state = clueState.NUMBER
-        number = ch..number
+        number = digitCharacters[code]..number
       elseif whitespaceCharacters[code] then
         -- continue
       else
@@ -705,7 +726,7 @@ function getClueDetails(processedClue)
       end
     elseif state == clueState.NUMBER then
       if digitCharacters[code] then
-        number = ch..number
+        number = digitCharacters[code]..number
       elseif whitespaceCharacters[code] then
         state = clueState.PRE_CLUE_WHITESPACE
       elseif hyphenCharacters[code] then
@@ -739,15 +760,23 @@ function getClueDetails(processedClue)
         hyphenCount = 0
         clue = ch..clue
       end
-    elseif state == clueState.CLUE then
+    elseif state == clueState.CLUE or state == clueState.CLUE_ON_HYPHEN then
       if whitespaceCharacters[code] then
+        if state == clueState.CLUE_ON_HYPHEN then
+          invalid = true
+        end
         state = clueState.POST_WHITESPACE
-      elseif hyphenCharacters[code] and hyphenCount < 1 and ind != 1 then
+      elseif hyphenCharacters[code] then
+        state = clueState.CLUE_ON_HYPHEN
         hyphenCount = hyphenCount + 1
+        if hyphenCount > 1 then
+          invalid = true
+        end
         clue = ch..clue
       elseif illegalCharacters[code] then
         invalid = true
       else
+        state = clueState.CLUE
         clue = ch..clue
       end
     elseif state == clueState.POST_WHITESPACE then
@@ -762,12 +791,13 @@ function getClueDetails(processedClue)
 
     if invalid then
       -- This is an invalid clue
+      -- print("c:", clue, " n:", number, " i:", ind, " ch:", ch, " code:", code, " state:", state)
       return nil, nil, true
     end
   end
 
-  if clue == "" then
-    -- This is an invalid clue
+  if not (state == clueState.CLUE or state == clueState.POST_WHITESPACE) or clue == "" then
+    -- We either ended on a hyphen or did not receive a parsable clue
     return nil, nil, true
   end
 
