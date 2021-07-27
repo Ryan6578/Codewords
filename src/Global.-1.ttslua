@@ -648,6 +648,9 @@ function clueEntered(player, value)
       return
     end
 
+    -- Standardize clue to lowercase
+    clue = clue:lower()
+
     -- Don't allow a clue that isn't covered
     for cardIndex, cardData in ipairs(cards) do
       if not cardData.covered and cardData.value:lower() == clue:lower() then
