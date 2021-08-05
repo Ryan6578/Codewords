@@ -667,6 +667,7 @@ function updateQueue()
 end
 
 function shufflePlayers()
+  -- This function shuffles players using the minimal number of possible movements
 
   -- Whether or not the codemaster queue is enabled
   local queueEnabled = Global.call("getQueue")
@@ -674,91 +675,92 @@ function shufflePlayers()
   -- Colors to use when sitting people
   local colorPool =
   {
-    "Blue",
     "Red",
-    "Teal",
+    "Blue",
     "Orange",
-    "Purple",
+    "Teal",
     "Yellow",
-    "Green",
+    "Purple",
     "Pink",
-    "White",
-    "Brown"
+    "Green",
+    "Brown",
+    "White"
   }
-  local colors = {}
 
-  -- Get all current seated players to shuffle and stand them
-  local seatedPlayers = {}
+  local colorIndex = {}
+  for i, c in pairs(colorPool) do
+    colorIndex[c] = i
+  end
+
+  local shuffledPlayers = {}
+  local codemasterPlayers = {}
+
+  -- Get first two seated players from queue
+  if queueEnabled then
+    local nextInQueue, nextPlayer
+    while #shuffledPlayers < 2 and #queue > 0 and not codemasterPlayers[queue[1].steam_id] do
+      nextInQueue = table.remove(queue, 1)
+      nextPlayer = findPlayerBySteamID(nextInQueue.steam_id)
+      if nextPlayer ~= nil and nextPlayer.color ~= "Grey" and nextPlayer.color ~= "Black" and not nextPlayer.blindfolded then
+          table.insert(shuffledPlayers, math.random(1, #shuffledPlayers + 1), nextPlayer)
+          codemasterPlayers[nextPlayer.steam_id] = true
+        if nextInQueue.stay then
+          table.insert(queue,nextInQueue)
+        end
+      else
+        nextPlayer.broadcast("[a020f0]» [ffffff]You were removed from the codemaster queue because you were either not sitting for your turn or were AFK! [a020f0]«")
+      end
+    end
+  end
+  local codemaster_count = #shuffledPlayers
+
+  -- Get all current seated players and randomly assign them to the colour pool
+  -- Their index in shuffledPlayers matches their future seat colour of colorPool
   for _, player in ipairs(Player.getPlayers()) do
-    if player.color ~= "Grey" and player.color ~= "Black" then
-      table.insert(seatedPlayers, player)
-      player.changeColor("Grey")
-      coroutine.yield(0)
-
-      -- Add a color to the list of colors
-      table.insert(colors, (#seatedPlayers % 2 == 0) and table.remove(colorPool, 1) or table.remove(colorPool, math.random(1, 2)))
+    if player.color ~= "Grey" and player.color ~= "Black" and not codemasterPlayers[player.steam_id] then
+      table.insert(shuffledPlayers, math.random(codemaster_count + 1, #shuffledPlayers + 1), player)
     end
   end
 
-  local requeue = {}
-  local numCodemasters = 0
+  -- Put all players in their respective seats with minimal movement
+  local moveToLookup = {}
+  for i = 1, #shuffledPlayers do
+    moveToLookup[shuffledPlayers[i].color] = i
+  end
+  while next(shuffledPlayers) ~= nil do
+    local ind, player = next(shuffledPlayers)
+    if colorPool[ind] != player.color then
 
-  while #seatedPlayers > 0 do
-    local nextPlayer
-    if queueEnabled and numCodemasters < 2 and #queue > 0 then
-      -- Draw from the queue first
-      local nextInQueue
-      while #queue > 0 do
-        nextInQueue = table.remove(queue, 1)
-        nextPlayer = findPlayerBySteamID(nextInQueue.steam_id)
-
-        if nextPlayer ~= nil then
-          -- Check to see they were seated
-          local seated = false
-          for i, player in ipairs(seatedPlayers) do
-            if player.steam_id == nextPlayer.steam_id then
-              seated = true
-              table.remove(seatedPlayers, i)
-              break
-            end
-          end
-
-          if seated and not nextPlayer.blindfolded then
-            if nextInQueue.stay then
-              table.insert(requeue, nextPlayer)
-            end
-            -- We found a valid player - break
-            numCodemasters = numCodemasters + 1
-            break
-          else
-            nextPlayer.broadcast("[a020f0]» [ffffff]You were removed from the codemaster queue because you were either not sitting for your turn or were AFK! [a020f0]«")
-          end
+      -- Iterate through destination seats to find an empty seat or to find a cyclic loop of people who want each other's seat
+      local currentInd = ind
+      while moveToLookup[colorPool[currentInd]] != nil do
+        currentInd = moveToLookup[colorPool[currentInd]]
+        if currentInd == ind then
+          -- We have a cyclic loop, grey the player sitting in currentInd and continue from there
+          shuffledPlayers[moveToLookup[colorPool[currentInd]]].changeColor("Grey")
+          coroutine.yield(0)
+          break
         end
       end
-    elseif #seatedPlayers > 0 then
-      nextPlayer = table.remove(seatedPlayers, math.random(1, #seatedPlayers))
+
+      -- Iterate backwards giving each person in the chain their seat.
+      -- currentInd is now the index of an empty seat.
+      while shuffledPlayers[currentInd] != nil do
+        player = shuffledPlayers[currentInd]
+        shuffledPlayers[currentInd] = nil
+        player.changeColor(colorPool[currentInd])
+        coroutine.yield(0)
+        currentInd = colorIndex[player.color]
+      end
     else
-      -- No more players to seat
-      break
+      shuffledPlayers[ind] = nil
     end
-
-    -- Seat the next player
-    nextPlayer.changeColor(table.remove(colors, 1))
-    coroutine.yield(0)
-  end
-
-  -- Requeue players if unnecessary
-  for _, requeuePlayer in ipairs(requeue) do
-    table.insert(queue, {
-      steam_id   = requeuePlayer.steam_id,
-      steam_name = requeuePlayer.steam_name,
-      stay       = true
-    })
   end
   updateQueue()
   Global.call("api_gameStart")
   return 1
 end
+
 
 function swapCodemasters()
 
