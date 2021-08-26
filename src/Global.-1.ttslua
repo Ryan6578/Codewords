@@ -290,7 +290,7 @@ for _, code in pairs({215, 247}) do
   illegalCharacters[code] = true
 end
 -- symbols
-for code = 448, 435 do
+for code = 448, 451 do
    illegalCharacters[code] = true
 end
 -- symbols
@@ -1774,7 +1774,7 @@ function processChat(message)
     end
   end
 
-  return command, args:gsub("^%s*(.-)%s*$", "%1")
+  return command, args:gsub("^%s*(.*)%s*$", "%1")
 end
 
 function toggleTurns()
