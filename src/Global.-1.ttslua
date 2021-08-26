@@ -273,30 +273,22 @@ for code, _ in pairs(spaceCharacters) do
 end
 
 illegalCharacters   = {}
--- before uppercase letters
-for code = 0, 64 do
-  illegalCharacters[code] = true
-end
--- before lowercase letters
-for code = 91, 96 do
-  illegalCharacters[code] = true
-end
--- before accented letters
-for code = 123, 191 do
-  illegalCharacters[code] = true
-end
--- multiplication and division sign
-for _, code in pairs({215, 247}) do
-  illegalCharacters[code] = true
-end
--- symbols
-for code = 448, 451 do
-   illegalCharacters[code] = true
-end
--- symbols
-for code = 688, 767 do
-  illegalCharacters[code] = true
-end
+-- put several character ranges into the illegalCharacters table
+local illegalCharacterRanges = 
+          {
+            {0, 64},    -- before uppercase letters
+            {91, 96},   -- before lowercase letters
+            {123, 191}, -- before accented letters
+            {215, 215}, {247, 247}, -- multiplication and division sign
+            {448, 451}, -- symbols
+            {688, 767}, -- symbols
+          }
+for _, range in pairs(illegalCharacterRanges) do
+  local code_st, code_end = table.unpack(range)
+  for code = code_st, code_end do 
+    illegalCharacters[code] = true
+  end
+end                                                 
 -- include hyphens
 for code, _ in pairs(hyphenCharacters) do
   illegalCharacters[code] = true
