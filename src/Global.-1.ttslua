@@ -731,6 +731,16 @@ function isCodenamesCard(obj)
   return false
 end
 
+function isCodenamesClue(obj)
+  if obj.type == "Board" then
+    butts = obj.getButtons()
+    if butts != nil and #butts == 2 and butts[1].click_function == "clue" and butts[2].click_function == "nullFunction" then
+      return true
+    end
+  end
+  return false
+end
+
 function onObjectEnterContainer(container, object)
   -- if the displaced object is a codenames card then delete the container and refresh the cards
   if isCodenamesCard(object) then
@@ -928,12 +938,9 @@ function resetGame()
   end
 
   -- Delete clue tiles
-  for _, clueList in ipairs({gameState.redClues, gameState.blueClues}) do
-    for _, clue in ipairs(clueList) do
-      local clueTile = getObjectFromGUID(clue)
-      if clueTile then
-        clueTile.destruct()
-      end
+  for _, obj in pairs(getObjects()) do
+    if isCodenamesClue(obj) then
+      obj.destruct()
     end
   end
 
@@ -1449,11 +1456,18 @@ function onPlayerAction(player, action, objects)
     -- if there is an ongoing game and a card is deleted then refresh the cards
     for _, obj in pairs(objects) do
       if gameState.status == 1 and isCodenamesCard(obj) then
+        -- Delete word cards and refresh them
         dealCardsDelayed()
-        break
+        obj.destruct()
+      elseif agents[obj.guid] ~= nil then
+        -- Do not delete any agents
+      else
+        -- Delete any other objects in the action
+        obj.destruct()
       end
     end
-    return
+    -- Prevent deletion of selected objects as we have already delete only what was allowed
+    return false
   end
 
   local objectIncludesCard = false
