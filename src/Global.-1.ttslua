@@ -659,15 +659,6 @@ function getClueDetails(processedClue)
   end
 end
 
-function rotateclues()
-  for cardIndex, cardData in ipairs(cards) do
-    local card = getObjectFromGUID(cardData.guid)
-    if card.interactable then
-      card.setRotation({0, 180, 0})
-    end
-  end
-end
-
 function encodeClue(color, clue)
   local finishedClue
   local cluePosition
