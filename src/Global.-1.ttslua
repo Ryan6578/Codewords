@@ -996,6 +996,7 @@ function setupGame()
 
   -- Set the correct double card to red
   extraCard.setLock(false)
+  extraCard.setRotation({0, 180, 180})
   extraCard.setPositionSmooth(agents[extraCard.guid].position)
   extraCard.interactable = true
   agents[extraCard.guid].enabled = true
@@ -1099,6 +1100,9 @@ function onObjectDrop(color, agent)
   local cardIndex = findClosestCard(1.65, agent.getPosition())
   if cardIndex == nil or cards[cardIndex].covered then
     -- Either no close card found, or card is already covered
+    agent.setAngularVelocity({0, 0, 0})
+    agent.setVelocity({0, 0, 0})
+    agent.setRotation({0, 180, 180})
     agent.setPositionSmooth(agents[agent.guid].position)
     return
   end
@@ -1107,6 +1111,9 @@ function onObjectDrop(color, agent)
   local agentColor = agents[agent.guid].color
   local cardColor = cards[cardIndex].color
   if cardColor ~= agentColor then
+    agent.setAngularVelocity({0, 0, 0})
+    agent.setVelocity({0, 0, 0})
+    agent.setRotation({0, 180, 180})
     agent.setPositionSmooth(agents[agent.guid].position)
     Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. cardColor .. " card. [a020f0]«")
     return
@@ -1429,6 +1436,7 @@ function onObjectPickUp(color, object)
   if object.type == "Card" and not object.spawning then
     for i = 1, 25, 1 do
       if cards[i].guid == object.guid then
+        object.setAngularVelocity({0, 0, 0})
         object.setVelocity({0, 0, 0})
         object.drop()
         object.setPosition({cards[i].position.x, 1.03, cards[i].position.z})
@@ -1441,8 +1449,10 @@ function onObjectPickUp(color, object)
   elseif agents[object.guid] ~= nil then
     -- Prevent picking up of agent tiles from anyone but red or blue
     if color ~= "Red" and color ~= "Blue" then
+      object.setAngularVelocity({0, 0, 0})
       object.setVelocity({0, 0, 0})
       object.drop()
+      object.setRotation({0, 180, 180})
       object.setPosition({agents[object.guid].position.x, 1.01, agents[object.guid].position.z})
     end
   end
