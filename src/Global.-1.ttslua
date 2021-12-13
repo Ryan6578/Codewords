@@ -1091,7 +1091,7 @@ end
 
 function onObjectDrop(color, agent)
   -- Ensure that the dropped object is an agent card
-  if gameState.status ~= 1 or agent.tag ~= "Tile" or agents[agent.guid] == nil then
+  if gameState.status ~= 1 or agent.type ~= "Tile" or agents[agent.guid] == nil then
     return
   end
 
@@ -1426,7 +1426,7 @@ end
 
 function onObjectPickUp(color, object)
   -- Clues
-  if object.tag == "Card" and not object.spawning then
+  if object.type == "Card" and not object.spawning then
     for i = 1, 25, 1 do
       if cards[i].guid == object.guid then
         object.setVelocity({0, 0, 0})
