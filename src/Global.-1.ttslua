@@ -790,7 +790,7 @@ function onPlayerChangeColor(color)
     for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
       if not Player[playerColor].seated and voteData ~= 0 then
         local card = voteData
-        voteData = 0
+        votes[gameState.turnTracker][playerColor] = 0
         updateVoteUI(card)
       end
     end
@@ -865,6 +865,21 @@ function setDeck(deckID)
   end
 end
 
+function clearAllVotes()
+  local cardsToUpdate = {}
+  for turnNum, team in pairs(votes) do
+    for seatColor, vote in pairs(team) do
+      if vote != 0 then
+        cardsToUpdate[vote] = true
+        votes[turnNum][seatColor] = 0
+      end
+    end
+  end
+  for card, _ in pairs(cardsToUpdate) do
+    updateVoteUI(card)
+  end
+end
+
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function startGame(player)
   -- Check to see whether a new game is currently being set up
@@ -934,11 +949,7 @@ function resetGame()
   end
 
   -- Reset team votes
-  for turnNum, team in pairs(votes) do
-    for seatColor, vote in pairs(team) do
-      votes[turnNum][seatColor] = 0
-    end
-  end
+  clearAllVotes()
 
   -- Reset game state variables
   gameState.firstTurn   = true
@@ -1214,20 +1225,8 @@ function playerVote(color, card)
   end
 
   if votePassed then
-    -- Remove all vote indicators and reset votes
-    local cardsToClear = {}
-    for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-      -- Update the vote UI first
-      if voteData ~= 0 then
-        table.insert(cardsToClear, voteData)
-        votes[gameState.turnTracker][playerColor] = 0
-      end
-    end
-
-    for _, card in ipairs(cardsToClear) do
-      updateVoteUI(card)
-    end
-
+    clearAllVotes()
+    
     -- Vote passed to pass turn
     if card == 26 then
       toggleTurns()
@@ -1345,6 +1344,9 @@ end
 
 function updateVoteUI(card)
   local uiObject = card == 26 and tableObject or getObjectFromGUID(cards[card].guid)
+  if uiObject == nil then
+    return
+  end
 
   local votesToAdd = {}
   for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
@@ -1505,6 +1507,8 @@ function isCard(guid)
 end
 
 function endGame()
+  clearAllVotes()
+
   -- Disable voting for any teams
   gameState.canVote = false
 
@@ -1628,19 +1632,7 @@ function toggleTurns()
   -- Diable voting for the current team
   gameState.canVote = false
 
-  -- Remove all vote indicators and reset votes
-  local cardsToClear = {}
-  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-    -- Update the vote UI first
-    if voteData ~= 0 then
-      table.insert(cardsToClear, voteData)
-      votes[gameState.turnTracker][playerColor] = 0
-    end
-  end
-
-  for _, card in ipairs(cardsToClear) do
-    updateVoteUI(card)
-  end
+  clearAllVotes()
 
   -- Disable card tilting
   for _, card in ipairs(cards) do
