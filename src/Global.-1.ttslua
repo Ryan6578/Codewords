@@ -1513,6 +1513,16 @@ function onPlayerAction(player, action, objects)
         end
       end
     end
+    local hasCards = false
+    for _, obj in pairs(objects) do
+      if isCard(obj.guid) then
+        obj.removeFromPlayerSelection(player.color)
+        hasCards = true
+      end
+    end
+    if hasCards then
+      return false
+    end
   elseif action == Player.Action.RotateIncrementalLeft or action == Player.Action.RotateIncrementalRight or action == Player.Action.RotateOver then
     if objectIncludesCard and not isPlayerTurn then
       errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't tilt cards when it's not your turn! [a020f0]«"
