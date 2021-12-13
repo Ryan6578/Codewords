@@ -742,13 +742,6 @@ function onObjectEnterContainer(container, object)
   end
 end
 
-function onObjectDestroy(obj)
-  -- if there is an ongoing game and a card is deleted then refresh the cards
-  if gameState.status == 1 and isCodenamesCard(obj) then
-    dealCardsDelayed()
-  end
-end
-
 function onPlayerConnect(player)
   -- Send analytics disclaimer
   player.print(chatDisclaimer, {1, 1, 1})
@@ -1019,6 +1012,12 @@ end
 
 -- Deals the cards on the board
 function dealCards()
+  -- check all objects to delete unused codenames cards
+  for _, obj in pairs(getObjects()) do
+    if isCodenamesCard(obj) and not isCard(obj.guid) then
+      obj.destruct()
+    end
+  end
   for i = 1, 25, 1 do
     local cardObject = getObjectFromGUID(cards[i].guid)
     if cards[i].guid == nil or cardObject == nil then
@@ -1422,33 +1421,6 @@ function votePass(color)
   playerVote(color, 26)
 end
 
-function onObjectPickUp(color, object)
-  -- Clues
-  if object.type == "Card" and not object.spawning then
-    for i = 1, 25, 1 do
-      if cards[i].guid == object.guid then
-        object.setAngularVelocity({0, 0, 0})
-        object.setVelocity({0, 0, 0})
-        object.drop()
-        object.setPosition({cards[i].position.x, 1.03, cards[i].position.z})
-        if #Player[color].getSelectedObjects() <= 1 then
-          playerVote(color, i)
-        end
-        break
-      end
-    end
-  elseif agents[object.guid] ~= nil then
-    -- Prevent picking up of agent tiles from anyone but red or blue
-    if color ~= "Red" and color ~= "Blue" then
-      object.setAngularVelocity({0, 0, 0})
-      object.setVelocity({0, 0, 0})
-      object.drop()
-      object.setRotation({0, 180, 180})
-      object.setPosition({agents[object.guid].position.x, 1.01, agents[object.guid].position.z})
-    end
-  end
-end
-
 function onPlayerAction(player, action, objects)
   local processAction     = false
   local actionsToProcess  = {
@@ -1458,7 +1430,8 @@ function onPlayerAction(player, action, objects)
     Player.Action.RotateOver,
     Player.Action.FlipIncrementalLeft,
     Player.Action.FlipIncrementalRight,
-    Player.Action.FlipOver
+    Player.Action.FlipOver,
+    Player.Action.Delete
   }
 
   for _, handledAction in ipairs(actionsToProcess) do
@@ -1469,6 +1442,17 @@ function onPlayerAction(player, action, objects)
   end
 
   if not processAction then
+    return
+  end
+  
+  if action == Player.Action.Delete then
+    -- if there is an ongoing game and a card is deleted then refresh the cards
+    for _, obj in pairs(objects) do
+      if gameState.status == 1 and isCodenamesCard(obj) then
+        dealCardsDelayed()
+        break
+      end
+    end
     return
   end
 
@@ -1503,6 +1487,17 @@ function onPlayerAction(player, action, objects)
       errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to vote! [a020f0]«"
     elseif settings.cardTilting and gameState.status == 1 and not gameState.canVote then
       errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't vote until you've been given a clue! [a020f0]«"
+    end
+    if #objects == 1 and objects[1].type == "Card" and not objects[1].spawning then
+      object = objects[1]
+      for i = 1, 25, 1 do
+        if cards[i].guid == object.guid then
+          if #player.getSelectedObjects() <= 1 then
+            playerVote(player.color, i)
+          end
+          return false
+        end
+      end
     end
   elseif action == Player.Action.RotateIncrementalLeft or action == Player.Action.RotateIncrementalRight or action == Player.Action.RotateOver then
     if objectIncludesCard and not isPlayerTurn then
