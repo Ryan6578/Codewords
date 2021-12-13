@@ -730,11 +730,31 @@ function encodeClue(color, clue)
   end
 end
 
-function onObjectEnterContainer(deck, card)
-  -- First to check that we only do this on the first grouping
-  if #deck.getObjects() == 2 then
-    deck.destruct()
-    Wait.frames(function() dealCards() end, 180)
+function isCodenamesCard(obj)
+  if obj.type == "Card" then
+    vals = obj.getCustomObject()
+    if vals.face != nil and string.find(vals.face,"codenames")then
+      return true
+    end
+  end
+  return false
+end
+
+function onObjectEnterContainer(container, object)
+  -- if the displaced object is a codenames card then delete the container and refresh the cards
+  if isCodenamesCard(object) then
+    -- Check whether container is being destroyed so we only do this once for multiple deposited objects
+    if not container.isDestroyed() then
+      container.destruct()
+      dealCardsDelayed()
+    end
+  end
+end
+
+function onObjectDestroy(obj)
+  -- if there is an ongoing game and a card is deleted then refresh the cards
+  if gameState.status == 1 and isCodenamesCard(obj) then
+    dealCardsDelayed()
   end
 end
 
@@ -995,6 +1015,14 @@ function setupGame()
 
   -- Start the timer
   gameState.firstTurn = true
+end
+
+dealCards_WaitId = nil
+function dealCardsDelayed()
+  if dealCards_WaitId != nil then
+    Wait.stop(dealCards_WaitId)
+  end
+  dealCards_WaitId = Wait.time(dealCards,1.5,1)
 end
 
 -- Deals the cards on the board
@@ -2005,3 +2033,4 @@ function api_playerSessionEndCB(responseRaw)
     end
   end
 end
+
