@@ -879,6 +879,11 @@
           <Cell><Toggle id="tilting" class="settingToggle" isOn="false" onValueChanged="tilting()"></Toggle></Cell>
         </Row>
 
+        <Row class="settingRow">
+          <Cell><Text class="settingText">Multiple Votes Per Player</Text></Cell>
+          <Cell><Toggle id="multivoting" class="settingToggle" isOn="false" onValueChanged="multivoting()"></Toggle></Cell>
+        </Row>
+
         <Row class="subcategoryRow">
           <Text class="subcategoryText">AFK Settings</Text>
         </Row>

@@ -163,6 +163,9 @@ settings =
   -- Disable/Enable "inf meta"
   cardTilting = false,
 
+  -- Allow multiple votes per player
+  multivoting = false,
+
   -- Show shooting star background
   starBackground = true,
 
@@ -333,7 +336,6 @@ function onload(saveState)
     local decodedSaveState = JSON.decode(saveState)
 
     -- TODO:
-      -- votes
       -- currently selected decks
       -- table ui elements
 
@@ -407,10 +409,11 @@ function getQueue() return settings.codemasterQueue end
 function setSwitcher(enabled) settings.colorSwitcher = enabled end
 function getSwitcher() return settings.colorSwitcher end
 
-function setTilting(enabled)
-  settings.cardTilting = enabled
-end
+function setTilting(enabled) settings.cardTilting = enabled end
 function getTilting() return settings.cardTilting end
+
+function setMultivoting(enabled) settings.multivoting = enabled end
+function getMultivoting() return settings.multivoting end
 
 function setAfk(enabled)
   settings.afkDetection.enabled = enabled
@@ -1237,10 +1240,23 @@ function playerVote(color, card)
   end
 
   local ind = findInArray(card,votes[gameState.turnTracker][color])
+  if not settings.multivoting then
+    -- Remove all of player's other votes
+    local cardsToUpdate = {}
+    for _, card in pairs(votes[gameState.turnTracker][color]) do
+      cardsToUpdate[card] = true
+    end
+    votes[gameState.turnTracker][color] = {}
+    for card, _ in pairs(cardsToUpdate) do
+      updateVoteUI(card)
+    end
+  end
   if ind != nil then
-    -- Remove this player's vote
-    table.remove(votes[gameState.turnTracker][color],ind)
-    updateVoteUI(card)
+    if settings.multivoting then
+      -- Remove this player's vote
+      table.remove(votes[gameState.turnTracker][color],ind)
+      updateVoteUI(card)
+    end
   else
     -- Add the player's vote
     table.insert(votes[gameState.turnTracker][color],card)

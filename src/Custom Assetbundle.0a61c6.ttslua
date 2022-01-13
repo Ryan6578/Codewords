@@ -110,6 +110,7 @@ function updateSettings()
   queues(nil,      Global.call("getQueue") == true and "True" or "False")
   switcher(nil,    Global.call("getSwitcher") == true and "True" or "False")
   tilting(nil,     Global.call("getTilting") == true and "True" or "False")
+  multivoting(nil, Global.call("getMultivoting") == true and "True" or "False")
   --afk(player)
   --afkTime(player)
   timer(nil,       Global.call("getTimer") == true and "True" or "False")
@@ -341,6 +342,39 @@ function tilting(player, enabled)
 
   -- Update the view for everyone
   self.UI.setAttribute("tilting", "isOn", toboolean(enabled))
+end
+
+function multivoting(player, enabled)
+  if player ~= nil and not player.admin then
+    self.UI.setAttribute("multivoting", "isOn", self.UI.getAttribute("multivoting", "isOn"))
+    player.broadcast("[a020f0]» [da1918]ERROR: [ffffff]Only promoted players may change game settings! [a020f0]«")
+    return
+  end
+
+  -- Handle in the Global script
+  Global.call("setMultivoting", toboolean(enabled))
+
+  -- Update the view for everyone
+  self.UI.setAttribute("multivoting", "isOn", toboolean(enabled))
+  
+  -- Put or remove multivoting message on the table
+  if toboolean(enabled) then
+    local text = spawnObject({
+     position = {x=0, y=0.961133063, z=-4.9},
+     rotation = {90.0,0,0.0},
+     type = "3DText"
+    })
+    text.TextTool.setValue("MULTIVOTING ENABLED")
+    text.TextTool.setFontColor("Orange")
+    text.TextTool.setFontSize(80)
+  else
+    for _, o in pairs(getObjects()) do
+      if o.type ==  "3D Text" and o.TextTool.getValue() == "MULTIVOTING ENABLED" then
+        o.destruct()
+      end
+    end
+  end
+  
 end
 
 function afk(player)
