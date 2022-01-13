@@ -1136,6 +1136,15 @@ function onObjectDrop(color, agent)
 
   coverCard(cardIndex, agent.guid)
 
+  -- Remove votes on the card
+  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+    local ind = findInArray(cardIndex,voteData)
+    if ind != nil then
+      table.remove(votes[gameState.turnTracker][playerColor],ind)
+    end
+  end
+  updateVoteUI(cardIndex)
+
   -- Send analytics data for the guess
   local players = ""
   local correct = ((gameState.turnTracker == 0 and cardColor == "Red") or (gameState.turnTracker == 1 and cardColor == "Blue")) and "TRUE" or "FALSE"
@@ -1249,15 +1258,6 @@ function playerVote(color, card)
     end
 
     if votePassed then
-      -- Remove votes on the card
-      for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-        ind = findInArray(card,voteData)
-        if ind != nil then
-          table.remove(votes[gameState.turnTracker][playerColor],ind)
-        end
-      end
-
-      updateVoteUI(card)
 
       -- Vote passed to pass turn
       if card == 26 then
@@ -1271,6 +1271,15 @@ function playerVote(color, card)
 
       -- Cover the card
       coverCard(card, nil)
+
+      -- Remove votes on the card
+      for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+        local ind = findInArray(card,voteData)
+        if ind != nil then
+          table.remove(votes[gameState.turnTracker][playerColor],ind)
+        end
+      end
+      updateVoteUI(card)
 
       -- Send analytics data for the guess
       local players = ""
@@ -1379,6 +1388,7 @@ function coverCard(cardIndex, agentGUID)
 
       cardObject.setPositionSmooth(position)
       agentObject.setPositionSmooth(position)
+
       break
     end
   end
