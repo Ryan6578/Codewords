@@ -734,7 +734,7 @@ end
 function isCodenamesClue(obj)
   if obj.type == "Board" then
     butts = obj.getButtons()
-    if butts != nil and #butts == 2 and butts[1].click_function == "clue" and butts[2].click_function == "nullFunction" then
+    if butts != nil and (#butts == 1 and butts[1].click_function == "nullFunction" or #butts == 2 and butts[1].click_function == "clue") and butts[1].scale == Vector(2, 2, 1.3333) and butts[1].position == Vector(0,0.2,0) then
       return true
     end
   end
