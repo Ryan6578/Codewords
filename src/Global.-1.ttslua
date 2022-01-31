@@ -1013,8 +1013,9 @@ dealCards_WaitId = nil
 function dealCardsDelayed()
   if dealCards_WaitId != nil then
     Wait.stop(dealCards_WaitId)
+    dealCards_WaitId = nil
   end
-  dealCards_WaitId = Wait.time(dealCards,1.5,1)
+  dealCards_WaitId = Wait.time(dealCards,2.5,1)
 end
 
 -- Deals the cards on the board
