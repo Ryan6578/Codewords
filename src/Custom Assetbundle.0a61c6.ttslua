@@ -777,7 +777,7 @@ function swapCodemasters()
 
     if nextPlayer ~= nil then
       -- Check to see they were seated
-      if nextPlayer.seated and not nextPlayer.blindfolded then
+      if nextPlayer.color != "Grey" and nextPlayer.color != "Black" and not nextPlayer.blindfolded then
         if nextInQueue.stay then
           table.insert(requeue, nextPlayer)
         end
