@@ -659,15 +659,6 @@ function getClueDetails(processedClue)
   end
 end
 
-function rotateclues()
-  for cardIndex, cardData in ipairs(cards) do
-    local card = getObjectFromGUID(cardData.guid)
-    if card.interactable then
-      card.setRotation({0, 180, 0})
-    end
-  end
-end
-
 function encodeClue(color, clue)
   local finishedClue
   local cluePosition
@@ -730,11 +721,34 @@ function encodeClue(color, clue)
   end
 end
 
-function onObjectEnterContainer(deck, card)
-  -- First to check that we only do this on the first grouping
-  if #deck.getObjects() == 2 then
-    deck.destruct()
-    Wait.frames(function() dealCards() end, 180)
+function isCodenamesCard(obj)
+  if obj.type == "Card" then
+    vals = obj.getCustomObject()
+    if vals.face != nil and string.find(vals.face,"codenames")then
+      return true
+    end
+  end
+  return false
+end
+
+function isCodenamesClue(obj)
+  if obj.type == "Board" then
+    butts = obj.getButtons()
+    if butts != nil and (#butts == 1 and butts[1].click_function == "nullFunction" or #butts == 2 and butts[1].click_function == "clue") and butts[1].scale == Vector(2, 2, 1.3333) and butts[1].position == Vector(0,0.2,0) then
+      return true
+    end
+  end
+  return false
+end
+
+function onObjectEnterContainer(container, object)
+  -- if the displaced object is a codenames card then delete the container and refresh the cards
+  if isCodenamesCard(object) then
+    -- Check whether container is being destroyed so we only do this once for multiple deposited objects
+    if not container.isDestroyed() then
+      container.destruct()
+      dealCardsDelayed()
+    end
   end
 end
 
@@ -924,12 +938,9 @@ function resetGame()
   end
 
   -- Delete clue tiles
-  for _, clueList in ipairs({gameState.redClues, gameState.blueClues}) do
-    for _, clue in ipairs(clueList) do
-      local clueTile = getObjectFromGUID(clue)
-      if clueTile then
-        clueTile.destruct()
-      end
+  for _, obj in pairs(getObjects()) do
+    if isCodenamesClue(obj) then
+      obj.destruct()
     end
   end
 
@@ -976,6 +987,7 @@ function setupGame()
 
   -- Set the correct double card to red
   extraCard.setLock(false)
+  extraCard.setRotation({0, 180, 180})
   extraCard.setPositionSmooth(agents[extraCard.guid].position)
   extraCard.interactable = true
   agents[extraCard.guid].enabled = true
@@ -997,8 +1009,23 @@ function setupGame()
   gameState.firstTurn = true
 end
 
+dealCards_WaitId = nil
+function dealCardsDelayed()
+  if dealCards_WaitId != nil then
+    Wait.stop(dealCards_WaitId)
+    dealCards_WaitId = nil
+  end
+  dealCards_WaitId = Wait.time(dealCards,2.5,1)
+end
+
 -- Deals the cards on the board
 function dealCards()
+  -- check all objects to delete unused codenames cards
+  for _, obj in pairs(getObjects()) do
+    if isCodenamesCard(obj) and not isCard(obj.guid) then
+      obj.destruct()
+    end
+  end
   for i = 1, 25, 1 do
     local cardObject = getObjectFromGUID(cards[i].guid)
     if cards[i].guid == nil or cardObject == nil then
@@ -1063,7 +1090,7 @@ end
 
 function onObjectDrop(color, agent)
   -- Ensure that the dropped object is an agent card
-  if gameState.status ~= 1 or agent.tag ~= "Tile" or agents[agent.guid] == nil then
+  if gameState.status ~= 1 or agent.type ~= "Tile" or agents[agent.guid] == nil then
     return
   end
 
@@ -1071,6 +1098,9 @@ function onObjectDrop(color, agent)
   local cardIndex = findClosestCard(1.65, agent.getPosition())
   if cardIndex == nil or cards[cardIndex].covered then
     -- Either no close card found, or card is already covered
+    agent.setAngularVelocity({0, 0, 0})
+    agent.setVelocity({0, 0, 0})
+    agent.setRotation({0, 180, 180})
     agent.setPositionSmooth(agents[agent.guid].position)
     return
   end
@@ -1079,6 +1109,9 @@ function onObjectDrop(color, agent)
   local agentColor = agents[agent.guid].color
   local cardColor = cards[cardIndex].color
   if cardColor ~= agentColor then
+    agent.setAngularVelocity({0, 0, 0})
+    agent.setVelocity({0, 0, 0})
+    agent.setRotation({0, 180, 180})
     agent.setPositionSmooth(agents[agent.guid].position)
     Player[color].broadcast("[a020f0]» [da1918]ERROR: [ffffff]An agent has been placed incorrectly. You placed a " .. agentColor .. " agent on a " .. cardColor .. " card. [a020f0]«")
     return
@@ -1396,30 +1429,6 @@ function votePass(color)
   playerVote(color, 26)
 end
 
-function onObjectPickUp(color, object)
-  -- Clues
-  if object.tag == "Card" and not object.spawning then
-    for i = 1, 25, 1 do
-      if cards[i].guid == object.guid then
-        object.setVelocity({0, 0, 0})
-        object.drop()
-        object.setPosition({cards[i].position.x, 1.03, cards[i].position.z})
-        if #Player[color].getSelectedObjects() <= 1 then
-          playerVote(color, i)
-        end
-        break
-      end
-    end
-  elseif agents[object.guid] ~= nil then
-    -- Prevent picking up of agent tiles from anyone but red or blue
-    if color ~= "Red" and color ~= "Blue" then
-      object.setVelocity({0, 0, 0})
-      object.drop()
-      object.setPosition({agents[object.guid].position.x, 1.01, agents[object.guid].position.z})
-    end
-  end
-end
-
 function onPlayerAction(player, action, objects)
   local processAction     = false
   local actionsToProcess  = {
@@ -1429,7 +1438,8 @@ function onPlayerAction(player, action, objects)
     Player.Action.RotateOver,
     Player.Action.FlipIncrementalLeft,
     Player.Action.FlipIncrementalRight,
-    Player.Action.FlipOver
+    Player.Action.FlipOver,
+    Player.Action.Delete
   }
 
   for _, handledAction in ipairs(actionsToProcess) do
@@ -1441,6 +1451,24 @@ function onPlayerAction(player, action, objects)
 
   if not processAction then
     return
+  end
+  
+  if action == Player.Action.Delete then
+    -- if there is an ongoing game and a card is deleted then refresh the cards
+    for _, obj in pairs(objects) do
+      if gameState.status == 1 and isCodenamesCard(obj) then
+        -- Delete word cards and refresh them
+        dealCardsDelayed()
+        obj.destruct()
+      elseif agents[obj.guid] ~= nil then
+        -- Do not delete any agents
+      else
+        -- Delete any other objects in the action
+        obj.destruct()
+      end
+    end
+    -- Prevent deletion of selected objects as we have already delete only what was allowed
+    return false
   end
 
   local objectIncludesCard = false
@@ -1474,6 +1502,27 @@ function onPlayerAction(player, action, objects)
       errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]It's not your turn to vote! [a020f0]«"
     elseif settings.cardTilting and gameState.status == 1 and not gameState.canVote then
       errorMessage = "[a020f0]» [da1918]ERROR: [ffffff]You can't vote until you've been given a clue! [a020f0]«"
+    end
+    if #objects == 1 and objects[1].type == "Card" and not objects[1].spawning then
+      object = objects[1]
+      for i = 1, 25, 1 do
+        if cards[i].guid == object.guid then
+          if #player.getSelectedObjects() <= 1 then
+            playerVote(player.color, i)
+          end
+          return false
+        end
+      end
+    end
+    local hasCards = false
+    for _, obj in pairs(objects) do
+      if isCard(obj.guid) then
+        obj.removeFromPlayerSelection(player.color)
+        hasCards = true
+      end
+    end
+    if hasCards then
+      return false
     end
   elseif action == Player.Action.RotateIncrementalLeft or action == Player.Action.RotateIncrementalRight or action == Player.Action.RotateOver then
     if objectIncludesCard and not isPlayerTurn then
@@ -2005,3 +2054,4 @@ function api_playerSessionEndCB(responseRaw)
     end
   end
 end
+
