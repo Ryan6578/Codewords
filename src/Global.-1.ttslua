@@ -110,16 +110,16 @@ agents = {
 
 votes = {
   [0] = {
-    ["Orange"]  = 0,
-    ["Yellow"]  = 0,
-    ["Pink"]    = 0,
-    ["Brown"]   = 0
+    ["Orange"]  = {},
+    ["Yellow"]  = {},
+    ["Pink"]    = {},
+    ["Brown"]   = {}
   },
   [1] = {
-    ["Teal"]    = 0,
-    ["Purple"]  = 0,
-    ["Green"]   = 0,
-    ["White"]   = 0
+    ["Teal"]    = {},
+    ["Purple"]  = {},
+    ["Green"]   = {},
+    ["White"]   = {}
   }
 }
 
@@ -162,6 +162,9 @@ settings =
 
   -- Disable/Enable "inf meta"
   cardTilting = false,
+
+  -- Allow multiple votes per player
+  multivoting = false,
 
   -- Show shooting star background
   starBackground = true,
@@ -232,6 +235,36 @@ analytics =
   sessions  = {}
 }
 
+function findInArray(val,arr,cmp_func) --cmp_func is optional, a function with two arguments that returns a boolean value
+  -- returns the index of the value in the table
+  if type(arr) ~= "table" then
+    return nil
+  end
+  if cmp_func ~= nil then
+    if type(cmp_func) == "function" then
+      for i, v in pairs(arr) do
+        success, res = pcall(cmp_func,v,val)
+        if success then
+          if res == true then
+            return i
+          end
+        else
+          error("findInArray:custom compare function failed with error:"..tostring(res))
+        end
+      end
+    else
+      error("findInArray:custom compare function is not a function or does not have 2 arguments.")
+    end
+  else
+    for i, v in pairs(arr) do
+      if v == val then
+        return i
+      end
+    end
+  end
+  return nil
+end
+
 function onload(saveState)
 
   -- Codenames script version
@@ -271,7 +304,7 @@ function onload(saveState)
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
   })
 
-	buttonRed.createButton({
+  buttonRed.createButton({
   label="[END TURN]", click_function="endTurn", function_owner=self,
     position={0,-0.15,0}, rotation={0,90,0}, height=1000, width=2000, font_size=10
   })
@@ -303,7 +336,6 @@ function onload(saveState)
     local decodedSaveState = JSON.decode(saveState)
 
     -- TODO:
-      -- votes
       -- currently selected decks
       -- table ui elements
 
@@ -377,10 +409,11 @@ function getQueue() return settings.codemasterQueue end
 function setSwitcher(enabled) settings.colorSwitcher = enabled end
 function getSwitcher() return settings.colorSwitcher end
 
-function setTilting(enabled)
-  settings.cardTilting = enabled
-end
+function setTilting(enabled) settings.cardTilting = enabled end
 function getTilting() return settings.cardTilting end
+
+function setMultivoting(enabled) settings.multivoting = enabled end
+function getMultivoting() return settings.multivoting end
 
 function setAfk(enabled)
   settings.afkDetection.enabled = enabled
@@ -787,12 +820,17 @@ function onPlayerChangeColor(color)
 
   -- Reset the player's vote (if necessary)
   if gameState.status == 1 then
+    local cardsToUpdate = {}
     for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-      if not Player[playerColor].seated and voteData ~= 0 then
-        local card = voteData
-        voteData = 0
-        updateVoteUI(card)
+      if Player[playerColor].steam_id == nil and #voteData ~= 0 then
+        for _, card in pairs(voteData) do
+          cardsToUpdate[card] = true
+        end
+        votes[gameState.turnTracker][playerColor] = {}
       end
+    end
+    for card, _ in pairs(cardsToUpdate) do
+      updateVoteUI(card)
     end
   end
 
@@ -865,6 +903,21 @@ function setDeck(deckID)
   end
 end
 
+function clearAllVotes()
+  local cardsToUpdate = {}
+  for turnNum, team in pairs(votes) do
+    for seatColor, voteData in pairs(team) do
+      for _, v in pairs(voteData) do
+        cardsToUpdate[v] = true
+      end
+      votes[turnNum][seatColor] = {}
+    end
+  end
+  for card, _ in pairs(cardsToUpdate) do
+    updateVoteUI(card)
+  end
+end
+
 -- Restrict newGame permissions to Red/Blue/Promoted/Host
 function startGame(player)
   -- Check to see whether a new game is currently being set up
@@ -934,11 +987,7 @@ function resetGame()
   end
 
   -- Reset team votes
-  for turnNum, team in pairs(votes) do
-    for seatColor, vote in pairs(team) do
-      votes[turnNum][seatColor] = 0
-    end
-  end
+  clearAllVotes()
 
   -- Reset game state variables
   gameState.firstTurn   = true
@@ -1090,6 +1139,15 @@ function onObjectDrop(color, agent)
 
   coverCard(cardIndex, agent.guid)
 
+  -- Remove votes on the card
+  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+    local ind = findInArray(cardIndex,voteData)
+    if ind != nil then
+      table.remove(votes[gameState.turnTracker][playerColor],ind)
+    end
+  end
+  updateVoteUI(cardIndex)
+
   -- Send analytics data for the guess
   local players = ""
   local correct = ((gameState.turnTracker == 0 and cardColor == "Red") or (gameState.turnTracker == 1 and cardColor == "Blue")) and "TRUE" or "FALSE"
@@ -1181,136 +1239,144 @@ function playerVote(color, card)
     return
   end
 
-  if votes[gameState.turnTracker][color] == 0 then
-    votes[gameState.turnTracker][color] = card
-    updateVoteUI(card)
-  else
-    if votes[gameState.turnTracker][color] == card then
+  local ind = findInArray(card,votes[gameState.turnTracker][color])
+  if not settings.multivoting then
+    -- Remove all of player's other votes
+    local cardsToUpdate = {}
+    for _, card in pairs(votes[gameState.turnTracker][color]) do
+      cardsToUpdate[card] = true
+    end
+    votes[gameState.turnTracker][color] = {}
+    for card, _ in pairs(cardsToUpdate) do
+      updateVoteUI(card)
+    end
+  end
+  if ind != nil then
+    if settings.multivoting then
       -- Remove this player's vote
-      votes[gameState.turnTracker][color] = 0
-      updateVoteUI(card)
-    else
-      -- Switch the player's current vote to this card
-      local previous = votes[gameState.turnTracker][color]
-      votes[gameState.turnTracker][color] = card
-      updateVoteUI(previous)
+      table.remove(votes[gameState.turnTracker][color],ind)
       updateVoteUI(card)
     end
-  end
-
-  -- Check to see if a vote has passed
-  local votePassed = false
-  local voteCard = nil
-  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-    if Player[playerColor].seated and not Player[playerColor].blindfolded then
-      if (voteCard == nil and voteData ~= 0) or voteData == voteCard then
-        votePassed = true
-        voteCard = voteData
-      else
-        votePassed = false
-        break
-      end
-    end
-  end
-
-  if votePassed then
-    -- Remove all vote indicators and reset votes
-    local cardsToClear = {}
+  else
+    -- Add the player's vote
+    table.insert(votes[gameState.turnTracker][color],card)
+    updateVoteUI(card)
+    
+    -- Check to see if the card now has a passing vote
+    local votePassed = false
     for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-      -- Update the vote UI first
-      if voteData ~= 0 then
-        table.insert(cardsToClear, voteData)
-        votes[gameState.turnTracker][playerColor] = 0
+    if Player[playerColor].seated and not Player[playerColor].blindfolded then
+        votePassed = findInArray(card,voteData) != nil
+        if votePassed == false then
+          break
+        end
       end
     end
 
-    for _, card in ipairs(cardsToClear) do
+    if votePassed then
+
+      -- Vote passed to pass turn
+      if card == 26 then
+        toggleTurns()
+        return
+      end
+
+      -- Card has been marked correctly
+      gameState.guessesLeft = gameState.guessesLeft - 1
+      cards[card].covered = true
+
+      -- Cover the card
+      coverCard(card, nil)
+
+      -- Remove votes on the card
+      for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+        local ind = findInArray(card,voteData)
+        if ind != nil then
+          table.remove(votes[gameState.turnTracker][playerColor],ind)
+        end
+      end
       updateVoteUI(card)
-    end
 
-    -- Vote passed to pass turn
-    if card == 26 then
-      toggleTurns()
-      return
-    end
-
-    -- Card has been marked correctly
-    gameState.guessesLeft = gameState.guessesLeft - 1
-    cards[card].covered = true
-
-    -- Cover the card
-    coverCard(card, nil)
-
-    -- Send analytics data for the guess
-    local players = ""
-    local correct = ((gameState.turnTracker == 0 and cards[card].color == "Red") or (gameState.turnTracker == 1 and cards[card].color == "Blue")) and "TRUE" or "FALSE"
-    for color,_ in pairs(votes[gameState.turnTracker]) do
-      if Player[color].seated then
-        players = players .. ((players == "") and Player[color].steam_id or (',' .. Player[color].steam_id))
+      -- Send analytics data for the guess
+      local players = ""
+      local correct = ((gameState.turnTracker == 0 and cards[card].color == "Red") or (gameState.turnTracker == 1 and cards[card].color == "Blue")) and "TRUE" or "FALSE"
+      for color,_ in pairs(votes[gameState.turnTracker]) do
+        if Player[color].seated then
+          players = players .. ((players == "") and Player[color].steam_id or (',' .. Player[color].steam_id))
+        end
       end
-    end
-    api_clueGuess(players, cards[card].id, correct, cards[card].color:upper())
+      api_clueGuess(players, cards[card].id, correct, cards[card].color:upper())
 
-    local messageColor = {
-      ["Red"] = "da1918",
-      ["Blue"] = "1f87ff",
-      ["White"] = "ffffff",
-      ["Black"] = "191919"
-    }
-
-    if correct == "TRUE" then
-      -- Play the correct sound effect
-      tableObject.AssetBundle.playTriggerEffect(0)
-      printToAll("[a020f0]» [31b32b][✓] [" .. messageColor[cards[card].color] .. "]" .. cards[card].color:upper() .. " [ffffff]team has correctly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
-    else
-      -- Play the wrong sound effect
-      tableObject.AssetBundle.playTriggerEffect(1)
-      local guessingTeam = gameState.turnTracker == 0 and "Red" or "Blue"
-      printToAll("[a020f0]» [da1918][✗] [" .. messageColor[guessingTeam] .. "]" .. guessingTeam:upper() .. " [ffffff]team has incorrectly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
-    end
-
-    -- Check to see if either red or blue won
-    local redWon = true
-    local blueWon = true
-    for i = 1, 25, 1 do
-      if cards[i].color == "Red" and not cards[i].covered then
-        redWon = false
-      elseif cards[i].color == "Blue" and not cards[i].covered then
-        blueWon = false
+      local messageColor = {
+        ["Red"] = "da1918",
+        ["Blue"] = "1f87ff",
+        ["White"] = "ffffff",
+        ["Black"] = "191919"
+      }
+      if correct == "TRUE" then
+        -- Play the correct sound effect
+        tableObject.AssetBundle.playTriggerEffect(0)
+        printToAll("[a020f0]» [31b32b][✓] [" .. messageColor[cards[card].color] .. "]" .. cards[card].color:upper() .. " [ffffff]team has correctly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
+      else
+        -- Play the wrong sound effect
+        tableObject.AssetBundle.playTriggerEffect(1)
+        local guessingTeam = gameState.turnTracker == 0 and "Red" or "Blue"
+        printToAll("[a020f0]» [da1918][✗] [" .. messageColor[guessingTeam] .. "]" .. guessingTeam:upper() .. " [ffffff]team has incorrectly guessed: [" .. messageColor[cards[card].color]  .."]" .. cards[card].value:upper() .. " [a020f0]«")
       end
 
-      if not redWon and not blueWon then
-        -- Skip unnecessary iterations
-        break
-      end
-    end
+      -- Check to see if either red or blue won
+      local redWon = true
+      local blueWon = true
+      for i = 1, 25, 1 do
+        if cards[i].color == "Red" and not cards[i].covered then
+          redWon = false
+        elseif cards[i].color == "Blue" and not cards[i].covered then
+          blueWon = false
+        end
 
-    if cards[card].color == "Black" or blueWon or redWon then
-      -- End game scenario
-
-      if (cards[card].color == "Black" and gameState.turnTracker == 0) or blueWon then
-        -- Red placed black card, blue wins
-        -- or blue placed all of their cards
-        broadcastToAll("[a020f0]» [1f87ff]BLUE [ffffff]team wins! [a020f0]«")
-        api_gameEnd("BLUE")
-      elseif (cards[card].color == "Black" and gameState.turnTracker == 1) or redWon then
-        -- Blue placed black card, red wins
-        -- or red placed all of their cards
-        broadcastToAll("[a020f0]» [da1918]RED [ffffff]team wins! [a020f0]«")
-        api_gameEnd("RED")
+        if not redWon and not blueWon then
+          -- Skip unnecessary iterations
+          break
+        end
       end
 
-      -- Move the remaining agents to their codes
-      endGame()
+      if cards[card].color == "Black" or blueWon or redWon then
+        -- End game scenario
 
-    elseif gameState.guessesLeft == 0 or cards[card].color == "White" or (cards[card].color == "Red" and gameState.turnTracker == 1) or (cards[card].color == "Blue" and gameState.turnTracker == 0) then
-      toggleTurns()
-    else
-      -- Show the pass turn button and change color
-      tableObject.UI.setAttributes("passTurn", {
-        color = gameState.turnTracker == 0 and "#da1918" or "#1f87ff",
-        active = true
-      })
+        if (cards[card].color == "Black" and gameState.turnTracker == 0) or blueWon then
+          -- Red placed black card, blue wins
+          -- or blue placed all of their cards
+          broadcastToAll("[a020f0]» [1f87ff]BLUE [ffffff]team wins! [a020f0]«")
+          api_gameEnd("BLUE")
+        elseif (cards[card].color == "Black" and gameState.turnTracker == 1) or redWon then
+          -- Blue placed black card, red wins
+          -- or red placed all of their cards
+          broadcastToAll("[a020f0]» [da1918]RED [ffffff]team wins! [a020f0]«")
+          api_gameEnd("RED")
+        end
+
+        -- Move the remaining agents to their codes
+        endGame()
+
+      elseif gameState.guessesLeft == 0 or cards[card].color == "White" or (cards[card].color == "Red" and gameState.turnTracker == 1) or (cards[card].color == "Blue" and gameState.turnTracker == 0) then
+        toggleTurns()
+        local cardsToClear = {}
+        for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
+          for _, card in pairs(voteData) do
+            cardsToClear[card] = true
+          end
+          votes[gameState.turnTracker][playerColor] = {}
+        end
+        for card, _ in pairs(cardsToClear) do
+          updateVoteUI(card)
+        end        
+      else
+        -- Show the pass turn button and change color
+        tableObject.UI.setAttributes("passTurn", {
+          color = gameState.turnTracker == 0 and "#da1918" or "#1f87ff",
+          active = true
+        })
+      end
     end
   end
 end
@@ -1338,6 +1404,7 @@ function coverCard(cardIndex, agentGUID)
 
       cardObject.setPositionSmooth(position)
       agentObject.setPositionSmooth(position)
+
       break
     end
   end
@@ -1345,10 +1412,13 @@ end
 
 function updateVoteUI(card)
   local uiObject = card == 26 and tableObject or getObjectFromGUID(cards[card].guid)
+  if uiObject == nil then
+    return
+  end
 
   local votesToAdd = {}
   for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-    if voteData == card then
+    if findInArray(card,voteData) != nil then
       votesToAdd[playerColor] = true
     end
   end
@@ -1364,7 +1434,7 @@ function updateVoteUI(card)
   -- Keep the order of the current votes
   for voteIndex, voteColor in ipairs(votesOnCard) do
     if voteColor ~= "Black" then
-      if votes[gameState.turnTracker][voteColor] == card then
+      if findInArray(card,votes[gameState.turnTracker][voteColor]) != nil then
         table.insert(newVotes, voteColor)
         votesToAdd[voteColor] = nil
       end
@@ -1505,6 +1575,8 @@ function isCard(guid)
 end
 
 function endGame()
+  clearAllVotes()
+
   -- Disable voting for any teams
   gameState.canVote = false
 
@@ -1628,19 +1700,7 @@ function toggleTurns()
   -- Diable voting for the current team
   gameState.canVote = false
 
-  -- Remove all vote indicators and reset votes
-  local cardsToClear = {}
-  for playerColor, voteData in pairs(votes[gameState.turnTracker]) do
-    -- Update the vote UI first
-    if voteData ~= 0 then
-      table.insert(cardsToClear, voteData)
-      votes[gameState.turnTracker][playerColor] = 0
-    end
-  end
-
-  for _, card in ipairs(cardsToClear) do
-    updateVoteUI(card)
-  end
+  clearAllVotes()
 
   -- Disable card tilting
   for _, card in ipairs(cards) do
